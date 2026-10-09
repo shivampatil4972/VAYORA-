@@ -1,0 +1,27 @@
+# secrets
+.env
+
+# Java
+core-api/target/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Node
+node_modules/
+web/dist/
+
+# data and model artefacts
+*.osm.pbf
+*.osrm*
+data/
+
+# editors and OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
