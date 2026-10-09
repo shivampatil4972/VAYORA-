@@ -61,12 +61,30 @@ rebuild from scratch: `docker compose down && docker volume rm journex_osrmdata`
 | `intel/`       | FastAPI, Python 3.11                                       |
 | `gateway/`     | Express 4 + Socket.IO 4, JWT verification                  |
 | `web/`         | Vite + React 18 + TypeScript + Tailwind                    |
+| `journex_events/` | Python event-log writer and vocabulary                  |
 | `sim/`         | Simulator                                                  |
 | `experiments/` | Experiment configs — every tunable number lives here       |
 | `docs/`        | Report material and figures                                |
 
+## Event log
+
+Every number in the report is a SQL aggregate over one table, `events`
+(`core-api/src/main/resources/db/migration/V2__create_events.sql`). Two writers share
+it and share a fixed 22-event vocabulary:
+
+- `core-api` — `EventLogService.write(type, payload)`. Never throws into its caller.
+- `journex_events` — Python `EventWriter`, batched with `COPY`. Fails loudly.
+
+The metric queries are in `experiments/analysis/metrics.sql`; the headline one is
+`primary_metric`, completed rides per 100 searches by seed.
+
 ## Tests
 
 ```sh
+docker compose run --rm research          # Python: event writer + metric queries
+docker compose run --rm core-api-tests    # Java: core-api, with Testcontainers
 cd gateway && npm ci && npm test
 ```
+
+The Python tests need the `postgres` service running; they work in a throwaway schema
+and never touch real event rows.

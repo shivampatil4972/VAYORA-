@@ -58,6 +58,16 @@ No third data store, no fourth runtime.
 5. Every threshold, budget and elasticity lives in `experiments/configs/*.yaml`.
    No tunable number hard-coded in Python.
 
+## Event log
+
+- Every number in the report is a SQL aggregate over the `events` table, through
+  `experiments/analysis/metrics.sql`.
+- The 22-event vocabulary is frozen. A new event type needs explicit approval first.
+- Payload keys are snake_case and timestamps ISO-8601 with offset, from both writers.
+- `booking_cancelled` payloads carry `departure_time`; the late-cancellation metric
+  depends on it.
+- The Java writer never throws into its caller. The Python writer fails loudly.
+
 ## How we work
 
 - Eight stages, built in order. Each ends with its acceptance test, a short status and
@@ -77,6 +87,7 @@ No third data store, no fourth runtime.
 | `intel/`       | FastAPI, Python 3.11, pinned requirements                   |
 | `gateway/`     | Express 4 + Socket.IO 4, JWT verification                   |
 | `web/`         | Vite + React 18 + TypeScript + Tailwind                     |
+| `journex_events/` | Python event-log writer; same table and vocabulary as core-api |
 | `sim/`         | SimPy simulator (Stage 3)                                   |
 | `experiments/` | Configs and experiment runners; all tunables in `configs/`  |
 | `docs/`        | Report material and `figures/`                              |
