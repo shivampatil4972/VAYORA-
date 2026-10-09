@@ -1,0 +1,139 @@
+name: journex
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-journex}
+      POSTGRES_USER: ${POSTGRES_USER:-journex}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-journex}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  mongo:
+    image: mongo:7
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongodata:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # Downloads the regional extract once and clips it to the corridor bounding box.
+  osrm-data:
+    build: ./infra/osrm
+    environment:
+      OSRM_PBF_URL: ${OSRM_PBF_URL:-https://download.geofabrik.de/asia/india/western-zone-latest.osm.pbf}
+      OSRM_BBOX: ${OSRM_BBOX:-73.4,16.4,74.9,18.9}
+    volumes:
+      - osrmdata:/data
+
+  # Builds the MLD routing graph from the clipped extract; skipped once built.
+  osrm-build:
+    image: osrm/osrm-backend:v5.25.0
+    depends_on:
+      osrm-data:
+        condition: service_completed_successfully
+    volumes:
+      - osrmdata:/data
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        if [ -f /data/corridor.osrm.ready ]; then echo "OSRM graph already built"; exit 0; fi
+        osrm-extract -p /opt/car.lua /data/corridor.osm.pbf
+        osrm-partition /data/corridor.osrm
+        osrm-customize /data/corridor.osrm
+        touch /data/corridor.osrm.ready
+
+  osrm:
+    image: osrm/osrm-backend:v5.25.0
+    depends_on:
+      osrm-build:
+        condition: service_completed_successfully
+    ports:
+      - "${OSRM_PORT:-5000}:5000"
+    volumes:
+      - osrmdata:/data
+    command: ["osrm-routed", "--algorithm", "mld", "/data/corridor.osrm"]
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/5000"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  core-api:
+    build: ./core-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-journex}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-journex}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-journex}
+    ports:
+      - "${CORE_API_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  intel:
+    build: ./intel
+    ports:
+      - "${INTEL_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  gateway:
+    build: ./gateway
+    environment:
+      JWT_SECRET: ${JWT_SECRET:-dev-only-change-me}
+    ports:
+      - "${GATEWAY_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/health').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: ./web
+    ports:
+      - "${WEB_PORT:-5173}:80"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
+  mongodata:
+  osrmdata:
