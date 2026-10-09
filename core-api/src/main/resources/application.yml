@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: journex-core-api
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/journex}
+    username: ${SPRING_DATASOURCE_USERNAME:journex}
+    password: ${SPRING_DATASOURCE_PASSWORD:journex}
+  flyway:
+    enabled: true
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
