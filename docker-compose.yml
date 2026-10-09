@@ -133,7 +133,39 @@ services:
       timeout: 5s
       retries: 10
 
+  # Python 3.11 environment for journex_events, sim and experiments. Not started by
+  # `docker compose up`; run with `docker compose run --rm research`.
+  research:
+    profiles: ["research"]
+    build:
+      context: .
+      dockerfile: infra/research/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      JOURNEX_DB_URL: postgresql://${POSTGRES_USER:-journex}:${POSTGRES_PASSWORD:-journex}@postgres:5432/${POSTGRES_DB:-journex}
+    volumes:
+      - .:/work
+
+  # Runs the core-api test suite on Java 21. Testcontainers starts its own PostGIS
+  # through the host's Docker socket. `docker compose run --rm core-api-tests`.
+  core-api-tests:
+    profiles: ["test"]
+    image: maven:3.9-eclipse-temurin-21
+    working_dir: /work/core-api
+    command: ["mvn", "-B", "test"]
+    environment:
+      TESTCONTAINERS_HOST_OVERRIDE: host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - .:/work
+      - /var/run/docker.sock:/var/run/docker.sock
+      - m2cache:/root/.m2
+
 volumes:
+  m2cache:
   pgdata:
   mongodata:
   osrmdata:
