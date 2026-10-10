@@ -7,6 +7,18 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD:journex}
   flyway:
     enabled: true
+  mvc:
+    problemdetails:
+      enabled: true
+
+journex:
+  jwt:
+    # Shared HS256 secret: core-api signs, gateway verifies. At least 32 bytes.
+    secret: ${JWT_SECRET:}
+    ttl: PT12H
+  trip:
+    # How long before the scheduled departure a driver may start the ride.
+    early-start: PT1H
 
 server:
   port: 8080

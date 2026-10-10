@@ -1,0 +1,91 @@
+package com.dypcet.journex.ride;
+
+import com.dypcet.journex.identity.CurrentUser;
+import com.dypcet.journex.ride.RideService.Candidate;
+import com.dypcet.journex.ride.RideService.PublishRide;
+import com.dypcet.journex.ride.RideService.Ride;
+import com.dypcet.journex.ride.RideService.StopInput;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/v1/rides")
+@Validated
+public class RideController {
+
+    public record StopRequest(
+            @NotBlank @Size(max = 100) String name,
+            @DecimalMin("-90") @DecimalMax("90") double lat,
+            @DecimalMin("-180") @DecimalMax("180") double lon,
+            @Min(0) @Max(2880) int offsetMinutes) {
+    }
+
+    public record PublishRideRequest(
+            @NotNull Long vehicleId,
+            @NotNull Instant departureTime,
+            @Min(1) @Max(8) int seatsOffered,
+            boolean instantBooking,
+            @NotNull @Size(min = 2, max = 10) List<@Valid @NotNull StopRequest> stops,
+            @NotNull @Size(min = 1, max = 9)
+            List<@NotNull @DecimalMin("0") @Digits(integer = 6, fraction = 2) BigDecimal>
+                    segmentPrices) {
+    }
+
+    private final RideService rides;
+
+    public RideController(RideService rides) {
+        this.rides = rides;
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('DRIVER')")
+    public Ride publish(@AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody PublishRideRequest request) {
+        List<StopInput> stops = request.stops().stream()
+                .map(s -> new StopInput(s.name(), s.lat(), s.lon(), s.offsetMinutes()))
+                .toList();
+        return rides.publish(CurrentUser.id(jwt), new PublishRide(request.vehicleId(),
+                request.departureTime(), request.seatsOffered(), request.instantBooking(),
+                stops, request.segmentPrices()));
+    }
+
+    @GetMapping("/search")
+    public List<Candidate> search(@AuthenticationPrincipal Jwt jwt,
+            @RequestParam @NotBlank String origin,
+            @RequestParam @NotBlank String destination,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(defaultValue = "1") @Min(1) @Max(8) int seats) {
+        return rides.search(CurrentUser.id(jwt), origin, destination, date, seats);
+    }
+
+    @GetMapping("/{id}")
+    public Ride get(@PathVariable long id) {
+        return rides.get(id);
+    }
+}

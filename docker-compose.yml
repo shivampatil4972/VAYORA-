@@ -92,6 +92,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-journex}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-journex}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-journex}
+      JWT_SECRET: ${JWT_SECRET:-dev-only-change-me-dev-only-change-me}
     ports:
       - "${CORE_API_PORT:-8080}:8080"
     healthcheck:
@@ -114,7 +115,7 @@ services:
   gateway:
     build: ./gateway
     environment:
-      JWT_SECRET: ${JWT_SECRET:-dev-only-change-me}
+      JWT_SECRET: ${JWT_SECRET:-dev-only-change-me-dev-only-change-me}
     ports:
       - "${GATEWAY_PORT:-3000}:3000"
     healthcheck:
