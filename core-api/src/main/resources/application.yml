@@ -16,6 +16,9 @@ journex:
     # Shared HS256 secret: core-api signs, gateway verifies. At least 32 bytes.
     secret: ${JWT_SECRET:}
     ttl: PT12H
+  cors:
+    # Origins of the browser app, comma-separated.
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
   trip:
     # How long before the scheduled departure a driver may start the ride.
     early-start: PT1H

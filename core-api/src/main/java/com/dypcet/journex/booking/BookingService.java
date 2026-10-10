@@ -26,9 +26,9 @@ import org.springframework.web.server.ResponseStatusException;
 public class BookingService {
 
     /** @param boardingTime when the ride leaves the passenger's boarding stop */
-    public record Booking(long id, long rideId, long passengerId, int fromSeq, int toSeq,
-            int seats, BigDecimal price, BookingStatus status, Instant boardingTime,
-            Instant createdAt) {
+    public record Booking(long id, long rideId, long passengerId, String passengerName,
+            int fromSeq, int toSeq, String fromStop, String toStop, int seats, BigDecimal price,
+            BookingStatus status, Instant boardingTime, Instant createdAt) {
     }
 
     record Requested(long bookingId, long rideId, long passengerId, int fromSeq, int toSeq,
@@ -80,15 +80,19 @@ public class BookingService {
     }
 
     private static final String SELECT_BOOKING = """
-            SELECT b.*, r.departure_time + make_interval(mins => s.offset_minutes) AS boarding
+            SELECT b.*, u.full_name AS passenger_name, s.name AS from_stop, t.name AS to_stop,
+                   r.departure_time + make_interval(mins => s.offset_minutes) AS boarding
             FROM bookings b
             JOIN rides r ON r.id = b.ride_id
+            JOIN users u ON u.id = b.passenger_id
             JOIN ride_stops s ON s.ride_id = b.ride_id AND s.seq = b.from_seq
+            JOIN ride_stops t ON t.ride_id = b.ride_id AND t.seq = b.to_seq
             """;
 
     private static final RowMapper<Booking> MAPPER = (rs, n) -> new Booking(
             rs.getLong("id"), rs.getLong("ride_id"), rs.getLong("passenger_id"),
-            rs.getInt("from_seq"), rs.getInt("to_seq"), rs.getInt("seats"),
+            rs.getString("passenger_name"), rs.getInt("from_seq"), rs.getInt("to_seq"),
+            rs.getString("from_stop"), rs.getString("to_stop"), rs.getInt("seats"),
             rs.getBigDecimal("price"), BookingStatus.valueOf(rs.getString("status")),
             rs.getObject("boarding", OffsetDateTime.class).toInstant(),
             rs.getObject("created_at", OffsetDateTime.class).toInstant());

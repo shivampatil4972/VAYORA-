@@ -2,7 +2,9 @@ package com.dypcet.journex;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -149,7 +151,14 @@ class ApiIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(status().isNotFound());
 
         as(driver, get("/api/v1/rides/" + rideId + "/bookings"))
-                .andExpect(jsonPath("$.length()").value(1));
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].passengerName").value("Test User"))
+                .andExpect(jsonPath("$[0].fromStop").value("Kolhapur"))
+                .andExpect(jsonPath("$[0].toStop").value("Pune"));
+        as(driver, get("/api/v1/rides/mine"))
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(rideId));
+        as(passenger, get("/api/v1/rides/mine")).andExpect(status().isForbidden());
         as(driver, post("/api/v1/bookings/" + bookingId + "/accept"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CONFIRMED"));
@@ -164,6 +173,20 @@ class ApiIntegrationTest extends PostgresIntegrationTest {
         as(passenger, get("/api/v1/rides/" + rideId))
                 .andExpect(jsonPath("$.segments[0].seatsAvailable").value(3))
                 .andExpect(jsonPath("$.segments[1].seatsAvailable").value(3));
+    }
+
+    @Test
+    void onlyTheConfiguredBrowserOriginMayCallTheApi() throws Exception {
+        mvc.perform(options("/api/v1/bookings")
+                        .header("Origin", "http://localhost:5173")
+                        .header("Access-Control-Request-Method", "POST")
+                        .header("Access-Control-Request-Headers", "authorization,content-type"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"));
+        mvc.perform(options("/api/v1/bookings")
+                        .header("Origin", "https://evil.example")
+                        .header("Access-Control-Request-Method", "POST"))
+                .andExpect(status().isForbidden());
     }
 
     /** Registers a user and returns their access token. */

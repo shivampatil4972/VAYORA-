@@ -174,6 +174,14 @@ public class RideService {
         return found.get(0);
     }
 
+    /** A driver's own rides, soonest departure first. */
+    public List<Ride> publishedBy(long driverId) {
+        return jdbc.queryForList(
+                "SELECT id FROM rides WHERE driver_id = ? ORDER BY departure_time, id",
+                Long.class, driverId)
+                .stream().map(this::get).toList();
+    }
+
     /**
      * Finds scheduled rides that pass through both named stops in that order on the given
      * day and still have the seats on every leg in between. Stops match by name only;

@@ -84,6 +84,12 @@ public class RideController {
         return rides.search(CurrentUser.id(jwt), origin, destination, date, seats);
     }
 
+    @GetMapping("/mine")
+    @PreAuthorize("hasRole('DRIVER')")
+    public List<Ride> mine(@AuthenticationPrincipal Jwt jwt) {
+        return rides.publishedBy(CurrentUser.id(jwt));
+    }
+
     @GetMapping("/{id}")
     public Ride get(@PathVariable long id) {
         return rides.get(id);
