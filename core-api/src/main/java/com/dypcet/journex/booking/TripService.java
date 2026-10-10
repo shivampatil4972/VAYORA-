@@ -148,6 +148,7 @@ public class TripService {
         for (BookingStatus live : new BookingStatus[] {BookingStatus.PENDING, BookingStatus.CONFIRMED}) {
             for (Booking booking : bookings.lockAll(rideId, live)) {
                 bookings.move(booking, BookingStatus.CANCELLED);
+                bookings.recordCancelledBy(booking.id(), "driver");
                 events.write(EventType.BOOKING_CANCELLED, new Cancelled(booking.id(), rideId,
                         booking.passengerId(), booking.seats(), booking.boardingTime(),
                         "driver", driverId));

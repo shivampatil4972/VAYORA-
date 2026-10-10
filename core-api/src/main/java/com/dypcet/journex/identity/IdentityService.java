@@ -44,6 +44,15 @@ public class IdentityService {
         }
     }
 
+    /** Creates an administrator unless the email is already taken. Returns true if created. */
+    public boolean ensureAdmin(String email, String password) {
+        return jdbc.update("""
+                INSERT INTO users (email, password_hash, full_name, role)
+                VALUES (?, ?, 'Administrator', 'ADMIN')
+                ON CONFLICT (email) DO NOTHING""",
+                normalise(email), passwordEncoder.encode(password)) == 1;
+    }
+
     /** Fails with the same 401 whether the email is unknown or the password is wrong. */
     public User authenticate(String email, String password) {
         List<Credentials> found = jdbc.query("""

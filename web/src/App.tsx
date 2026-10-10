@@ -5,6 +5,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { homeFor, Layout, RequireRole } from './components/Layout';
 import { Notice, Page } from './components/ui';
 import { AuthProvider, useAuth } from './lib/auth';
+import { DurabilityPage } from './pages/AdminPages';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
 import { PublishRidePage, RidesPage, VehiclesPage } from './pages/DriverPages';
 import { BookingsPage, SearchPage } from './pages/PassengerPages';
@@ -37,6 +38,9 @@ export function AppRoutes() {
           <Route path="rides" element={<RidesPage />} />
           <Route path="rides/new" element={<PublishRidePage />} />
           <Route path="vehicles" element={<VehiclesPage />} />
+        </Route>
+        <Route element={<RequireRole role="ADMIN" />}>
+          <Route path="admin/durability" element={<DurabilityPage />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Route>

@@ -1,3 +1,8 @@
 journex:
   jwt:
     secret: test-only-secret-test-only-secret-0123456789
+  admin:
+    email: admin@example.test
+    password: admin-test-password
+  hazard:
+    scoring-cron: "-"

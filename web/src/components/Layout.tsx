@@ -14,8 +14,7 @@ const links: Record<Role, { to: string; label: string }[]> = {
     { to: '/rides/new', label: 'Publish a ride' },
     { to: '/vehicles', label: 'My vehicles' },
   ],
-  // The back office is not built yet.
-  ADMIN: [],
+  ADMIN: [{ to: '/admin/durability', label: 'Booking durability' }],
 };
 
 export const homeFor = (role: Role): string => links[role][0]?.to ?? '/';

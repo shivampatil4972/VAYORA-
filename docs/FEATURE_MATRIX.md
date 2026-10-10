@@ -10,17 +10,18 @@ the team supplies it. Nothing here has been assigned a tier by guesswork.
 **Stage** is `TBD` for the same reason: CLAUDE.md fixes eight stages but only Stage 3
 (the simulator) is described in the repository.
 
-**Status** values: `Not started`, `Partial`, `Done (verified)`, `Blocked`.
-A row only becomes `Done (verified)` with a named test or command that passed.
+**Status** values: `Not started`, `Partial`, `Verified`, `Blocked`. `Verified` means the
+behaviour is exercised by an automated test that passes; a row says which layers. No
+screen has been looked at in a browser: UI claims rest on component tests and a clean
+production build.
 
-Last updated: 2026-10-10. `API verified` means the core-api endpoints pass the automated
-tests listed in [PROGRESS.md](PROGRESS.md). No feature has a user interface yet.
+Last updated: 2026-10-10. Test suites and how to run them are in [TESTING.md](TESTING.md).
 
 ## Identity and profile
 
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
-| 1 | Email/phone signup | TBD | TBD | Partial (email signup and login API verified; no phone, no UI) |
+| 1 | Email/phone signup | TBD | TBD | Partial: email signup and sign-in, API and UI tested; no phone signup |
 | 2 | Google OAuth login | TBD | TBD | Not started |
 | 3 | Profile photo upload | TBD | TBD | Not started |
 | 4 | Bio, age, and gender | TBD | TBD | Not started |
@@ -36,8 +37,8 @@ tests listed in [PROGRESS.md](PROGRESS.md). No feature has a user interface yet.
 
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
-| 12 | Make, model, year, and colour | TBD | TBD | Partial (API verified, no UI) |
-| 13 | Seat count and comfort class | TBD | TBD | Partial (seat count API verified; no comfort class, no UI) |
+| 12 | Make, model, year, and colour | TBD | TBD | Partial: API verified; vehicle form built, validation tested, page itself untested |
+| 13 | Seat count and comfort class | TBD | TBD | Partial: seat count as 12; no comfort class |
 | 14 | Luggage allowance | TBD | TBD | Not started |
 | 15 | EV status, battery capacity, and consumption rate | TBD | TBD | Not started |
 | 16 | Vehicle photo | TBD | TBD | Not started |
@@ -46,14 +47,14 @@ tests listed in [PROGRESS.md](PROGRESS.md). No feature has a user interface yet.
 
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
-| 17 | Origin-to-destination ride publishing | TBD | TBD | Partial (API verified, no UI) |
-| 18 | Intermediate stopovers | TBD | TBD | Partial (API verified, no UI) |
-| 19 | Per-segment pricing | TBD | TBD | Partial (API verified, no UI) |
+| 17 | Origin-to-destination ride publishing | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
+| 18 | Intermediate stopovers | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
+| 19 | Per-segment pricing | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
 | 20 | Price suggestion engine | TBD | TBD | Not started |
-| 21 | Date and departure time | TBD | TBD | Partial (API verified, no UI) |
-| 22 | Offered seats | TBD | TBD | Partial (API verified, no UI) |
+| 21 | Date and departure time | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
+| 22 | Offered seats | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
 | 23 | Maximum-two-in-the-back preference | TBD | TBD | Not started |
-| 24 | Instant booking versus approval | TBD | TBD | Partial (API verified, no UI) |
+| 24 | Instant booking versus approval | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
 | 25 | Return trip publishing | TBD | TBD | Not started |
 | 26 | Recurring weekly rides | TBD | TBD | Not started |
 | 27 | Map-based pickup/drop-off selection | TBD | TBD | Not started |
@@ -64,8 +65,8 @@ tests listed in [PROGRESS.md](PROGRESS.md). No feature has a user interface yet.
 
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
-| 30 | Search by origin, destination, date, and seats | TBD | TBD | Partial (API verified; stops match by name only, no UI) |
-| 31 | Segment booking at stopovers | TBD | TBD | Partial (API verified, no UI) |
+| 30 | Search by origin, destination, date, and seats | TBD | TBD | Verified (API and UI tests), simplified: stops match by name, no distance search |
+| 31 | Segment booking at stopovers | TBD | TBD | Verified (API and UI tests) |
 | 32 | Departure-time filter | TBD | TBD | Not started |
 | 33 | Price-range filter | TBD | TBD | Not started |
 | 34 | Instant-booking filter | TBD | TBD | Not started |
@@ -74,7 +75,7 @@ tests listed in [PROGRESS.md](PROGRESS.md). No feature has a user interface yet.
 | 37 | Amenity filters | TBD | TBD | Not started |
 | 38 | Sorting by price, time, rating, and pickup proximity | TBD | TBD | Not started |
 | 39 | Pickup-point map | TBD | TBD | Not started |
-| 40 | Booking request and driver approval | TBD | TBD | Partial (API verified, no UI) |
+| 40 | Booking request and driver approval | TBD | TBD | Partial: request and cancel verified in API and UI tests; driver accept and decline verified in API, screen untested |
 | 41 | Redis temporary seat holds with TTL | TBD | TBD | Not started |
 
 ## Payments and pricing
@@ -123,7 +124,7 @@ tests listed in [PROGRESS.md](PROGRESS.md). No feature has a user interface yet.
 | 66 | Booking reference and boarding code | TBD | TBD | Not started |
 | 67 | Meeting-point details and map | TBD | TBD | Not started |
 | 68 | Live GPS tracking | TBD | TBD | Not started |
-| 69 | Two-sided completion confirmation | TBD | TBD | Not started |
+| 69 | Two-sided completion confirmation | TBD | TBD | Partial: driver starts and completes, API verified; no passenger confirmation |
 | 70 | Post-trip rating prompt | TBD | TBD | Not started |
 
 ## General platform
@@ -133,7 +134,7 @@ tests listed in [PROGRESS.md](PROGRESS.md). No feature has a user interface yet.
 | 71 | English, Hindi, and Marathi | TBD | TBD | Not started |
 | 72 | Referral programme | TBD | TBD | Not started |
 | 73 | Static/configured MSRTC alternatives | TBD | TBD | Not started |
-| 74 | Admin back office | TBD | TBD | Not started |
+| 74 | Admin back office | TBD | TBD | Partial: one screen (booking durability), API and UI tested; nothing else |
 
 ## Research modules
 
@@ -141,9 +142,9 @@ tests listed in [PROGRESS.md](PROGRESS.md). No feature has a user interface yet.
 |---|---|---|---|---|
 | 75 | PostGIS/OSRM feasibility filter | TBD | TBD | Not started (OSRM container and corridor prep exist; no filter) |
 | 76 | Two-sided match scoring | TBD | TBD | Not started |
-| 77 | CommitmentDecay survival modelling | TBD | TBD | Not started |
+| 77 | CommitmentDecay survival modelling | TBD | TBD | Partial: model trained, evaluated, served and scored in the app, on synthetic data only; see AI_ML_METHODOLOGY.md |
 | 78 | Reliability indicator in search results | TBD | TBD | Not started |
-| 79 | Anticipatory interventions | TBD | TBD | Not started |
+| 79 | Anticipatory interventions | TBD | TBD | Partial: in the simulator only (variant B4); the platform sends no interventions |
 | 80 | CP-SAT contact-budget scheduler | TBD | TBD | Not started |
 | 81 | Hazard-informed passenger flexibility tiers | TBD | TBD | Not started |
 | 84 | Mid-route vacant-seat allocation | TBD | TBD | Not started |
@@ -161,7 +162,7 @@ tests listed in [PROGRESS.md](PROGRESS.md). No feature has a user interface yet.
 | 83 | Fuel and EV charging stops | TBD | TBD | Not started |
 | 85 | Weekly, monthly, and annual travel passes | TBD | TBD | Not started |
 | 87 | Live what-if simulator | TBD | TBD | Not started |
-| 90 | Reproducibility capsule (`make reproduce` or equivalent) | TBD | TBD | Not started |
+| 90 | Reproducibility capsule (`make reproduce` or equivalent) | TBD | TBD | Partial: every result reproduces from documented commands; no single `make reproduce` |
 | 91 | Last-mile rickshaw, bus, and walking access | TBD | TBD | Not started |
 | 92 | Bus alternative after recovery failure | TBD | TBD | Not started |
 | 95 | Driver reliability self-view | TBD | TBD | Not started |
@@ -175,3 +176,4 @@ tests listed in [PROGRESS.md](PROGRESS.md). No feature has a user interface yet.
 | Metric queries (`experiments/analysis/metrics.sql`) | Verified 2026-10-10: included in the 17 Python tests |
 | Service skeletons: core-api, intel, gateway, web | Verified 2026-10-10: all four health endpoints UP; gateway tests 6/6 |
 | OSRM routing | Not verified: container not started (220 MB download skipped) |
+| B0, B3, B4 simulator variants and paired comparison | Verified: 30-seed run, see EXPERIMENT_PROTOCOL.md |

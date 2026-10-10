@@ -44,6 +44,46 @@ cp .env.example .env
 set -a; . ./.env; set +a; sh infra/check-health.sh
 ```
 
+## Using the app
+
+Open http://localhost:5173 and create an account as a passenger or as a driver.
+
+- **Driver:** add a vehicle, publish a ride with its stops and a price per leg, accept
+  or decline requests, start the ride, mark anyone who did not board, complete it.
+- **Passenger:** search by origin, destination, date and seats, book or request, cancel.
+- **Administrator:** see and refresh the model's durability estimate for each confirmed
+  booking. Administrators cannot sign up; set `ADMIN_EMAIL` and `ADMIN_PASSWORD` (12
+  characters or more) in `.env` and restart core-api to create one.
+
+There are no payments: a booking has a price and nobody is charged. What else is missing
+is listed in [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
+
+## Tests
+
+```sh
+docker compose --profile test run --rm core-api-tests      # core-api, Java 21
+docker compose --profile research run --rm research        # simulator, model, experiments
+(cd web && npm ci && npm test)
+(cd gateway && npm ci && npm test)
+```
+
+What each suite covers is in [docs/TESTING.md](docs/TESTING.md).
+
+## Research
+
+```sh
+# Train and evaluate the booking-durability model (writes experiments/reports/hazard-h1.json)
+docker compose --profile research run --rm research python -m experiments.hazard.train
+
+# Run a variant on the 30 experiment seeds
+docker compose --profile research run --rm research     python -m sim.run --variant experiments/configs/variants/B0.yaml
+```
+
+All data is synthetic. The method is in
+[docs/AI_ML_METHODOLOGY.md](docs/AI_ML_METHODOLOGY.md), the protocol and the first
+results in [docs/EXPERIMENT_PROTOCOL.md](docs/EXPERIMENT_PROTOCOL.md), and the status of
+each of the 95 backlog features in [docs/FEATURE_MATRIX.md](docs/FEATURE_MATRIX.md).
+
 ## Routing data
 
 OSRM serves a **clipped bounding box**: `infra/osrm/prepare.sh` downloads the Geofabrik

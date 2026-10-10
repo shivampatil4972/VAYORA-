@@ -71,6 +71,26 @@ export interface Candidate {
   seatsAvailable: number;
 }
 
+/** The newest durability estimate of one live booking. Administrators only. */
+export interface HazardScore {
+  bookingId: number;
+  rideId: number;
+  passengerName: string;
+  fromStop: string;
+  toStop: string;
+  boardingTime: string;
+  survivalProbability: number;
+  modelVersion: string;
+  scoredAt: string;
+}
+
+export interface ScoringSummary {
+  scored: number;
+  alreadyScored: number;
+  failed: number;
+  skippedRun: boolean;
+}
+
 export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'REJECTED' | 'CANCELLED' | 'COMPLETED' | 'NO_SHOW';
 
 export interface Booking {

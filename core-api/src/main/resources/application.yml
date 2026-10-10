@@ -19,6 +19,17 @@ journex:
   cors:
     # Origins of the browser app, comma-separated.
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  admin:
+    # The administrator created at startup. Leave the email empty to have none.
+    email: ${ADMIN_EMAIL:}
+    password: ${ADMIN_PASSWORD:}
+  intel:
+    url: ${INTEL_URL:http://localhost:8000}
+    # Longest core-api waits for a score before going on without one.
+    timeout: PT2S
+  hazard:
+    # When confirmed bookings are re-scored (corridor time). "-" turns it off.
+    scoring-cron: ${HAZARD_SCORING_CRON:0 0 6 * * *}
   trip:
     # How long before the scheduled departure a driver may start the ride.
     early-start: PT1H

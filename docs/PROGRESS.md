@@ -1,5 +1,36 @@
 # Progress
 
+## 2026-10-10 — model, variants, first experiment, web app, model in the platform
+
+Committed on branch `stage-2-3-booking-core-and-simulator`. On the user's instruction
+this work ran through several stages without stopping for approval after each.
+
+| Slice | What | Verified by |
+|---|---|---|
+| Simulator population | People search repeatedly and lead time depends on latent type, so type leaves a trace the platform can observe | `sim/tests` |
+| Durability model | Features, Kaplan-Meier / Cox / gradient-boosted survival, evaluation on disjoint seeds, Cox served by intel as `POST /v1/hazard/score` | `experiments/reports/hazard-h1.json`, `intel/tests`, `experiments/tests` |
+| Variants B3, B4 | Survival-aware ranking; threshold reconfirmation request | `sim/tests` |
+| First experiment | B0, B3, B4 on seeds 1-30, paired comparison | `experiments/reports/ladder-7a1c0de0-*.md` |
+| Web app | Sign-in, search and booking, vehicles, publishing and running rides, administrator's durability screen | 34 component tests, production build |
+| Model in the platform | Feature snapshot at request, daily and on-demand scoring through intel, scores appended to the event log, administrators only | `HazardScoringIntegrationTest`, live run |
+
+**Headline result, synthetic data:** survival-aware ranking raises completed rides per
+100 searches from 29.59 to 29.89 (+0.30, 95% CI +0.24 to +0.36). The intervention moves
+cancellations earlier and refills more seats but adds nothing further on that metric.
+The hypothesis is not supported at the assumed parameter values; the assumptions that
+decide it have not been swept. Details in EXPERIMENT_PROTOCOL.md.
+
+**Decisions made here**
+
+- Cox PH is served: best departure Brier score and concordance of the three models.
+- Durability scores are shown to administrators only, not to drivers or passengers.
+- B1 and B2 were skipped: the simulated corridor has no geography to filter on.
+- The gradient-boosted model is trained on a 5,000-row sample because its loss is
+  quadratic in rows.
+
+Current limitations are in KNOWN_LIMITATIONS.md; test counts and commands in TESTING.md.
+The sections below are the earlier entries, kept as written.
+
 ## 2026-10-10 — Stage 3, first slice: the B0 simulator
 
 Uncommitted. Details and simplifications are in [sim/README.md](../sim/README.md).

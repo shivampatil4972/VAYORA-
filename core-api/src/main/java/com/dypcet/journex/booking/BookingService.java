@@ -3,10 +3,14 @@ package com.dypcet.journex.booking;
 import com.dypcet.journex.eventlog.EventLogService;
 import com.dypcet.journex.eventlog.EventType;
 import com.dypcet.journex.eventlog.HasActor;
+import com.dypcet.journex.hazard.HazardFeatures;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -99,11 +103,16 @@ public class BookingService {
 
     private final JdbcTemplate jdbc;
     private final EventLogService events;
+    private final HazardFeatures hazardFeatures;
+    private final ObjectMapper mapper;
     private final Clock clock;
 
-    public BookingService(JdbcTemplate jdbc, EventLogService events, Clock clock) {
+    public BookingService(JdbcTemplate jdbc, EventLogService events,
+            HazardFeatures hazardFeatures, ObjectMapper mapper, Clock clock) {
         this.jdbc = jdbc;
         this.events = events;
+        this.hazardFeatures = hazardFeatures;
+        this.mapper = mapper;
         this.clock = clock;
     }
 
@@ -138,7 +147,8 @@ public class BookingService {
                 FROM rides r JOIN ride_stops s ON s.ride_id = r.id AND s.seq = ?
                 WHERE r.id = ?""",
                 OffsetDateTime.class, fromSeq, rideId).toInstant();
-        if (!boarding.isAfter(clock.instant())) {
+        Instant now = clock.instant();
+        if (!boarding.isAfter(now)) {
             throw conflict("This ride has already left that stop");
         }
 
@@ -153,12 +163,16 @@ public class BookingService {
         }
 
         BookingStatus status = ride.instantBooking() ? BookingStatus.CONFIRMED : BookingStatus.PENDING;
+        // Taken before the row exists: a booking is not part of its own history.
+        String features = featuresJson(passengerId, seats, now, boarding);
         Long bookingId = jdbc.queryForObject("""
-                INSERT INTO bookings (ride_id, passenger_id, from_seq, to_seq, seats, price, status)
-                SELECT ?, ?, ?, ?, ?, SUM(price) * ?, ?
+                INSERT INTO bookings (ride_id, passenger_id, from_seq, to_seq, seats, price, status,
+                                      hazard_features, accepted_at)
+                SELECT ?, ?, ?, ?, ?, SUM(price) * ?, ?, CAST(? AS jsonb), ?
                 FROM ride_segments WHERE ride_id = ? AND seq >= ? AND seq < ?
                 RETURNING id""",
                 Long.class, rideId, passengerId, fromSeq, toSeq, seats, seats, status.name(),
+                features, status == BookingStatus.CONFIRMED ? utc(now) : null,
                 rideId, fromSeq, toSeq);
 
         events.write(EventType.BOOKING_REQUESTED,
@@ -174,6 +188,8 @@ public class BookingService {
     public Booking accept(long driverId, long bookingId) {
         Booking booking = lockForDriver(driverId, bookingId);
         move(booking, BookingStatus.CONFIRMED);
+        jdbc.update("UPDATE bookings SET accepted_at = ? WHERE id = ?", utc(clock.instant()),
+                bookingId);
         events.write(EventType.BOOKING_ACCEPTED,
                 new Decided(bookingId, booking.rideId(), driverId, false));
         return load(bookingId);
@@ -205,6 +221,7 @@ public class BookingService {
             throw conflict("This ride has already left; the booking can no longer be cancelled");
         }
         move(booking, BookingStatus.CANCELLED);
+        recordCancelledBy(bookingId, "passenger");
         events.write(EventType.BOOKING_CANCELLED, new Cancelled(bookingId, booking.rideId(),
                 passengerId, booking.seats(), booking.boardingTime(), "passenger", passengerId));
         return load(bookingId);
@@ -260,6 +277,24 @@ public class BookingService {
             throw notFound("Booking not found");
         }
         return lockBooking(bookingId);
+    }
+
+    void recordCancelledBy(long bookingId, String who) {
+        jdbc.update("UPDATE bookings SET cancelled_by = ? WHERE id = ?", who, bookingId);
+    }
+
+    /** Null if the features cannot be written; the booking goes ahead unscored. */
+    private String featuresJson(long passengerId, int seats, Instant now, Instant boarding) {
+        try {
+            return mapper.writeValueAsString(
+                    hazardFeatures.snapshot(passengerId, seats, now, boarding));
+        } catch (JsonProcessingException e) {
+            return null;
+        }
+    }
+
+    private static OffsetDateTime utc(Instant instant) {
+        return OffsetDateTime.ofInstant(instant, ZoneOffset.UTC);
     }
 
     Long rideOf(long bookingId) {

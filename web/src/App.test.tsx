@@ -193,6 +193,56 @@ describe('finding and booking a ride', () => {
   });
 });
 
+describe('booking durability (administrator)', () => {
+  const score = {
+    bookingId: 3,
+    rideId: 2,
+    passengerName: 'Meera Kulkarni',
+    fromStop: 'Kolhapur',
+    toStop: 'Pune',
+    boardingTime: '2026-11-02T01:30:00Z',
+    survivalProbability: 0.8107,
+    modelVersion: 'h1-cox',
+    scoredAt: '2026-10-30T10:00:00Z',
+  };
+
+  it('shows each estimate as a percentage with its model and a warning about what it is', async () => {
+    signIn('ADMIN');
+    serve({ 'GET /admin/hazard/scores': () => json([score]) });
+    open('/admin/durability');
+
+    const row = (await screen.findByText('Meera Kulkarni')).closest('tr')!;
+    expect(within(row).getByText('81%')).toBeInTheDocument();
+    expect(within(row).getByText('h1-cox')).toBeInTheDocument();
+    expect(screen.getByText(/trained on\s+simulated data only/)).toBeInTheDocument();
+    expect(screen.getByText(/must\s+not be used to decline, penalise or price anyone/)).toBeInTheDocument();
+  });
+
+  it('reports what a scoring run did, including bookings the model could not score', async () => {
+    signIn('ADMIN');
+    serve({
+      'GET /admin/hazard/scores': () => json([]),
+      'POST /admin/hazard/score': () => json({ scored: 2, alreadyScored: 5, failed: 1, skippedRun: false }),
+    });
+    open('/admin/durability');
+
+    expect(await screen.findByText('No confirmed booking has been scored yet.')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Score bookings now' }));
+
+    expect(await screen.findByText('2 scored, 5 already scored today, 1 could not be scored.')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('The model service did not answer');
+  });
+
+  it('is closed to drivers and passengers', async () => {
+    signIn('DRIVER');
+    serve({ 'GET /rides/mine': () => json([]) });
+    open('/admin/durability');
+
+    expect(await screen.findByRole('heading', { name: 'My rides' })).toBeInTheDocument();
+    expect(screen.queryByText('Booking durability')).not.toBeInTheDocument();
+  });
+});
+
 describe('my bookings', () => {
   it('cancels only after a second, explicit confirmation', async () => {
     signIn('PASSENGER');
