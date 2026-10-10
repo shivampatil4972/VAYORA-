@@ -6,3 +6,13 @@ pytest==9.1.1
 simpy==4.1.2
 # Reads experiments/configs/*.yaml.
 PyYAML==6.0.3
+# Survival model training and evaluation (experiments/hazard). Serving needs none of these.
+numpy==2.4.6
+pandas==2.3.3
+scipy==1.17.1
+scikit-learn==1.9.1
+lifelines==0.30.3
+scikit-survival==0.28.0
+# Lets the research suite test intel's HTTP API in-process.
+fastapi==0.143.0
+httpx==0.28.1
