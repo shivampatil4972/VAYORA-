@@ -1,0 +1,13 @@
+# How much is asking a booking to reconfirm worth, as a function of how passengers
+# respond? Both parameters are assumptions no simulation can estimate, so the honest
+# answer to "does the intervention work" is this whole grid, not one cell of it.
+#
+# The corner (1.0, 0.0) is the best case there can be: everyone who was going to cancel
+# releases the moment they are asked, and nobody is ever put off.
+name: intervention-response
+# Run once: it never contacts anyone, so the swept parameters cannot affect it.
+baseline: variants/B3.yaml
+variant: variants/B4.yaml
+parameters:
+  demand.intervention_response.early_release_probability: [0.25, 0.5, 1.0]
+  demand.intervention_response.annoyed_cancel_probability: [0.0, 0.02, 0.05]

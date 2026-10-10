@@ -101,11 +101,63 @@ Run `7a1c0de0-0000-4000-8000-000000000001`, 30 seeds per variant. Source:
   returns, so a released seat can only be taken by a new arrival.
 - **One threshold, one interval, one world.** None has been swept.
 
-### What has to be run before any conclusion
+## 6. Sweep: how passengers respond to being asked
 
-- A sweep of `early_release_probability` and `annoyed_cancel_probability`, to find where,
-  if anywhere, the intervention pays.
-- A sweep of the survival threshold and of supply and demand density.
-- B4 run with the no-feature model (`h1-km`), to separate the value of the features
-  from the value of knowing time-to-departure.
+Run `5eeb0000-0000-4000-8000-000000000001`, 30 seeds per cell. Source:
+`experiments/reports/sweep-intervention-response-5eeb0000-0000-4000-8000-000000000001.md`.
+Config: `experiments/configs/sweeps/intervention_response.yaml`. B4 on a world with the
+two response parameters replaced, against B3 on the unmodified world, paired by seed.
+Synthetic data.
+
+Difference in completed rides per 100 searches, B4 minus B3 (B3 = 29.89), with 95% CI:
+
+| Releases when asked | Annoyed: 0 | Annoyed: 0.02 | Annoyed: 0.05 |
+|---|---|---|---|
+| 0.25 | +0.02 (+0.00 to +0.04) | -0.02 (-0.04 to +0.01) | -0.06 (-0.10 to -0.02) |
+| 0.5 | +0.03 (+0.00 to +0.06) | -0.01 (-0.04 to +0.02) | -0.05 (-0.09 to -0.02) |
+| 1.0 | +0.06 (+0.02 to +0.10) | +0.02 (-0.02 to +0.06) | -0.02 (-0.07 to +0.02) |
+
+Change in the late share of cancellations (B3 = 0.394) runs from -0.022 at (0.25, 0) to
+-0.108 at (1.0, 0.05), lower than B3 on at least 29 of 30 seeds in every cell.
+
+### What this shows
+
+1. **The intervention is worth almost nothing on the primary metric anywhere on the
+   grid.** In the best case there can be, where every passenger destined to cancel
+   releases the moment they are asked and nobody is ever put off, the gain is +0.06
+   completed rides per 100 searches: 0.2% of the baseline.
+2. **It can do harm.** With 5% of contacted travellers put off, the difference is
+   negative in all three rows and its interval excludes zero in two.
+3. **It reliably makes cancellations earlier**, by up to a quarter of the late share.
+
+So section 5's caveat is resolved in one direction: the null result on completed rides
+is not an artefact of the assumed response. In this world, **earlier release does not
+turn into more completed rides**, whatever passengers do when asked.
+
+### Why that might be, and what would test it
+
+These are hypotheses, not findings:
+
+- **Nobody comes back.** A passenger who found nothing, was rejected or was cancelled on
+  never searches again, so a released seat can only be taken by a fresh arrival whose
+  preferred time is within two hours of that ride. Modelling repeat search is the most
+  direct test.
+- **Refill depends on excess demand at the right time.** Sweeping `searches_per_day`
+  and `rides_per_day` would show whether the gain appears when seats are scarcer.
+- **Most released seats were going to be released anyway.** The intervention moves a
+  cancellation earlier; if the original time was already early enough to refill, the
+  move buys nothing. The late share shows only 39% of cancellations are late to begin
+  with.
+- **The primary metric may be the wrong place to look for this effect.** The
+  intervention's measurable effect is on *when* seats come back. Whether that has value
+  the primary metric does not capture (driver certainty, less last-minute disruption)
+  is a question for the team, and must be decided before looking at more results, not
+  after.
+
+### Still to run
+
+- Repeat search by unserved passengers, then B3 against B4 again.
+- A sweep of supply and demand density, and of the survival threshold.
+- B4 with the no-feature model (`h1-km`), to separate the value of the features from
+  the value of knowing time-to-departure.
 - Component-removal: B4's intervention with B0's ranking.
