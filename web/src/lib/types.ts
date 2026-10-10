@@ -74,6 +74,10 @@ export interface Candidate {
   serviceFee: number;
   /** Fare plus fee: what booking would hold. */
   total: number;
+  driverId: number;
+  /** Null until somebody has rated the driver. */
+  driverRating: number | null;
+  driverRatingCount: number;
 }
 
 /** The newest durability estimate of one live booking. Administrators only. */
@@ -94,6 +98,26 @@ export interface ScoringSummary {
   alreadyScored: number;
   failed: number;
   skippedRun: boolean;
+}
+
+export interface Review {
+  stars: number;
+  comment: string;
+  /** First name only. */
+  reviewerName: string;
+  createdAt: string;
+}
+
+/** What any signed-in member may see about another. */
+export interface Profile {
+  id: number;
+  fullName: string;
+  role: Role;
+  memberSince: string;
+  completedTrips: number;
+  averageStars: number | null;
+  ratingCount: number;
+  reviews: Review[];
 }
 
 export type PaymentMethod = 'CARD' | 'UPI' | 'WALLET';
@@ -139,4 +163,7 @@ export interface Booking {
   status: BookingStatus;
   boardingTime: string;
   createdAt: string;
+  /** Whether each side has rated the other for this trip. */
+  passengerRated: boolean;
+  driverRated: boolean;
 }

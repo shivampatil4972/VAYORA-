@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { SimulatedPaymentNotice } from '../components/payment';
+import { RateForm } from '../components/rating';
 import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, StatusBadge, TextField } from '../components/ui';
 import { api } from '../lib/api';
 import { CORRIDOR } from '../lib/corridor';
@@ -319,9 +320,14 @@ function RideBookings({ ride }: { ride: Ride }) {
             onRetry={() => void bookings.refetch()}
           />
           {bookings.data?.map((booking) => (
-            <div key={booking.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-slate-50 px-3 py-2">
+            <div key={booking.id} className="rounded-md bg-slate-50 px-3 py-2">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="text-sm">
-                <p className="font-medium">{booking.passengerName}</p>
+                <p className="font-medium">
+                  <Link to={`/users/${booking.passengerId}`} className="text-teal-800 underline">
+                    {booking.passengerName}
+                  </Link>
+                </p>
                 <p className="text-slate-600">
                   {booking.fromStop} → {booking.toStop} · boards {formatTime(booking.boardingTime)} · {booking.seats}{' '}
                   {booking.seats === 1 ? 'seat' : 'seats'} · {formatRupees(booking.price)}
@@ -350,6 +356,10 @@ function RideBookings({ ride }: { ride: Ride }) {
                   />
                 )}
               </div>
+            </div>
+            {booking.status === 'COMPLETED' && !booking.driverRated && (
+              <RateForm bookingId={booking.id} who={booking.passengerName} />
+            )}
             </div>
           ))}
         </div>

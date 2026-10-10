@@ -71,6 +71,9 @@ const candidate: Candidate = {
   fare: 1040,
   serviceFee: 104,
   total: 1144,
+  driverId: 7,
+  driverRating: 4.6667,
+  driverRatingCount: 3,
 };
 
 const booking: Booking = {
@@ -90,6 +93,8 @@ const booking: Booking = {
   status: 'PENDING',
   boardingTime: '2026-11-02T01:30:00Z',
   createdAt: '2026-10-30T10:00:00Z',
+  passengerRated: false,
+  driverRated: false,
 };
 
 describe('access', () => {
@@ -168,7 +173,9 @@ describe('finding and booking a ride', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Search' }));
 
     const results = await screen.findByRole('region', { name: 'Search results' });
-    expect(await within(results).findByText(/Ravi Jadhav/)).toHaveTextContent('3 seats left');
+    expect(await within(results).findByRole('link', { name: 'Ravi Jadhav' })).toHaveAttribute('href', '/users/7');
+    expect(within(results).getByText(/4\.7 out of 5 · 3 ratings/)).toBeInTheDocument();
+    expect(within(results).getByText(/3 seats left/)).toBeInTheDocument();
     expect(within(results).getByText('₹1,144')).toBeInTheDocument();
     expect(within(results).getByText('₹1,040 fare + ₹104 service fee')).toBeInTheDocument();
     expect(await within(results).findByText(/Payments here are simulated/)).toBeInTheDocument();
@@ -331,6 +338,90 @@ describe('my bookings', () => {
     open('/bookings');
 
     expect(await screen.findByText(/₹260 returned/)).toBeInTheDocument();
+  });
+});
+
+describe('ratings', () => {
+  it('lets a passenger rate a completed trip, stars first', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({
+      'GET /bookings': () => json([{ ...booking, status: 'COMPLETED' }]),
+      'POST /bookings/90/rating': () => new Response(null, { status: 201 }),
+    });
+    open('/bookings');
+
+    const send = await screen.findByRole('button', { name: 'Send rating' });
+    expect(send).toBeDisabled(); // nothing can be sent without choosing stars
+    await userEvent.click(screen.getByRole('radio', { name: '4 stars' }));
+    await userEvent.type(screen.getByLabelText(/Comment/), 'On time and careful.');
+    await userEvent.click(send);
+
+    const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')!;
+    expect(String(post[0])).toMatch(/\/bookings\/90\/rating$/);
+    expect(JSON.parse(post[1]!.body as string)).toEqual({ stars: 4, comment: 'On time and careful.' });
+  });
+
+  it('asks for no rating on a trip already rated or not completed', async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /bookings': () =>
+        json([
+          { ...booking, id: 91, status: 'COMPLETED', passengerRated: true },
+          { ...booking, id: 92, status: 'CONFIRMED' },
+        ]),
+    });
+    open('/bookings');
+
+    expect(await screen.findByText('Completed')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Send rating' })).not.toBeInTheDocument();
+  });
+
+  it('shows a member profile, with a review rendered as plain text', async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /users/7/profile': () =>
+        json({
+          id: 7,
+          fullName: 'Ravi Jadhav',
+          role: 'DRIVER',
+          memberSince: '2026-03-14T08:00:00Z',
+          completedTrips: 12,
+          averageStars: 4.5,
+          ratingCount: 2,
+          reviews: [
+            { stars: 5, comment: '<img src=x onerror=alert(1)> great', reviewerName: 'Meera', createdAt: '2026-10-01T08:00:00Z' },
+          ],
+        }),
+    });
+    open('/users/7');
+
+    expect(await screen.findByRole('heading', { name: 'Ravi Jadhav' })).toBeInTheDocument();
+    expect(screen.getByText('March 2026')).toBeInTheDocument();
+    expect(screen.getByText('12')).toBeInTheDocument();
+    expect(screen.getByText(/4\.5 out of 5 · 2 ratings/)).toBeInTheDocument();
+    expect(screen.getByText('<img src=x onerror=alert(1)> great')).toBeInTheDocument();
+    expect(document.querySelector('img')).toBeNull();
+  });
+
+  it('says so when a member has no ratings instead of showing a score', async () => {
+    signIn('DRIVER');
+    serve({
+      'GET /users/1/profile': () =>
+        json({
+          id: 1,
+          fullName: 'New Member',
+          role: 'PASSENGER',
+          memberSince: '2026-10-01T08:00:00Z',
+          completedTrips: 0,
+          averageStars: null,
+          ratingCount: 0,
+          reviews: [],
+        }),
+    });
+    open('/users/1');
+
+    expect(await screen.findByText('No ratings yet')).toBeInTheDocument();
+    expect(screen.getByText('Nobody has written a review yet.')).toBeInTheDocument();
   });
 });
 

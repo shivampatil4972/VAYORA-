@@ -9,6 +9,7 @@ import { DurabilityPage } from './pages/AdminPages';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
 import { EarningsPage, PublishRidePage, RidesPage, VehiclesPage } from './pages/DriverPages';
 import { BookingsPage, SearchPage } from './pages/PassengerPages';
+import { ProfilePage } from './pages/ProfilePage';
 
 function Home() {
   const { user } = useAuth();
@@ -39,6 +40,9 @@ export function AppRoutes() {
           <Route path="rides/new" element={<PublishRidePage />} />
           <Route path="vehicles" element={<VehiclesPage />} />
           <Route path="earnings" element={<EarningsPage />} />
+        </Route>
+        <Route element={<RequireRole />}>
+          <Route path="users/:id" element={<ProfilePage />} />
         </Route>
         <Route element={<RequireRole role="ADMIN" />}>
           <Route path="admin/durability" element={<DurabilityPage />} />

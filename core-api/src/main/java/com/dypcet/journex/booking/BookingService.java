@@ -38,12 +38,15 @@ public class BookingService {
      * @param serviceFee   the platform's fee on top of the fare; null if nothing was charged
      * @param total        fare plus fee: what was held from the passenger; null as above
      * @param refunded     what has been returned to the passenger; null if nothing
-     * @param boardingTime when the ride leaves the passenger's boarding stop
+     * @param boardingTime   when the ride leaves the passenger's boarding stop
+     * @param passengerRated whether the passenger has rated the driver for this trip
+     * @param driverRated    whether the driver has rated the passenger for this trip
      */
     public record Booking(long id, long rideId, long passengerId, String passengerName,
             int fromSeq, int toSeq, String fromStop, String toStop, int seats, BigDecimal price,
             BigDecimal serviceFee, BigDecimal total, BigDecimal refunded,
-            BookingStatus status, Instant boardingTime, Instant createdAt) {
+            BookingStatus status, Instant boardingTime, Instant createdAt,
+            boolean passengerRated, boolean driverRated) {
     }
 
     record Requested(long bookingId, long rideId, long passengerId, int fromSeq, int toSeq,
@@ -97,7 +100,11 @@ public class BookingService {
     private static final String SELECT_BOOKING = """
             SELECT b.*, u.full_name AS passenger_name, s.name AS from_stop, t.name AS to_stop,
                    r.departure_time + make_interval(mins => s.offset_minutes) AS boarding,
-                   p.service_fee, p.amount AS total, f.amount AS refunded
+                   p.service_fee, p.amount AS total, f.amount AS refunded,
+                   EXISTS (SELECT 1 FROM ratings g WHERE g.booking_id = b.id
+                             AND g.rater_id = b.passenger_id) AS passenger_rated,
+                   EXISTS (SELECT 1 FROM ratings g WHERE g.booking_id = b.id
+                             AND g.rater_id = r.driver_id) AS driver_rated
             FROM bookings b
             JOIN rides r ON r.id = b.ride_id
             JOIN users u ON u.id = b.passenger_id
@@ -115,7 +122,8 @@ public class BookingService {
             rs.getBigDecimal("total"), rs.getBigDecimal("refunded"),
             BookingStatus.valueOf(rs.getString("status")),
             rs.getObject("boarding", OffsetDateTime.class).toInstant(),
-            rs.getObject("created_at", OffsetDateTime.class).toInstant());
+            rs.getObject("created_at", OffsetDateTime.class).toInstant(),
+            rs.getBoolean("passenger_rated"), rs.getBoolean("driver_rated"));
 
     private final JdbcTemplate jdbc;
     private final EventLogService events;

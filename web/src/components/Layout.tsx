@@ -65,11 +65,11 @@ export function Layout() {
   );
 }
 
-/** Lets a route render only for a signed-in user with the given role. */
-export function RequireRole({ role }: { role: Role }) {
+/** Lets a route render only for a signed-in user, and with `role` only for that role. */
+export function RequireRole({ role }: { role?: Role }) {
   const { user } = useAuth();
   const location = useLocation();
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
-  if (user.role !== role) return <Navigate to={homeFor(user.role)} replace />;
+  if (role && user.role !== role) return <Navigate to={homeFor(user.role)} replace />;
   return <Outlet />;
 }

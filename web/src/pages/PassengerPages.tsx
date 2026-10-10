@@ -2,8 +2,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { Link } from 'react-router-dom';
 
 import { RefundTerms, SimulatedPaymentNotice } from '../components/payment';
+import { RateForm, RatingSummary } from '../components/rating';
 import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, StatusBadge, TextField } from '../components/ui';
 import { api } from '../lib/api';
 import { CORRIDOR } from '../lib/corridor';
@@ -132,7 +134,13 @@ export function SearchPage() {
                     {formatTime(candidate.boardingTime)} {candidate.fromStop} → {formatTime(candidate.arrivalTime)} {candidate.toStop}
                   </p>
                   <p className="mt-1 text-sm text-slate-600">
-                    {candidate.driverName} · {candidate.seatsAvailable} {candidate.seatsAvailable === 1 ? 'seat' : 'seats'} left ·{' '}
+                    <Link to={`/users/${candidate.driverId}`} className="font-medium text-teal-800 underline">
+                      {candidate.driverName}
+                    </Link>{' '}
+                    · <RatingSummary average={candidate.driverRating} count={candidate.driverRatingCount} />
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {candidate.seatsAvailable} {candidate.seatsAvailable === 1 ? 'seat' : 'seats'} left ·{' '}
                     {candidate.instantBooking ? 'Confirms instantly' : 'Driver approves each request'}
                   </p>
                 </div>
@@ -206,6 +214,7 @@ export function BookingsPage() {
               />
             )}
           </div>
+          {booking.status === 'COMPLETED' && !booking.passengerRated && <RateForm bookingId={booking.id} who="your driver" />}
         </Card>
       ))}
     </Page>

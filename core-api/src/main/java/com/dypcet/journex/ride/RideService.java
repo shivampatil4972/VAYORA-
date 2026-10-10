@@ -50,14 +50,17 @@ public class RideService {
     /**
      * One search result: a ride and the stretch of it the passenger would travel.
      *
-     * @param fare       for the seats searched for
-     * @param serviceFee the platform's fee on that fare
-     * @param total      fare plus fee: what booking it would hold
+     * @param fare              for the seats searched for
+     * @param serviceFee        the platform's fee on that fare
+     * @param total             fare plus fee: what booking it would hold
+     * @param driverRating      mean of the stars the driver has received; null if none
+     * @param driverRatingCount how many ratings that mean is over
      */
     public record Candidate(long rideId, String driverName, boolean instantBooking,
             int fromSeq, int toSeq, String fromStop, String toStop, Instant boardingTime,
             Instant arrivalTime, BigDecimal pricePerSeat, int seatsAvailable, BigDecimal fare,
-            BigDecimal serviceFee, BigDecimal total) {
+            BigDecimal serviceFee, BigDecimal total, long driverId, Double driverRating,
+            int driverRatingCount) {
     }
 
     record SearchIssued(long passengerId, String origin, String destination, String date,
@@ -205,7 +208,11 @@ public class RideService {
         Instant dayStart = date.atStartOfDay(CORRIDOR_ZONE).toInstant();
         Instant dayEnd = date.plusDays(1).atStartOfDay(CORRIDOR_ZONE).toInstant();
         List<Candidate> candidates = jdbc.query("""
-                SELECT r.id, u.full_name, r.instant_booking,
+                SELECT r.id, u.full_name, r.instant_booking, r.driver_id,
+                       (SELECT AVG(stars)::float8 FROM ratings WHERE ratee_id = r.driver_id)
+                           AS driver_rating,
+                       (SELECT COUNT(*) FROM ratings WHERE ratee_id = r.driver_id)
+                           AS driver_rating_count,
                        o.seq AS from_seq, d.seq AS to_seq, o.name AS from_stop, d.name AS to_stop,
                        r.departure_time + make_interval(mins => o.offset_minutes) AS boarding,
                        r.departure_time + make_interval(mins => d.offset_minutes) AS arrival,
@@ -232,7 +239,9 @@ public class RideService {
                             rs.getInt("to_seq"), rs.getString("from_stop"), rs.getString("to_stop"),
                             rs.getObject("boarding", OffsetDateTime.class).toInstant(),
                             rs.getObject("arrival", OffsetDateTime.class).toInstant(),
-                            rs.getBigDecimal("price"), rs.getInt("seats"), fare, fee, fare.add(fee));
+                            rs.getBigDecimal("price"), rs.getInt("seats"), fare, fee, fare.add(fee),
+                            rs.getLong("driver_id"), (Double) rs.getObject("driver_rating"),
+                            rs.getInt("driver_rating_count"));
                 },
                 origin.strip(), destination.strip(), utc(dayStart), utc(dayEnd),
                 utc(clock.instant()), seats);
