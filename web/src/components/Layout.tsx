@@ -1,5 +1,7 @@
+import { useQuery } from '@tanstack/react-query';
 import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom';
 
+import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import type { Role } from '../lib/types';
 import { Button } from './ui';
@@ -20,6 +22,32 @@ const links: Record<Role, { to: string; label: string }[]> = {
 
 export const homeFor = (role: Role): string => links[role][0]?.to ?? '/';
 
+const navLink = ({ isActive }: { isActive: boolean }) =>
+  `rounded px-1 py-1 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 ${
+    isActive ? 'font-semibold text-teal-800 underline underline-offset-4' : 'text-slate-600 hover:text-slate-900'
+  }`;
+
+function NotificationsLink() {
+  // Checked once a minute while the tab is visible; react-query pauses it in the background.
+  const unread = useQuery({
+    queryKey: ['notifications', 'unread-count'],
+    queryFn: () => api<{ unread: number }>('/notifications/unread-count'),
+    refetchInterval: 60_000,
+  });
+  const count = unread.data?.unread ?? 0;
+  return (
+    <NavLink to="/notifications" className={navLink}>
+      Notifications
+      {count > 0 && (
+        <span className="ml-1 rounded-full bg-teal-700 px-1.5 py-0.5 text-xs font-semibold text-white">
+          {count}
+          <span className="sr-only"> unread</span>
+        </span>
+      )}
+    </NavLink>
+  );
+}
+
 export function Layout() {
   const { user, logout } = useAuth();
   return (
@@ -33,19 +61,11 @@ export function Layout() {
           {user && (
             <nav aria-label="Main" className="flex flex-wrap gap-x-4 gap-y-1">
               {links[user.role].map((link) => (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  end
-                  className={({ isActive }) =>
-                    `rounded px-1 py-1 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 ${
-                      isActive ? 'font-semibold text-teal-800 underline underline-offset-4' : 'text-slate-600 hover:text-slate-900'
-                    }`
-                  }
-                >
+                <NavLink key={link.to} to={link.to} end className={navLink}>
                   {link.label}
                 </NavLink>
               ))}
+              <NotificationsLink />
             </nav>
           )}
           {user && (

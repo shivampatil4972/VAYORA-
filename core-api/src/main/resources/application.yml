@@ -7,6 +7,10 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD:journex}
   flyway:
     enabled: true
+  data:
+    mongodb:
+      # The short server selection timeout keeps a MongoDB outage from stalling requests.
+      uri: ${MONGO_URI:mongodb://localhost:27017/journex?serverSelectionTimeoutMS=2000}
   mvc:
     problemdetails:
       enabled: true
@@ -49,6 +53,10 @@ server:
   port: 8080
 
 management:
+  health:
+    mongo:
+      # Notifications are a courtesy; core-api is healthy without them.
+      enabled: false
   endpoints:
     web:
       exposure:

@@ -100,6 +100,16 @@ export interface ScoringSummary {
   skippedRun: boolean;
 }
 
+/** Named so as not to shadow the browser's own Notification. */
+export interface AppNotification {
+  id: string;
+  type: string;
+  message: string;
+  bookingId: number | null;
+  createdAt: string;
+  read: boolean;
+}
+
 export interface Review {
   stars: number;
   comment: string;

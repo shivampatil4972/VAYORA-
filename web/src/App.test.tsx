@@ -37,6 +37,8 @@ function serve(routes: Record<string, () => Response>) {
     const match = Object.keys(routes).find((route) => key.startsWith(route));
     // Any signed-in page may ask for the payment terms.
     if (!match && key === 'GET /payment-terms') return json(terms);
+    // The navigation asks for this on every signed-in page.
+    if (!match && key === 'GET /notifications/unread-count') return json({ unread: 0 });
     if (!match) throw new Error(`unexpected request: ${key}`);
     return routes[match]();
   });
@@ -338,6 +340,56 @@ describe('my bookings', () => {
     open('/bookings');
 
     expect(await screen.findByText(/₹260 returned/)).toBeInTheDocument();
+  });
+});
+
+describe('notifications', () => {
+  const unread = {
+    id: 'a1',
+    type: 'BOOKING_CONFIRMED',
+    message: 'The driver accepted your booking for 1 seat, Kolhapur to Pune.',
+    bookingId: 90,
+    createdAt: '2026-10-30T10:00:00Z',
+    read: false,
+  };
+  const old = { ...unread, id: 'a0', message: 'Your trip from Kolhapur to Pune is complete.', read: true };
+
+  it('shows how many are unread in the navigation', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /notifications/unread-count': () => json({ unread: 3 }) });
+    open('/search');
+
+    const link = await screen.findByRole('link', { name: /Notifications/ });
+    expect(await within(link).findByText('3')).toBeInTheDocument();
+    expect(within(link).getByText('unread')).toBeInTheDocument();
+  });
+
+  it('lists them, marks unread ones for screen readers, and can mark all as read', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({
+      'GET /notifications/unread-count': () => json({ unread: 1 }),
+      'GET /notifications': () => json([unread, old]),
+      'POST /notifications/read-all': () => new Response(null, { status: 204 }),
+    });
+    open('/notifications');
+
+    const first = (await screen.findByText(unread.message)).closest('li')!;
+    expect(within(first).getByText('Unread:')).toBeInTheDocument();
+    expect(within(first).getByRole('button', { name: 'Mark as read' })).toBeInTheDocument();
+    const second = screen.getByText(old.message).closest('li')!;
+    expect(within(second).queryByRole('button', { name: 'Mark as read' })).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Mark all as read' }));
+    expect(fetchMock.mock.calls.some(([url, init]) => init?.method === 'POST' && String(url).endsWith('/notifications/read-all'))).toBe(true);
+  });
+
+  it('says so when there are none', async () => {
+    signIn('DRIVER');
+    serve({ 'GET /notifications': () => json([]) });
+    open('/notifications');
+
+    expect(await screen.findByText('You have no notifications.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Mark all as read' })).not.toBeInTheDocument();
   });
 });
 

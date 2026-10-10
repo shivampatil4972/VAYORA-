@@ -10,6 +10,8 @@ import com.dypcet.journex.booking.BookingService.LockedRide;
 import com.dypcet.journex.eventlog.EventLogService;
 import com.dypcet.journex.eventlog.EventType;
 import com.dypcet.journex.eventlog.HasActor;
+import com.dypcet.journex.notification.NotificationService;
+import com.dypcet.journex.notification.NotificationService.Type;
 import com.dypcet.journex.payment.PaymentService;
 import com.dypcet.journex.payment.PaymentService.RefundReason;
 import com.dypcet.journex.payment.PaymentService.SettlementReason;
@@ -62,18 +64,20 @@ public class TripService {
     private final JdbcTemplate jdbc;
     private final BookingService bookings;
     private final PaymentService payments;
+    private final NotificationService notifications;
     private final RideService rides;
     private final EventLogService events;
     private final Clock clock;
     private final Duration earlyStart;
 
     public TripService(JdbcTemplate jdbc, BookingService bookings, PaymentService payments,
-            RideService rides,
+            NotificationService notifications, RideService rides,
             EventLogService events, Clock clock,
             @Value("${journex.trip.early-start}") Duration earlyStart) {
         this.jdbc = jdbc;
         this.bookings = bookings;
         this.payments = payments;
+        this.notifications = notifications;
         this.rides = rides;
         this.events = events;
         this.clock = clock;
@@ -97,6 +101,7 @@ public class TripService {
         for (Booking unanswered : bookings.lockAll(rideId, BookingStatus.PENDING)) {
             bookings.move(unanswered, BookingStatus.REJECTED);
             payments.releaseInFull(unanswered.id(), RefundReason.NOT_ACCEPTED);
+            bookings.notifyDeclined(unanswered);
             events.write(EventType.BOOKING_REJECTED,
                     new Decided(unanswered.id(), rideId, driverId, false));
         }
@@ -124,6 +129,9 @@ public class TripService {
         Booking booking = bookings.lockBooking(bookingId);
         bookings.move(booking, BookingStatus.NO_SHOW);
         payments.captureInFull(bookingId, driverId, SettlementReason.PASSENGER_NO_SHOW);
+        notifications.send(booking.passengerId(), Type.MARKED_NO_SHOW,
+                "The driver reported that you did not board for " + BookingService.seatsOn(booking)
+                        + ". Nothing is refunded for a missed ride.", bookingId);
         events.write(EventType.TRIP_FAILED, new TripFailed(bookingId, rideId,
                 booking.passengerId(), driverId, "passenger_no_show"));
         return bookings.load(bookingId);
@@ -140,6 +148,9 @@ public class TripService {
         for (Booking booking : bookings.lockAll(rideId, BookingStatus.CONFIRMED)) {
             bookings.move(booking, BookingStatus.COMPLETED);
             payments.captureInFull(booking.id(), driverId, SettlementReason.TRIP_COMPLETED);
+            notifications.send(booking.passengerId(), Type.TRIP_COMPLETED,
+                    "Your trip from " + booking.fromStop() + " to " + booking.toStop()
+                            + " is complete. You can rate your driver in My bookings.", booking.id());
             events.write(EventType.TRIP_COMPLETED,
                     new Trip(booking.id(), rideId, booking.passengerId(), driverId));
         }
@@ -159,6 +170,10 @@ public class TripService {
                 bookings.move(booking, BookingStatus.CANCELLED);
                 bookings.recordCancelledBy(booking.id(), "driver");
                 payments.releaseInFull(booking.id(), RefundReason.DRIVER_CANCELLED);
+                notifications.send(booking.passengerId(), Type.RIDE_CANCELLED,
+                        "The driver cancelled the ride you booked for "
+                                + BookingService.seatsOn(booking)
+                                + ". Everything you paid has been returned.", booking.id());
                 events.write(EventType.BOOKING_CANCELLED, new Cancelled(booking.id(), rideId,
                         booking.passengerId(), booking.seats(), booking.boardingTime(),
                         "driver", driverId));

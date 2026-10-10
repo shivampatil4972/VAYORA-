@@ -4,6 +4,8 @@ import com.dypcet.journex.eventlog.EventLogService;
 import com.dypcet.journex.eventlog.EventType;
 import com.dypcet.journex.eventlog.HasActor;
 import com.dypcet.journex.hazard.HazardFeatures;
+import com.dypcet.journex.notification.NotificationService;
+import com.dypcet.journex.notification.NotificationService.Type;
 import com.dypcet.journex.payment.PaymentChoice;
 import com.dypcet.journex.payment.PaymentService;
 import com.dypcet.journex.payment.PaymentService.RefundReason;
@@ -129,16 +131,18 @@ public class BookingService {
     private final EventLogService events;
     private final HazardFeatures hazardFeatures;
     private final PaymentService payments;
+    private final NotificationService notifications;
     private final ObjectMapper mapper;
     private final Clock clock;
 
     public BookingService(JdbcTemplate jdbc, EventLogService events,
-            HazardFeatures hazardFeatures, PaymentService payments, ObjectMapper mapper,
-            Clock clock) {
+            HazardFeatures hazardFeatures, PaymentService payments,
+            NotificationService notifications, ObjectMapper mapper, Clock clock) {
         this.jdbc = jdbc;
         this.events = events;
         this.hazardFeatures = hazardFeatures;
         this.payments = payments;
+        this.notifications = notifications;
         this.mapper = mapper;
         this.clock = clock;
     }
@@ -229,7 +233,11 @@ public class BookingService {
             events.write(EventType.BOOKING_ACCEPTED,
                     new Decided(bookingId, rideId, ride.driverId(), true));
         }
-        return load(bookingId);
+        Booking booking = load(bookingId);
+        notifications.send(ride.driverId(), Type.BOOKING_REQUESTED,
+                booking.passengerName() + (status == BookingStatus.CONFIRMED ? " booked " : " asked for ")
+                        + seatsOn(booking) + ".", bookingId);
+        return booking;
     }
 
     @Transactional
@@ -240,6 +248,8 @@ public class BookingService {
                 bookingId);
         events.write(EventType.BOOKING_ACCEPTED,
                 new Decided(bookingId, booking.rideId(), driverId, false));
+        notifications.send(booking.passengerId(), Type.BOOKING_CONFIRMED,
+                "The driver accepted your booking for " + seatsOn(booking) + ".", bookingId);
         return load(bookingId);
     }
 
@@ -250,6 +260,7 @@ public class BookingService {
         payments.releaseInFull(bookingId, RefundReason.NOT_ACCEPTED);
         events.write(EventType.BOOKING_REJECTED,
                 new Decided(bookingId, booking.rideId(), driverId, false));
+        notifyDeclined(booking);
         return load(bookingId);
     }
 
@@ -275,6 +286,8 @@ public class BookingService {
                 booking.status() == BookingStatus.CONFIRMED, booking.boardingTime(), now);
         events.write(EventType.BOOKING_CANCELLED, new Cancelled(bookingId, booking.rideId(),
                 passengerId, booking.seats(), booking.boardingTime(), "passenger", passengerId));
+        notifications.send(ride.driverId(), Type.BOOKING_CANCELLED,
+                booking.passengerName() + " cancelled " + seatsOn(booking) + ".", bookingId);
         return load(bookingId);
     }
 
@@ -348,6 +361,18 @@ public class BookingService {
             throw conflict("This idempotency key was already used for a different booking");
         }
         return earlier;
+    }
+
+    void notifyDeclined(Booking booking) {
+        notifications.send(booking.passengerId(), Type.BOOKING_DECLINED,
+                "The driver did not accept your request for " + seatsOn(booking)
+                        + ". Everything you paid has been returned.", booking.id());
+    }
+
+    /** "2 seats, Kolhapur to Pune", for messages. */
+    static String seatsOn(Booking booking) {
+        return booking.seats() + (booking.seats() == 1 ? " seat, " : " seats, ")
+                + booking.fromStop() + " to " + booking.toStop();
     }
 
     void recordCancelledBy(long bookingId, String who) {

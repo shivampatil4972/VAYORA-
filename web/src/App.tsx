@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from './lib/auth';
 import { DurabilityPage } from './pages/AdminPages';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
 import { EarningsPage, PublishRidePage, RidesPage, VehiclesPage } from './pages/DriverPages';
+import { NotificationsPage } from './pages/NotificationsPage';
 import { BookingsPage, SearchPage } from './pages/PassengerPages';
 import { ProfilePage } from './pages/ProfilePage';
 
@@ -43,6 +44,7 @@ export function AppRoutes() {
         </Route>
         <Route element={<RequireRole />}>
           <Route path="users/:id" element={<ProfilePage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
         </Route>
         <Route element={<RequireRole role="ADMIN" />}>
           <Route path="admin/durability" element={<DurabilityPage />} />
