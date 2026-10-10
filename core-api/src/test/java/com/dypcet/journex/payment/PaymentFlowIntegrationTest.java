@@ -2,6 +2,7 @@ package com.dypcet.journex.payment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -336,6 +337,22 @@ class PaymentFlowIntegrationTest extends PostgresIntegrationTest {
                         .header("Idempotency-Key", "x".repeat(101))
                         .contentType("application/json").content(json.writeValueAsString(paid)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void theTermsShownToPassengersAreTheOnesTheServerApplies() throws Exception {
+        String passenger = "Bearer " + tokens.issue(passengerId, UserRole.PASSENGER);
+
+        mvc.perform(get("/api/v1/payment-terms").header("Authorization", passenger))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.provider").value("MOCK"))
+                .andExpect(jsonPath("$.serviceFeeRate").value(0.10))
+                .andExpect(jsonPath("$.refundTiers.length()").value(2))
+                .andExpect(jsonPath("$.refundTiers[0].atLeastHoursBefore").value(48))
+                .andExpect(jsonPath("$.refundTiers[0].fareShare").value(1.0))
+                .andExpect(jsonPath("$.refundTiers[1].atLeastHoursBefore").value(24))
+                .andExpect(jsonPath("$.refundTiers[1].fareShare").value(0.5));
+        mvc.perform(get("/api/v1/payment-terms")).andExpect(status().isUnauthorized());
     }
 
     private Booking book(long rideId) {

@@ -35,12 +35,23 @@ function serve(routes: Record<string, () => Response>) {
   const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
     const key = `${init?.method ?? 'GET'} ${new URL(url).pathname.replace('/api/v1', '')}`;
     const match = Object.keys(routes).find((route) => key.startsWith(route));
+    // Any signed-in page may ask for the payment terms.
+    if (!match && key === 'GET /payment-terms') return json(terms);
     if (!match) throw new Error(`unexpected request: ${key}`);
     return routes[match]();
   });
   vi.stubGlobal('fetch', fetchMock);
   return fetchMock;
 }
+
+const terms = {
+  provider: 'MOCK',
+  serviceFeeRate: 0.1,
+  refundTiers: [
+    { atLeastHoursBefore: 48, fareShare: 1 },
+    { atLeastHoursBefore: 24, fareShare: 0.5 },
+  ],
+};
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -57,6 +68,9 @@ const candidate: Candidate = {
   arrivalTime: '2026-11-02T06:00:00Z',
   pricePerSeat: 520,
   seatsAvailable: 3,
+  fare: 1040,
+  serviceFee: 104,
+  total: 1144,
 };
 
 const booking: Booking = {
@@ -70,6 +84,9 @@ const booking: Booking = {
   toStop: 'Pune',
   seats: 1,
   price: 520,
+  serviceFee: 52,
+  total: 572,
+  refunded: null,
   status: 'PENDING',
   boardingTime: '2026-11-02T01:30:00Z',
   createdAt: '2026-10-30T10:00:00Z',
@@ -152,14 +169,24 @@ describe('finding and booking a ride', () => {
 
     const results = await screen.findByRole('region', { name: 'Search results' });
     expect(await within(results).findByText(/Ravi Jadhav/)).toHaveTextContent('3 seats left');
-    expect(within(results).getByText('₹1,040')).toBeInTheDocument(); // 520 x 2
+    expect(within(results).getByText('₹1,144')).toBeInTheDocument();
+    expect(within(results).getByText('₹1,040 fare + ₹104 service fee')).toBeInTheDocument();
+    expect(await within(results).findByText(/Payments here are simulated/)).toBeInTheDocument();
     expect(within(results).getByText(/Driver approves each request/)).toBeInTheDocument();
 
+    await userEvent.selectOptions(within(results).getByLabelText('Pay with'), 'Card');
     await userEvent.click(within(results).getByRole('button', { name: 'Request' }));
 
-    expect(await screen.findByRole('status')).toHaveTextContent('Request sent');
+    expect(await screen.findByText(/Request sent/)).toHaveTextContent('₹572 is held (simulated payment)');
     const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')!;
-    expect(JSON.parse(post[1]!.body as string)).toEqual({ rideId: 12, fromSeq: 0, toSeq: 2, seats: 2 });
+    expect(JSON.parse(post[1]!.body as string)).toEqual({
+      rideId: 12,
+      fromSeq: 0,
+      toSeq: 2,
+      seats: 2,
+      paymentMethod: 'CARD',
+    });
+    expect((post[1]!.headers as Record<string, string>)['Idempotency-Key']).toMatch(/^[0-9a-f-]{36}$/);
   });
 
   it('says so when nothing matches, and offers a retry when the search fails', async () => {
@@ -190,6 +217,29 @@ describe('finding and booking a ride', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Not enough seats left');
     expect(screen.getByRole('button', { name: 'Request' })).toBeInTheDocument();
+  });
+
+  it('reuses one idempotency key when the same booking is tried again after a failure', async () => {
+    signIn('PASSENGER');
+    let attempts = 0;
+    const fetchMock = serve({
+      'GET /rides/search': () => json([candidate]),
+      'POST /bookings': () =>
+        attempts++ === 0 ? json({ detail: 'The payment was declined. Nothing was booked.' }, 402) : json(booking, 201),
+    });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Request' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('The payment was declined. Nothing was booked.');
+    await userEvent.click(screen.getByRole('button', { name: 'Request' }));
+    expect(await screen.findByText(/Request sent/)).toBeInTheDocument();
+
+    const keys = fetchMock.mock.calls
+      .filter(([, init]) => init?.method === 'POST')
+      .map(([, init]) => (init!.headers as Record<string, string>)['Idempotency-Key']);
+    expect(keys).toHaveLength(2);
+    expect(keys[0]).toBe(keys[1]);
   });
 });
 
@@ -253,6 +303,11 @@ describe('my bookings', () => {
     open('/bookings');
 
     expect(await screen.findByText('Waiting for the driver')).toBeInTheDocument();
+    expect(screen.getByText('₹572 (₹520 fare + ₹52 service fee)')).toBeInTheDocument();
+    // The refund policy is stated, from the server's own terms, before anything is cancelled.
+    expect(await screen.findByText('48 hours or more before boarding: the whole fare back.')).toBeInTheDocument();
+    expect(screen.getByText('24 to 48 hours before boarding: 50% of the fare back.')).toBeInTheDocument();
+    expect(screen.getByText('Less than 24 hours before boarding: nothing back.')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Cancel booking' }));
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false);
 
@@ -267,5 +322,49 @@ describe('my bookings', () => {
 
     expect(await screen.findByText('Completed')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Cancel booking' })).not.toBeInTheDocument();
+    expect(screen.queryByText('If you cancel')).not.toBeInTheDocument();
+  });
+
+  it('shows what came back on a cancelled booking', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /bookings': () => json([{ ...booking, status: 'CANCELLED', refunded: 260 }]) });
+    open('/bookings');
+
+    expect(await screen.findByText(/₹260 returned/)).toBeInTheDocument();
+  });
+});
+
+describe('earnings (driver)', () => {
+  it('lists payouts with their reason and a total, and says the money is simulated', async () => {
+    signIn('DRIVER');
+    const payout = {
+      bookingId: 1,
+      passengerName: 'Meera Kulkarni',
+      fromStop: 'Kolhapur',
+      toStop: 'Pune',
+      provider: 'MOCK',
+      createdAt: '2026-11-02T06:00:00Z',
+    };
+    serve({
+      'GET /settlements': () =>
+        json([
+          { ...payout, amount: 520, reason: 'TRIP_COMPLETED' },
+          { ...payout, bookingId: 2, amount: 260, reason: 'LATE_CANCELLATION' },
+        ]),
+    });
+    open('/earnings');
+
+    expect(await screen.findByText('₹780')).toBeInTheDocument();
+    expect(screen.getByText('Trip completed')).toBeInTheDocument();
+    expect(screen.getByText('Passenger cancelled late')).toBeInTheDocument();
+    expect(await screen.findByText(/Payments here are simulated/)).toBeInTheDocument();
+  });
+
+  it('explains when nothing has been paid yet', async () => {
+    signIn('DRIVER');
+    serve({ 'GET /settlements': () => json([]) });
+    open('/earnings');
+
+    expect(await screen.findByText(/Nothing has been paid out yet/)).toBeInTheDocument();
   });
 });

@@ -69,6 +69,11 @@ export interface Candidate {
   arrivalTime: string;
   pricePerSeat: number;
   seatsAvailable: number;
+  /** For the seats searched for. */
+  fare: number;
+  serviceFee: number;
+  /** Fare plus fee: what booking would hold. */
+  total: number;
 }
 
 /** The newest durability estimate of one live booking. Administrators only. */
@@ -91,6 +96,28 @@ export interface ScoringSummary {
   skippedRun: boolean;
 }
 
+export type PaymentMethod = 'CARD' | 'UPI' | 'WALLET';
+
+export interface PaymentTerms {
+  /** `MOCK` means payments are simulated and no money moves. */
+  provider: string;
+  serviceFeeRate: number;
+  /** Most generous first. Later than the last tier refunds nothing. */
+  refundTiers: { atLeastHoursBefore: number; fareShare: number }[];
+}
+
+/** A payout to a driver. */
+export interface Settlement {
+  bookingId: number;
+  passengerName: string;
+  fromStop: string;
+  toStop: string;
+  amount: number;
+  reason: 'TRIP_COMPLETED' | 'PASSENGER_NO_SHOW' | 'LATE_CANCELLATION';
+  provider: string;
+  createdAt: string;
+}
+
 export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'REJECTED' | 'CANCELLED' | 'COMPLETED' | 'NO_SHOW';
 
 export interface Booking {
@@ -103,7 +130,12 @@ export interface Booking {
   fromStop: string;
   toStop: string;
   seats: number;
+  /** The fare. */
   price: number;
+  /** Null on a booking nothing was charged for. */
+  serviceFee: number | null;
+  total: number | null;
+  refunded: number | null;
   status: BookingStatus;
   boardingTime: string;
   createdAt: string;

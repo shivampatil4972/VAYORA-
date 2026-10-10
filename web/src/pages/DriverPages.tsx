@@ -4,12 +4,13 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 
+import { SimulatedPaymentNotice } from '../components/payment';
 import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, StatusBadge, TextField } from '../components/ui';
 import { api } from '../lib/api';
 import { CORRIDOR } from '../lib/corridor';
 import { formatDateTime, formatRupees, formatTime } from '../lib/format';
 import { rideSchema, toPublishRequest, vehicleSchema, type RideForm, type VehicleForm } from '../lib/schemas';
-import type { Booking, Ride, Vehicle } from '../lib/types';
+import type { Booking, Ride, Settlement, Vehicle } from '../lib/types';
 
 const useVehicles = () => useQuery({ queryKey: ['vehicles'], queryFn: () => api<Vehicle[]>('/vehicles') });
 
@@ -354,5 +355,62 @@ function RideBookings({ ride }: { ride: Ride }) {
         </div>
       )}
     </div>
+  );
+}
+
+const settlementReason: Record<Settlement['reason'], string> = {
+  TRIP_COMPLETED: 'Trip completed',
+  PASSENGER_NO_SHOW: 'Passenger did not board',
+  LATE_CANCELLATION: 'Passenger cancelled late',
+};
+
+export function EarningsPage() {
+  const settlements = useQuery({ queryKey: ['settlements'], queryFn: () => api<Settlement[]>('/settlements') });
+  const total = settlements.data?.reduce((sum, settlement) => sum + settlement.amount, 0) ?? 0;
+
+  return (
+    <Page title="Earnings">
+      <SimulatedPaymentNotice />
+      <QueryState
+        isPending={settlements.isPending}
+        error={settlements.error}
+        isEmpty={settlements.data?.length === 0}
+        empty="Nothing has been paid out yet. You are paid the fare when a trip completes."
+        onRetry={() => void settlements.refetch()}
+      />
+      {settlements.data && settlements.data.length > 0 && (
+        <Card>
+          <p className="text-sm text-slate-600">Total paid out</p>
+          <p className="text-2xl font-semibold">{formatRupees(total)}</p>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <caption className="sr-only">Payouts, newest first</caption>
+              <thead className="border-b border-slate-200 text-slate-600">
+                <tr>
+                  <th scope="col" className="py-2 pr-4 font-medium">Paid</th>
+                  <th scope="col" className="py-2 pr-4 font-medium">Passenger</th>
+                  <th scope="col" className="py-2 pr-4 font-medium">Trip</th>
+                  <th scope="col" className="py-2 pr-4 font-medium">Why</th>
+                  <th scope="col" className="py-2 text-right font-medium">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {settlements.data.map((settlement) => (
+                  <tr key={settlement.bookingId} className="border-b border-slate-100 last:border-0">
+                    <td className="py-2 pr-4">{formatDateTime(settlement.createdAt)}</td>
+                    <td className="py-2 pr-4">{settlement.passengerName}</td>
+                    <td className="py-2 pr-4">
+                      {settlement.fromStop} → {settlement.toStop}
+                    </td>
+                    <td className="py-2 pr-4">{settlementReason[settlement.reason]}</td>
+                    <td className="py-2 text-right font-medium">{formatRupees(settlement.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+    </Page>
   );
 }

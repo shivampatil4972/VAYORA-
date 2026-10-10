@@ -18,6 +18,10 @@ public class ServiceFee {
         this.rate = rate;
     }
 
+    public BigDecimal rate() {
+        return rate;
+    }
+
     public BigDecimal on(BigDecimal fare) {
         return fare.multiply(rate).setScale(2, RoundingMode.HALF_UP);
     }

@@ -13,6 +13,7 @@ const links: Record<Role, { to: string; label: string }[]> = {
     { to: '/rides', label: 'My rides' },
     { to: '/rides/new', label: 'Publish a ride' },
     { to: '/vehicles', label: 'My vehicles' },
+    { to: '/earnings', label: 'Earnings' },
   ],
   ADMIN: [{ to: '/admin/durability', label: 'Booking durability' }],
 };

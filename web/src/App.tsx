@@ -7,7 +7,7 @@ import { Notice, Page } from './components/ui';
 import { AuthProvider, useAuth } from './lib/auth';
 import { DurabilityPage } from './pages/AdminPages';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
-import { PublishRidePage, RidesPage, VehiclesPage } from './pages/DriverPages';
+import { EarningsPage, PublishRidePage, RidesPage, VehiclesPage } from './pages/DriverPages';
 import { BookingsPage, SearchPage } from './pages/PassengerPages';
 
 function Home() {
@@ -38,6 +38,7 @@ export function AppRoutes() {
           <Route path="rides" element={<RidesPage />} />
           <Route path="rides/new" element={<PublishRidePage />} />
           <Route path="vehicles" element={<VehiclesPage />} />
+          <Route path="earnings" element={<EarningsPage />} />
         </Route>
         <Route element={<RequireRole role="ADMIN" />}>
           <Route path="admin/durability" element={<DurabilityPage />} />
