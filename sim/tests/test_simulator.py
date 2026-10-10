@@ -287,3 +287,124 @@ def test_a_run_written_to_postgres_is_read_correctly_by_the_metric_queries(pg_co
         assert primary[seed]["completed"] == counts["trip_completed"]
         assert late[seed]["cancellations"] == counts["booking_cancelled"]
         assert late[seed]["missing_departure_time"] == 0
+
+
+# ---- variants that use the durability model -----------------------------------
+
+B3 = load_variant(CONFIGS / "variants" / "B3.yaml")
+B4 = load_variant(CONFIGS / "variants" / "B4.yaml")
+POLICY_EVENTS = {"hazard_scored", "intervention_issued", "intervention_responded"}
+
+
+def _response(world, **changes):
+    return _demand(world, intervention_response=dataclasses.replace(
+        world.demand.intervention_response, **changes))
+
+
+@pytest.fixture(scope="module")
+def intervened():
+    return _run(variant=B4)
+
+
+def test_every_variant_faces_the_same_searches_and_the_same_rides(baseline, intervened):
+    def searches(events):
+        return [(e.sim_time, e.payload) for e in events if e.event_type == "search_issued"]
+
+    def offered(sim):
+        return [(r.id, r.departure, r.seats, r.publish_at, r.withdraw_at) for r in sim.rides]
+
+    for sim, events in (_run(variant=B3), intervened):
+        assert searches(events) == searches(baseline[1])
+        assert offered(sim) == offered(baseline[0])
+
+
+def test_model_variants_keep_every_invariant_and_leak_nothing(intervened):
+    sim, events = intervened
+    counts = _counts(events)
+    forbidden = set(LATENT_TYPES) | {"kind", "latent", "type", "passenger_type", "cancel_at"}
+
+    assert counts["trip_started"] == counts["trip_completed"] + counts["trip_failed"]
+    assert [e.sim_time for e in events] == sorted(e.sim_time for e in events)
+    for ride in sim.rides:
+        assert 0 <= ride.seats_available <= ride.seats
+    for event in events:
+        assert not forbidden & set(event.payload), event
+        assert not forbidden & {v for v in event.payload.values() if isinstance(v, str)}, event
+        assert (event.actor_type, event.actor_id is None) in [
+            ("passenger", False), ("driver", False), ("platform", True)]
+
+
+def test_scores_are_probabilities_and_name_the_model_that_made_them(intervened):
+    _, events = intervened
+    scores = [e for e in events if e.event_type == "hazard_scored"]
+
+    assert scores
+    for event in scores:
+        payload = event.payload
+        assert 0.0 < payload["survival_probability"] <= 1.0
+        assert 0.0 <= payload["elapsed_hours"] < payload["horizon_hours"]
+        assert (payload["model_version"], payload["feature_version"]) == ("h1-cox", "f1")
+
+
+def test_a_booking_is_asked_at_most_once_only_when_risky_and_never_too_late(intervened):
+    sim, events = intervened
+    policy = B4.intervention
+    departure = {b.id: WORLD.start + timedelta(hours=b.ride.departure) for b in sim.bookings}
+    asked = [e for e in events if e.event_type == "intervention_issued"]
+
+    assert asked
+    assert len({e.payload["booking_id"] for e in asked}) == len(asked)
+    for event in asked:
+        assert event.payload["survival_probability"] < policy.survival_threshold
+        assert event.payload["action"] == "reconfirm"
+        remaining = departure[event.payload["booking_id"]] - event.sim_time
+        assert remaining >= timedelta(hours=policy.min_hours_before_departure)
+
+
+def test_only_the_passenger_releases_a_seat_and_a_release_is_a_cancellation(intervened):
+    _, events = intervened
+    responses = [e for e in events if e.event_type == "intervention_responded"]
+    cancelled_at = {
+        e.payload["booking_id"]: e.sim_time for e in events
+        if e.event_type == "booking_cancelled" and e.payload["cancelled_by"] == "passenger"}
+
+    assert {e.payload["response"] for e in responses} == {"released", "confirmed"}
+    for event in responses:
+        assert event.actor_type == "passenger"
+        if event.payload["response"] == "released":
+            assert cancelled_at[event.payload["booking_id"]] == event.sim_time
+
+
+def test_asking_changes_nothing_when_nobody_ever_releases():
+    deaf = _response(WORLD, early_release_probability=0.0, annoyed_cancel_probability=0.0)
+
+    def outcome(variant):
+        return [(e.event_type, e.sim_time, e.payload) for e in _run(deaf, variant=variant)[1]
+                if e.event_type not in POLICY_EVENTS]
+
+    assert outcome(B4) == outcome(B3)
+
+
+def test_early_releases_move_cancellations_earlier_not_just_add_them(intervened):
+    def lead_hours(events):
+        return [
+            (datetime.fromisoformat(e.payload["departure_time"]) - e.sim_time) / timedelta(hours=1)
+            for e in events
+            if e.event_type == "booking_cancelled" and e.payload["cancelled_by"] == "passenger"]
+
+    def late_share(leads):
+        return sum(1 for lead in leads if lead < 24) / len(leads)
+
+    assert late_share(lead_hours(intervened[1])) < late_share(lead_hours(_run(variant=B3)[1]))
+
+
+def test_a_variant_that_needs_a_model_must_name_one(tmp_path):
+    from sim.config import ConfigError
+
+    path = tmp_path / "BX.yaml"
+    path.write_text("name: BX\nranking: predicted_survival\n", encoding="utf-8")
+    with pytest.raises(ConfigError, match="hazard_model"):
+        load_variant(path)
+    path.write_text("name: BX\nranking: departure_time\nnudge: true\n", encoding="utf-8")
+    with pytest.raises(ConfigError, match="nudge"):
+        load_variant(path)

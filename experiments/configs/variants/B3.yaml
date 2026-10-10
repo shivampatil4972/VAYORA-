@@ -1,0 +1,8 @@
+# B3: survival-aware ranking. Candidates are ordered by the model's estimate that a
+# booking on them would last until departure. No intervention.
+#
+# B1 (feasibility filter) and B2 (two-sided ranking) are not implemented: the simulated
+# corridor has a single origin and destination, so there is no geography to filter on.
+name: B3
+ranking: predicted_survival
+hazard_model: h1-cox

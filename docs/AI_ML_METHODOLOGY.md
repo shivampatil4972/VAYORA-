@@ -1,0 +1,153 @@
+# AI and ML methodology
+
+Everything here is trained and evaluated on **synthetic data from the simulator**. No
+real booking data exists for this project. No result below says anything about real
+passengers; each says what happens in a world built from the assumptions in
+`experiments/configs/world.yaml`.
+
+## 1. What is predicted
+
+For a booking a driver has accepted, let T be the time from acceptance until the
+passenger cancels it. The model estimates
+
+    S(t | x) = P(T > t | x)
+
+with t in hours since acceptance and x the features in section 3. The quantity the
+platform uses is the probability the booking lasts until its ride departs:
+
+- before a booking exists, for ranking: `S(h | x)`, with h the hours to departure;
+- for a live booking, at each scoring round: `S(h | x) / S(e | x)`, with e the hours
+  already survived and h the hours from acceptance to departure.
+
+This is **not** the probability that the passenger boards or that the trip completes.
+No-shows and driver withdrawals are separate processes and are not modelled by it.
+
+## 2. Events and censoring
+
+| Outcome of an accepted booking | Treatment |
+|---|---|
+| Passenger cancels | Event at the cancellation time |
+| Booking is live at departure | Right-censored at departure |
+| Driver withdraws the ride | Right-censored at the withdrawal time |
+
+Censoring at departure is administrative and its time is known in advance: it equals
+the booking's horizon, which is nearly the `lead_hours` feature. Section 5 explains why
+that matters for one of the metrics.
+
+Bookings never accepted (rejected, or unanswered at departure) are not in the data:
+the clock starts at acceptance.
+
+## 3. Features (version `f1`)
+
+All are known when the booking is requested. They are computed in one place,
+`intel/app/hazard/features.py`, by a tracker that only ever sees logged events; the
+training set is built by replaying an event log through it and the simulator feeds it
+the events it emits. So training and serving use the same code, and a feature can only
+be something that was in an event.
+
+| Feature | Meaning |
+|---|---|
+| `lead_hours` | Request to the ride's departure |
+| `seats` | Seats in the booking |
+| `departure_hour` | Local hour of day the ride leaves |
+| `desired_gap_hours` | Distance between the ride's departure and the time asked for |
+| `prior_accepted` | The passenger's earlier accepted bookings |
+| `prior_cancellations` | Of those, cancelled by the passenger |
+| `prior_completed` | Of those, travelled |
+| `prior_no_shows` | Of those, never boarded |
+| `prior_cancel_share` | `prior_cancellations / prior_accepted`, 0 with no history |
+
+History is read before the current booking is observed, so a booking is never part of
+its own history. A test (`test_history_features_only_ever_look_backwards`) checks it.
+
+**Latent passenger type is not a feature and cannot become one.** It exists only inside
+the simulator and is never written to an event. Tests fail if a type name or a `kind`
+key appears in any payload or in a training row.
+
+## 4. Data and seeds
+
+| Set | Simulator seeds | Accepted bookings | Passenger cancellations |
+|---|---|---|---|
+| Training | 1001-1020 | 25,272 | 3,196 |
+| Validation | 2001-2010 | 12,595 | 1,611 |
+| Experiments | 1-30 | not used for fitting or model choice | |
+
+The three sets are disjoint and `experiments/hazard/train.py` refuses to run if they
+are not. All are generated under variant B0, so the model learns from a world in which
+no intervention has yet changed behaviour.
+
+## 5. Models compared
+
+Source: `experiments/reports/hazard-h1.json`, produced by
+`python -m experiments.hazard.train`. Validation set, 12,369 bookings with a known
+outcome for the departure measures (the 226 driver-withdrawn bookings are excluded
+there because whether the passenger would have lasted is unknown).
+
+| Model | Concordance | Brier score, survives to departure | Integrated Brier score |
+|---|---|---|---|
+| Kaplan-Meier, no features | 0.500 | 0.0991 | 0.1325 |
+| Cox proportional hazards | 0.589 | **0.0978** | 0.1375 |
+| Gradient-boosted survival | 0.556 | 0.0995 | 0.1447 |
+
+Reading these honestly:
+
+- **The gain from features is small.** Cox improves the departure Brier score by about
+  1.3% over a curve that uses no features. Most of what can be predicted about whether
+  a booking lasts is how long it has to last, which the no-feature curve already uses.
+  The rest is driven by latent type and unobservable shocks, which is the design.
+- **Concordance of 0.59 is weak discrimination.** It is above chance, and nowhere near
+  what would let the platform single out individual bookings with confidence.
+- **Gradient boosting did not beat Cox** on any measure, and was trained on a 5,000-row
+  sample because scikit-survival's loss is quadratic in rows. It is not served.
+- **The integrated Brier score is not reliable here** and is reported only for
+  completeness. It reweights by the censoring distribution assuming censoring is
+  independent of the features; here censoring time is a feature. It ranks the
+  no-feature curve first, the opposite of the departure Brier score.
+- **Calibration is good for all three.** In ten equal-count bins of predicted survival,
+  Cox's mean prediction and the observed rate differ by at most 0.026 (0.741 predicted,
+  0.715 observed, in the second-lowest bin). Mean predicted survival is 0.871 against
+  0.870 observed.
+
+### Proportional-hazards check
+
+Schoenfeld-residual test (lifelines, rank time transform) on the training set. The
+assumption is rejected for `lead_hours` (p = 0.003) and marginal for `prior_no_shows`
+(p = 0.035); it is not rejected for the other seven features (p from 0.28 to 0.99).
+
+A violation is expected. The generator is a mixture of Weibull hazards with different
+shapes, so hazards for different passengers are not proportional over time, and
+`lead_hours` correlates with type. Cox PH cannot represent this. That is research
+integrity rule 2 working as intended, and it is a stated limitation of the served model,
+not something that was fixed.
+
+### Choice
+
+**Cox PH (`h1-cox`) is served.** It has the best departure Brier score and concordance
+of the three, sensible coefficient signs (prior cancellations and no-shows raise the
+hazard, prior completed trips lower it), and it exports to a small file scored in pure
+Python. The Kaplan-Meier curve (`h1-km`) is exported too, as the reference a variant can
+be run against.
+
+## 6. Serving
+
+`POST /v1/hazard/score` on the intel service takes the nine features, `elapsed_hours`
+and `horizon_hours`, and returns the conditional survival probability with the model
+version, feature version and `trained_on: synthetic`. The service holds no state: the
+caller supplies the features.
+
+The exported model holds the baseline cumulative hazard as a step function. lifelines
+interpolates between event times; the difference is about 0.001 in probability.
+
+## 7. Known limitations
+
+- Synthetic data only. Nothing here is evidence about real cancellation behaviour.
+- The public hotel-reservation dataset named in the synopsis has not been examined. A
+  cancellation flag with a lead time does not give a cancellation time, so it may not
+  support a time-to-event validation at all; that check is still to be done.
+- Features are fixed at the request. Nothing that happens after it (a reconfirmation,
+  a message, a changed profile) updates them; only elapsed time does.
+- No SHAP explanations yet. For a Cox model the per-feature contribution to the log
+  hazard is `coef * (x - mean)` and can be reported exactly without SHAP.
+- One model version, trained once. There is no drift monitoring or retraining schedule.
+- The model is trained on B0 behaviour. Once interventions change when people cancel,
+  the data it was trained on no longer describes the world it is used in.

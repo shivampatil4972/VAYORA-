@@ -85,3 +85,15 @@ demand:
   shock:
     rate_per_day: 0.02
     hazard_multiplier: 15
+
+  # How a passenger reacts when the platform asks them to reconfirm a booking. Only
+  # variants that intervene use this. THESE NUMBERS DECIDE WHAT AN INTERVENTION IS WORTH
+  # and nothing in a simulation can estimate them: treat every result that depends on
+  # them as conditional, and sweep them.
+  intervention_response:
+    # A passenger who was going to cancel later anyway releases the seat now instead.
+    early_release_probability: 0.5
+    # A passenger who was going to travel is put off by being asked, and cancels.
+    annoyed_cancel_probability: 0.02
+    # Mean of the (exponential) time a passenger takes to answer.
+    response_delay_mean_hours: 3.0

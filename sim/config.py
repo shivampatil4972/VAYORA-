@@ -38,6 +38,15 @@ class Shock:
 
 
 @dataclass(frozen=True)
+class InterventionResponse:
+    """How a passenger reacts to being asked to reconfirm a booking."""
+
+    early_release_probability: float
+    annoyed_cancel_probability: float
+    response_delay_mean_hours: float
+
+
+@dataclass(frozen=True)
 class Supply:
     rides_per_day: float
     departure_hours: Mapping[int, float]
@@ -59,6 +68,7 @@ class Demand:
     party_size: Mapping[int, float]
     types: Mapping[str, PassengerType]
     shock: Shock
+    intervention_response: InterventionResponse
 
 
 @dataclass(frozen=True)
@@ -69,9 +79,23 @@ class World:
 
 
 @dataclass(frozen=True)
+class Intervention:
+    """Ask a booking to reconfirm when its predicted survival falls below a threshold."""
+
+    survival_threshold: float
+    # No request is sent closer to departure than this: a seat released later than
+    # that has little chance of being refilled.
+    min_hours_before_departure: float
+    scoring_interval_hours: float
+
+
+@dataclass(frozen=True)
 class Variant:
     name: str
     ranking: str
+    # Model file in intel/app/hazard/models, without the extension.
+    hazard_model: str | None = None
+    intervention: Intervention | None = None
 
 
 def load_world(path: Path) -> World:
@@ -85,6 +109,7 @@ def load_world(path: Path) -> World:
     demand_raw = dict(raw["demand"])
     types_raw = demand_raw.pop("types", None) or {}
     shock_raw = demand_raw.pop("shock", None) or {}
+    response_raw = demand_raw.pop("intervention_response", None) or {}
     if set(types_raw) != set(LATENT_TYPES):
         raise ConfigError(f"demand.types must be exactly {sorted(LATENT_TYPES)}")
     types = {
@@ -93,7 +118,9 @@ def load_world(path: Path) -> World:
     }
     demand = _build(
         Demand,
-        {**demand_raw, "types": types, "shock": _build(Shock, shock_raw, "demand.shock")},
+        {**demand_raw, "types": types, "shock": _build(Shock, shock_raw, "demand.shock"),
+         "intervention_response": _build(
+             InterventionResponse, response_raw, "demand.intervention_response")},
         "demand",
     )
     world = World(start=start, supply=_build(Supply, raw["supply"], "supply"), demand=demand)
@@ -102,7 +129,20 @@ def load_world(path: Path) -> World:
 
 
 def load_variant(path: Path) -> Variant:
-    return _build(Variant, _read(path), path.name)
+    raw = _read(path)
+    _require_keys(raw, {"name", "ranking"}, path.name, optional={"hazard_model", "intervention"})
+    intervention = raw.get("intervention")
+    if intervention is not None:
+        intervention = _build(Intervention, intervention, f"{path.name}: intervention")
+        if not 0 <= intervention.survival_threshold <= 1:
+            raise ConfigError("intervention.survival_threshold must be between 0 and 1")
+        if intervention.scoring_interval_hours <= 0 or intervention.min_hours_before_departure < 0:
+            raise ConfigError("intervention intervals must be positive")
+    variant = Variant(raw["name"], raw["ranking"], raw.get("hazard_model"), intervention)
+    needs_model = variant.ranking == "predicted_survival" or variant.intervention is not None
+    if needs_model and variant.hazard_model is None:
+        raise ConfigError(f"{path.name}: this variant needs a hazard_model")
+    return variant
 
 
 def validate(world: World) -> None:
@@ -115,6 +155,8 @@ def validate(world: World) -> None:
         ("demand.searches_per_day", demand.searches_per_day),
         ("demand.population", demand.population),
         ("demand.shock.hazard_multiplier", demand.shock.hazard_multiplier),
+        ("demand.intervention_response.response_delay_mean_hours",
+         demand.intervention_response.response_delay_mean_hours),
     ]:
         if value <= 0:
             raise ConfigError(f"{name} must be positive")
@@ -126,6 +168,10 @@ def validate(world: World) -> None:
     probabilities = [
         ("supply.accept_probability", supply.accept_probability),
         ("supply.withdraw_probability", supply.withdraw_probability),
+        ("demand.intervention_response.early_release_probability",
+         demand.intervention_response.early_release_probability),
+        ("demand.intervention_response.annoyed_cancel_probability",
+         demand.intervention_response.annoyed_cancel_probability),
     ]
     for name, kind in demand.types.items():
         probabilities += [
@@ -174,8 +220,9 @@ def _build(cls, raw: Any, where: str):
     return cls(**raw)
 
 
-def _require_keys(raw: Mapping[str, Any], expected: set[str], where: str) -> None:
-    missing, unknown = expected - set(raw), set(raw) - expected
+def _require_keys(raw: Mapping[str, Any], expected: set[str], where: str,
+                  optional: frozenset[str] | set[str] = frozenset()) -> None:
+    missing, unknown = expected - set(raw), set(raw) - expected - optional
     if missing or unknown:
         raise ConfigError(
             f"{where}: missing keys {sorted(missing)}, unknown keys {sorted(unknown)}"

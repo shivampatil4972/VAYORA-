@@ -183,4 +183,25 @@ def test_cancellation_without_departure_time_is_surfaced(sa_conn):
 
 
 def test_metrics_file_defines_the_expected_queries():
-    assert set(load_queries()) == {"primary_metric", "late_cancellation_share", "funnel_rates"}
+    assert set(load_queries()) == {
+        "primary_metric", "late_cancellation_share", "funnel_rates", "intervention_volume"}
+
+
+def test_intervention_volume_matches_hand_computed_values(sa_conn):
+    def event(seed, event_type, payload=None):
+        return {"run_id": RUN_ID, "variant": VARIANT, "seed": seed, "sim_time": NOW,
+                "event_type": event_type, "payload": json.dumps(payload or {})}
+
+    rows = [event(1, "booking_accepted") for _ in range(20)]
+    rows += [event(1, "intervention_issued") for _ in range(5)]
+    rows += [event(1, "intervention_responded", {"response": "released"}) for _ in range(2)]
+    rows += [event(1, "intervention_responded", {"response": "confirmed"}) for _ in range(3)]
+    rows += [event(1, "seat_refilled") for _ in range(4)]
+    rows += [event(2, "search_issued")]  # a seed with nothing accepted and nothing asked
+    sa_conn.execute(INSERT, rows)
+
+    one, two = run_query(sa_conn, "intervention_volume", run_id=RUN_ID, variant=VARIANT)
+
+    assert (one["asked"], one["released"], one["refilled"]) == (5, 2, 4)
+    assert float(one["contact_rate"]) == pytest.approx(0.25)  # 5 / 20
+    assert (two["asked"], two["contact_rate"]) == (0, None)

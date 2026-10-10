@@ -60,3 +60,22 @@ FROM events
 WHERE run_id = :run_id AND variant = :variant
 GROUP BY seed
 ORDER BY seed;
+
+-- name: intervention_volume
+-- asked         reconfirmation requests sent
+-- released      requests the passenger answered by giving the seat up
+-- refilled      bookings that took a seat a passenger had released earlier
+-- contact_rate  requests per accepted booking: the contact budget actually spent
+-- A seed with no accepted booking has an undefined contact_rate, not zero.
+SELECT seed,
+  COUNT(*) FILTER (WHERE event_type = 'intervention_issued') AS asked,
+  COUNT(*) FILTER (WHERE event_type = 'intervention_responded'
+                     AND payload->>'response' = 'released') AS released,
+  COUNT(*) FILTER (WHERE event_type = 'seat_refilled') AS refilled,
+  1.0 * COUNT(*) FILTER (WHERE event_type = 'intervention_issued')
+      / NULLIF(COUNT(*) FILTER (WHERE event_type = 'booking_accepted'), 0)
+      AS contact_rate
+FROM events
+WHERE run_id = :run_id AND variant = :variant
+GROUP BY seed
+ORDER BY seed;

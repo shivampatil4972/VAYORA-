@@ -1,0 +1,10 @@
+# B4: B3 plus a threshold intervention. Every scoring round, each confirmed booking is
+# re-scored; one whose estimated survival to departure is below the threshold is asked,
+# once, to reconfirm. Nothing is ever cancelled by the platform.
+name: B4
+ranking: predicted_survival
+hazard_model: h1-cox
+intervention:
+  survival_threshold: 0.8
+  min_hours_before_departure: 24
+  scoring_interval_hours: 24

@@ -70,8 +70,7 @@ def fit_kaplan_meier(train: pd.DataFrame, version: str) -> HazardModel:
     return HazardModel(
         version=f"{version}-km", feature_version=FEATURE_VERSION, kind="kaplan_meier",
         features=FEATURES, coef=(0.0,) * len(FEATURES), mean=(0.0,) * len(FEATURES),
-        times=tuple(float(t) for t in curve.index),
-        cumulative_hazard=tuple(float(-np.log(s)) for s in curve))
+        **_steps(curve.index, -np.log(curve.to_numpy())))
 
 
 def fit_cox(train: pd.DataFrame, version: str, penalizer: float) -> tuple[HazardModel, CoxPHFitter]:
@@ -84,9 +83,19 @@ def fit_cox(train: pd.DataFrame, version: str, penalizer: float) -> tuple[Hazard
         features=FEATURES,
         coef=tuple(float(cox.params_[name]) for name in FEATURES),
         mean=tuple(float(cox._norm_mean[name]) for name in FEATURES),
-        times=tuple(float(t) for t in baseline.index),
-        cumulative_hazard=tuple(float(h) for h in baseline))
+        **_steps(baseline.index, baseline.to_numpy()))
     return model, cox
+
+
+def _steps(times, cumulative_hazard) -> dict[str, tuple[float, ...]]:
+    """Keeps only the times at which the cumulative hazard actually rises."""
+    kept_times: list[float] = []
+    kept_hazard: list[float] = []
+    for time, hazard in zip(times, cumulative_hazard):
+        if not kept_hazard or hazard > kept_hazard[-1]:
+            kept_times.append(float(time))
+            kept_hazard.append(float(hazard))
+    return {"times": tuple(kept_times), "cumulative_hazard": tuple(kept_hazard)}
 
 
 def fit_gradient_boosting(train: pd.DataFrame, config: dict[str, Any]):

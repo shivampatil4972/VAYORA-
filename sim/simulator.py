@@ -12,6 +12,10 @@ face the same world:
 A variant changes what the platform does with a search. It cannot change who shows up,
 what they are like, or what was on offer.
 
+A variant that uses the durability model sees passengers only through a
+``FeatureTracker`` fed with the events this run has emitted, exactly as the training
+data was built. It has no path to ``Passenger.kind``.
+
 Time is in hours since ``World.start``.
 """
 
@@ -20,10 +24,12 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Callable, Mapping, Protocol
+from typing import Any, Mapping, Protocol
 
 import simpy
 
+from intel.app.hazard.features import FeatureTracker
+from intel.app.hazard.model import MODEL_DIR, HazardModel
 from journex_events import EventType
 from sim.config import PassengerType, Variant, World
 from sim.frozen import BOOKING_HORIZON_DAYS, DESTINATION, LATENT_TYPES, ORIGIN, SPAN_DAYS
@@ -88,6 +94,13 @@ class Booking:
     passenger_id: int
     seats: int
     status: str = "pending"  # pending, confirmed, rejected, cancelled, completed, no_show
+    # Model features as they stood at the request; None when the variant has no model.
+    features: dict[str, float] | None = None
+    accepted_at: float | None = None
+    # Ground truth: when the passenger will cancel, or None if they will not. Hidden
+    # from every policy; read only to decide how the passenger answers a request.
+    cancel_at: float | None = None
+    contacted: bool = False
 
 
 @dataclass(frozen=True)
@@ -106,15 +119,13 @@ class Passenger:
     cancel_exposure: float
     shock_time: float | None
     no_show_draw: float
+    # Appended last so that adding them left every earlier draw, and so B0, unchanged.
+    intervention_delay: float
+    release_draw: float
+    annoyed_draw: float
 
 
-def _by_departure_time(candidates: list[Ride], passenger: Passenger) -> list[Ride]:
-    return sorted(candidates, key=lambda r: (abs(r.departure - passenger.desired_departure), r.id))
-
-
-RANKINGS: dict[str, Callable[[list[Ride], Passenger], list[Ride]]] = {
-    "departure_time": _by_departure_time,
-}
+RANKINGS = ("departure_time", "predicted_survival")
 
 
 class Simulation:
@@ -129,7 +140,12 @@ class Simulation:
         self.env = simpy.Environment()
         self.rides: list[Ride] = []
         self.bookings: list[Booking] = []
-        self._rank = RANKINGS[variant.ranking]
+        self.tracker = FeatureTracker()
+        self.model = (HazardModel.load(MODEL_DIR / f"{variant.hazard_model}.json")
+                      if variant.hazard_model else None)
+        if self.model is None and (
+                variant.ranking == "predicted_survival" or variant.intervention is not None):
+            raise ValueError(f"variant {variant.name} needs a hazard_model")
         self._searches = 0
         self._passenger_of: dict[int, Passenger] = {}  # by booking id
 
@@ -138,6 +154,8 @@ class Simulation:
         for ride in self.rides:
             self.env.process(self._ride_life(ride))
         self.env.process(self._arrivals())
+        if self.variant.intervention is not None:
+            self.env.process(self._scoring_rounds())
         # No horizon: arrivals stop at the end of the span and the last trips finish.
         self.env.run()
 
@@ -241,6 +259,10 @@ class Simulation:
             cancel_exposure=rng.expovariate(1.0),
             shock_time=rng.expovariate(shock_rate) if shock_rate > 0 else None,
             no_show_draw=rng.random(),
+            intervention_delay=rng.expovariate(
+                1.0 / demand.intervention_response.response_delay_mean_hours),
+            release_draw=rng.random(),
+            annoyed_draw=rng.random(),
         )
 
     def _search(self, passenger: Passenger) -> None:
@@ -280,8 +302,32 @@ class Simulation:
 
     # ---- bookings -------------------------------------------------------------
 
+    def _rank(self, candidates: list[Ride], passenger: Passenger) -> list[Ride]:
+        def gap(ride: Ride) -> float:
+            return abs(ride.departure - passenger.desired_departure)
+
+        if self.variant.ranking == "predicted_survival":
+            def key(ride: Ride):
+                survival = self.model.conditional_survival(
+                    self._features(passenger, ride), elapsed_hours=0.0,
+                    horizon_hours=ride.departure - self.env.now)
+                return (-survival, gap(ride), ride.id)
+        else:
+            def key(ride: Ride):
+                return (gap(ride), ride.id)
+        return sorted(candidates, key=key)
+
+    def _features(self, passenger: Passenger, ride: Ride) -> dict[str, float]:
+        """What the platform knows about this passenger booking this ride right now."""
+        return self.tracker.features(
+            passenger_id=passenger.id, seats=passenger.seats, now=self._at(self.env.now),
+            departure=self._at(ride.departure),
+            desired_departure=self._at(passenger.desired_departure))
+
     def _request(self, passenger: Passenger, ride: Ride) -> None:
         booking = Booking(len(self.bookings) + 1, ride, passenger.id, passenger.seats)
+        if self.model is not None:
+            booking.features = self._features(passenger, ride)
         self.bookings.append(booking)
         ride.bookings.append(booking)
         self._passenger_of[booking.id] = passenger
@@ -317,6 +363,7 @@ class Simulation:
             self._reject(booking)
             return
         booking.status = "confirmed"
+        booking.accepted_at = self.env.now
         self._emit(EventType.BOOKING_ACCEPTED, {
             "booking_id": booking.id, "ride_id": ride.id, "driver_id": ride.driver_id,
         }, "driver", ride.driver_id)
@@ -331,8 +378,62 @@ class Simulation:
         )
         if self.env.now + wait >= ride.departure:
             return  # survives to departure
+        booking.cancel_at = self.env.now + wait
         yield self.env.timeout(wait)
         if booking.status == "confirmed":
+            self._cancel(booking, by="passenger", actor_id=passenger.id)
+
+    # ---- interventions --------------------------------------------------------
+
+    def _scoring_rounds(self):
+        """Re-scores every live booking at a fixed interval and contacts the risky ones."""
+        policy = self.variant.intervention
+        while self.env.now < SPAN_DAYS * HOURS_PER_DAY:
+            yield self.env.timeout(policy.scoring_interval_hours)
+            for booking in self.bookings:
+                ride = booking.ride
+                if booking.status != "confirmed" or ride.status != "open":
+                    continue
+                elapsed = self.env.now - booking.accepted_at
+                remaining = ride.departure - self.env.now
+                survival = self.model.conditional_survival(
+                    booking.features, elapsed_hours=elapsed, horizon_hours=elapsed + remaining)
+                self._emit(EventType.HAZARD_SCORED, {
+                    "booking_id": booking.id,
+                    "survival_probability": survival,
+                    "elapsed_hours": elapsed,
+                    "horizon_hours": elapsed + remaining,
+                    "model_version": self.model.version,
+                    "feature_version": self.model.feature_version,
+                }, "platform", None)
+                if (survival < policy.survival_threshold and not booking.contacted
+                        and remaining >= policy.min_hours_before_departure):
+                    booking.contacted = True
+                    self.env.process(self._ask_to_reconfirm(booking, survival))
+
+    def _ask_to_reconfirm(self, booking: Booking, survival: float):
+        passenger = self._passenger_of[booking.id]
+        response = self.world.demand.intervention_response
+        self._emit(EventType.INTERVENTION_ISSUED, {
+            "booking_id": booking.id,
+            "passenger_id": passenger.id,
+            "action": "reconfirm",
+            "survival_probability": survival,
+        }, "platform", None)
+
+        yield self.env.timeout(passenger.intervention_delay)
+        if booking.status != "confirmed" or booking.ride.status != "open":
+            return  # already cancelled, or the ride left before they answered
+        if booking.cancel_at is not None:
+            releases = passenger.release_draw < response.early_release_probability
+        else:
+            releases = passenger.annoyed_draw < response.annoyed_cancel_probability
+        self._emit(EventType.INTERVENTION_RESPONDED, {
+            "booking_id": booking.id,
+            "passenger_id": passenger.id,
+            "response": "released" if releases else "confirmed",
+        }, "passenger", passenger.id)
+        if releases:
             self._cancel(booking, by="passenger", actor_id=passenger.id)
 
     def _reject(self, booking: Booking) -> None:
@@ -388,16 +489,20 @@ class Simulation:
         # and platforms and independent of one another.
         return random.Random(f"{self.seed}:{name}")
 
+    def _at(self, hours: float) -> datetime:
+        return self.world.start + timedelta(hours=hours)
+
     def _iso(self, hours: float) -> str:
-        return (self.world.start + timedelta(hours=hours)).isoformat()
+        return self._at(hours).isoformat()
 
     def _emit(self, event_type: EventType, payload: dict[str, Any], actor_type: str,
-              actor_id: int) -> None:
+              actor_id: int | None) -> None:
         self.sink.write(
-            event_type, payload,
-            sim_time=self.world.start + timedelta(hours=self.env.now),
+            event_type, payload, sim_time=self._at(self.env.now),
             actor_type=actor_type, actor_id=actor_id,
         )
+        # The model's only view of the world is what has been logged.
+        self.tracker.observe(event_type.value, payload)
 
 
 def _poisson(rng: random.Random, mean: float) -> int:
