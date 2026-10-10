@@ -20,6 +20,7 @@ import com.dypcet.journex.hazard.HazardScoringService.Summary;
 import com.dypcet.journex.identity.IdentityService;
 import com.dypcet.journex.identity.TokenService;
 import com.dypcet.journex.identity.UserRole;
+import com.dypcet.journex.payment.PaymentChoice;
 import com.dypcet.journex.ride.RideService;
 import com.dypcet.journex.ride.RideService.PublishRide;
 import com.dypcet.journex.ride.RideService.StopInput;
@@ -102,14 +103,14 @@ class HazardScoringIntegrationTest extends PostgresIntegrationTest {
         long second = ride(Duration.ofDays(3), true);
         long third = ride(Duration.ofDays(4), false);
 
-        Booking cancelled = bookings.request(passenger, first, 0, 1, 1);
+        Booking cancelled = bookings.request(passenger, first, 0, 1, 1, PaymentChoice.card(), null);
         bookings.cancel(passenger, cancelled.id());           // accepted, then cancelled by them
-        Booking withdrawn = bookings.request(passenger, second, 0, 1, 1);
+        Booking withdrawn = bookings.request(passenger, second, 0, 1, 1, PaymentChoice.card(), null);
         trips.cancel(driverId, second);                       // accepted, cancelled by the driver
-        Booking neverAccepted = bookings.request(passenger, third, 0, 1, 1);
+        Booking neverAccepted = bookings.request(passenger, third, 0, 1, 1, PaymentChoice.card(), null);
         bookings.cancel(passenger, neverAccepted.id());       // cancelled while still pending
 
-        Booking latest = bookings.request(passenger, ride(Duration.ofDays(5), true), 0, 1, 2);
+        Booking latest = bookings.request(passenger, ride(Duration.ofDays(5), true), 0, 1, 2, PaymentChoice.card(), null);
 
         JsonNode features = features(latest);
         assertThat(features.get("prior_accepted").asDouble()).isEqualTo(2.0);
@@ -128,7 +129,7 @@ class HazardScoringIntegrationTest extends PostgresIntegrationTest {
     @Test
     void scoringAppendsOneEventPerConfirmedBookingAndIsSafeToRepeat() {
         Booking booking = bookings.request(user(UserRole.PASSENGER),
-                ride(Duration.ofDays(2), true), 0, 1, 1);
+                ride(Duration.ofDays(2), true), 0, 1, 1, PaymentChoice.card(), null);
 
         assertThat(scoring.scoreActiveBookings()).isEqualTo(new Summary(1, 0, 0, false));
         assertThat(scoring.scoreActiveBookings()).isEqualTo(new Summary(0, 1, 0, false));
@@ -159,12 +160,12 @@ class HazardScoringIntegrationTest extends PostgresIntegrationTest {
     @Test
     void onlyConfirmedBookingsOnRidesThatHaveNotLeftAreScored() {
         long approvalRide = ride(Duration.ofDays(2), false);
-        bookings.request(user(UserRole.PASSENGER), approvalRide, 0, 1, 1);          // pending
+        bookings.request(user(UserRole.PASSENGER), approvalRide, 0, 1, 1, PaymentChoice.card(), null);          // pending
         long passenger = user(UserRole.PASSENGER);
-        Booking gone = bookings.request(passenger, ride(Duration.ofDays(2), true), 0, 1, 1);
+        Booking gone = bookings.request(passenger, ride(Duration.ofDays(2), true), 0, 1, 1, PaymentChoice.card(), null);
         bookings.cancel(passenger, gone.id());                                      // cancelled
         long leaving = ride(Duration.ofMinutes(30), true);
-        bookings.request(user(UserRole.PASSENGER), leaving, 0, 1, 1);
+        bookings.request(user(UserRole.PASSENGER), leaving, 0, 1, 1, PaymentChoice.card(), null);
         trips.start(driverId, leaving);                                             // on the road
 
         assertThat(scoring.scoreActiveBookings()).isEqualTo(new Summary(0, 0, 0, false));
@@ -175,7 +176,7 @@ class HazardScoringIntegrationTest extends PostgresIntegrationTest {
     void aModelOutageScoresNothingAndChangesNoBooking() {
         when(scorer.score(any(), anyDouble(), anyDouble())).thenReturn(Optional.empty());
         long rideId = ride(Duration.ofDays(2), true);
-        Booking booking = bookings.request(user(UserRole.PASSENGER), rideId, 0, 1, 1);
+        Booking booking = bookings.request(user(UserRole.PASSENGER), rideId, 0, 1, 1, PaymentChoice.card(), null);
 
         assertThat(scoring.scoreActiveBookings()).isEqualTo(new Summary(0, 0, 1, false));
 
@@ -194,7 +195,7 @@ class HazardScoringIntegrationTest extends PostgresIntegrationTest {
 
     @Test
     void scoresAreForAdministratorsOnly() throws Exception {
-        bookings.request(user(UserRole.PASSENGER), ride(Duration.ofDays(2), true), 0, 1, 1);
+        bookings.request(user(UserRole.PASSENGER), ride(Duration.ofDays(2), true), 0, 1, 1, PaymentChoice.card(), null);
         String driver = "Bearer " + tokens.issue(driverId, UserRole.DRIVER);
         String passenger = "Bearer " + tokens.issue(user(UserRole.PASSENGER), UserRole.PASSENGER);
         String admin = "Bearer " + json.readTree(mvc.perform(post("/api/v1/auth/login")

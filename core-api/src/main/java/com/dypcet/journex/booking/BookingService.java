@@ -4,6 +4,9 @@ import com.dypcet.journex.eventlog.EventLogService;
 import com.dypcet.journex.eventlog.EventType;
 import com.dypcet.journex.eventlog.HasActor;
 import com.dypcet.journex.hazard.HazardFeatures;
+import com.dypcet.journex.payment.PaymentChoice;
+import com.dypcet.journex.payment.PaymentService;
+import com.dypcet.journex.payment.PaymentService.RefundReason;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -12,6 +15,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -29,9 +33,16 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class BookingService {
 
-    /** @param boardingTime when the ride leaves the passenger's boarding stop */
+    /**
+     * @param price        the fare: what the driver is owed if the trip runs
+     * @param serviceFee   the platform's fee on top of the fare; null if nothing was charged
+     * @param total        fare plus fee: what was held from the passenger; null as above
+     * @param refunded     what has been returned to the passenger; null if nothing
+     * @param boardingTime when the ride leaves the passenger's boarding stop
+     */
     public record Booking(long id, long rideId, long passengerId, String passengerName,
             int fromSeq, int toSeq, String fromStop, String toStop, int seats, BigDecimal price,
+            BigDecimal serviceFee, BigDecimal total, BigDecimal refunded,
             BookingStatus status, Instant boardingTime, Instant createdAt) {
     }
 
@@ -85,33 +96,41 @@ public class BookingService {
 
     private static final String SELECT_BOOKING = """
             SELECT b.*, u.full_name AS passenger_name, s.name AS from_stop, t.name AS to_stop,
-                   r.departure_time + make_interval(mins => s.offset_minutes) AS boarding
+                   r.departure_time + make_interval(mins => s.offset_minutes) AS boarding,
+                   p.service_fee, p.amount AS total, f.amount AS refunded
             FROM bookings b
             JOIN rides r ON r.id = b.ride_id
             JOIN users u ON u.id = b.passenger_id
             JOIN ride_stops s ON s.ride_id = b.ride_id AND s.seq = b.from_seq
             JOIN ride_stops t ON t.ride_id = b.ride_id AND t.seq = b.to_seq
+            LEFT JOIN payment_intents p ON p.booking_id = b.id
+            LEFT JOIN refunds f ON f.booking_id = b.id
             """;
 
     private static final RowMapper<Booking> MAPPER = (rs, n) -> new Booking(
             rs.getLong("id"), rs.getLong("ride_id"), rs.getLong("passenger_id"),
             rs.getString("passenger_name"), rs.getInt("from_seq"), rs.getInt("to_seq"),
             rs.getString("from_stop"), rs.getString("to_stop"), rs.getInt("seats"),
-            rs.getBigDecimal("price"), BookingStatus.valueOf(rs.getString("status")),
+            rs.getBigDecimal("price"), rs.getBigDecimal("service_fee"),
+            rs.getBigDecimal("total"), rs.getBigDecimal("refunded"),
+            BookingStatus.valueOf(rs.getString("status")),
             rs.getObject("boarding", OffsetDateTime.class).toInstant(),
             rs.getObject("created_at", OffsetDateTime.class).toInstant());
 
     private final JdbcTemplate jdbc;
     private final EventLogService events;
     private final HazardFeatures hazardFeatures;
+    private final PaymentService payments;
     private final ObjectMapper mapper;
     private final Clock clock;
 
     public BookingService(JdbcTemplate jdbc, EventLogService events,
-            HazardFeatures hazardFeatures, ObjectMapper mapper, Clock clock) {
+            HazardFeatures hazardFeatures, PaymentService payments, ObjectMapper mapper,
+            Clock clock) {
         this.jdbc = jdbc;
         this.events = events;
         this.hazardFeatures = hazardFeatures;
+        this.payments = payments;
         this.mapper = mapper;
         this.clock = clock;
     }
@@ -119,10 +138,15 @@ public class BookingService {
     /**
      * Takes seats on every leg from stop {@code fromSeq} to stop {@code toSeq}, or none.
      * Confirms at once on an instant-booking ride; otherwise the seats are held while the
-     * driver decides.
+     * driver decides. The fare and fee are held in the same transaction: a declined
+     * payment leaves no booking and no seat taken.
+     *
+     * @param idempotencyKey if not null, a repeat of an earlier request with the same key
+     *                       returns that booking instead of making another
      */
     @Transactional
-    public Booking request(long passengerId, long rideId, int fromSeq, int toSeq, int seats) {
+    public Booking request(long passengerId, long rideId, int fromSeq, int toSeq, int seats,
+            PaymentChoice payment, String idempotencyKey) {
         if (toSeq <= fromSeq) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "toSeq must come after fromSeq");
@@ -130,6 +154,13 @@ public class BookingService {
         LockedRide ride = lockRide(rideId);
         if (ride == null) {
             throw notFound("Ride not found");
+        }
+        // Checked under the ride lock, so two copies of one request cannot both get here.
+        if (idempotencyKey != null) {
+            Booking repeat = repeatOf(passengerId, idempotencyKey, rideId, fromSeq, toSeq, seats);
+            if (repeat != null) {
+                return repeat;
+            }
         }
         if (!"SCHEDULED".equals(ride.status())) {
             throw conflict("This ride is not open for booking");
@@ -165,15 +196,24 @@ public class BookingService {
         BookingStatus status = ride.instantBooking() ? BookingStatus.CONFIRMED : BookingStatus.PENDING;
         // Taken before the row exists: a booking is not part of its own history.
         String features = featuresJson(passengerId, seats, now, boarding);
-        Long bookingId = jdbc.queryForObject("""
-                INSERT INTO bookings (ride_id, passenger_id, from_seq, to_seq, seats, price, status,
-                                      hazard_features, accepted_at)
-                SELECT ?, ?, ?, ?, ?, SUM(price) * ?, ?, CAST(? AS jsonb), ?
-                FROM ride_segments WHERE ride_id = ? AND seq >= ? AND seq < ?
-                RETURNING id""",
-                Long.class, rideId, passengerId, fromSeq, toSeq, seats, seats, status.name(),
-                features, status == BookingStatus.CONFIRMED ? utc(now) : null,
-                rideId, fromSeq, toSeq);
+        Long bookingId;
+        try {
+            bookingId = jdbc.queryForObject("""
+                    INSERT INTO bookings (ride_id, passenger_id, from_seq, to_seq, seats, price,
+                                          status, hazard_features, accepted_at, idempotency_key)
+                    SELECT ?, ?, ?, ?, ?, SUM(price) * ?, ?, CAST(? AS jsonb), ?, ?
+                    FROM ride_segments WHERE ride_id = ? AND seq >= ? AND seq < ?
+                    RETURNING id""",
+                    Long.class, rideId, passengerId, fromSeq, toSeq, seats, seats, status.name(),
+                    features, status == BookingStatus.CONFIRMED ? utc(now) : null, idempotencyKey,
+                    rideId, fromSeq, toSeq);
+        } catch (DuplicateKeyException e) {
+            // The same key, sent for a different ride at the same moment.
+            throw conflict("This request was already submitted");
+        }
+        BigDecimal fare = jdbc.queryForObject(
+                "SELECT price FROM bookings WHERE id = ?", BigDecimal.class, bookingId);
+        payments.hold(bookingId, passengerId, fare, payment);
 
         events.write(EventType.BOOKING_REQUESTED,
                 new Requested(bookingId, rideId, passengerId, fromSeq, toSeq, seats, boarding));
@@ -199,6 +239,7 @@ public class BookingService {
     public Booking reject(long driverId, long bookingId) {
         Booking booking = lockForDriver(driverId, bookingId);
         move(booking, BookingStatus.REJECTED);
+        payments.releaseInFull(bookingId, RefundReason.NOT_ACCEPTED);
         events.write(EventType.BOOKING_REJECTED,
                 new Decided(bookingId, booking.rideId(), driverId, false));
         return load(bookingId);
@@ -216,12 +257,14 @@ public class BookingService {
         if (booking.passengerId() != passengerId) {
             throw notFound("Booking not found");
         }
-        if ("IN_PROGRESS".equals(ride.status())
-                || !booking.boardingTime().isAfter(clock.instant())) {
+        Instant now = clock.instant();
+        if ("IN_PROGRESS".equals(ride.status()) || !booking.boardingTime().isAfter(now)) {
             throw conflict("This ride has already left; the booking can no longer be cancelled");
         }
         move(booking, BookingStatus.CANCELLED);
         recordCancelledBy(bookingId, "passenger");
+        payments.settlePassengerCancellation(bookingId, ride.driverId(),
+                booking.status() == BookingStatus.CONFIRMED, booking.boardingTime(), now);
         events.write(EventType.BOOKING_CANCELLED, new Cancelled(bookingId, booking.rideId(),
                 passengerId, booking.seats(), booking.boardingTime(), "passenger", passengerId));
         return load(bookingId);
@@ -277,6 +320,26 @@ public class BookingService {
             throw notFound("Booking not found");
         }
         return lockBooking(bookingId);
+    }
+
+    /**
+     * The booking an earlier request with this key made, or null if there was none.
+     * A key reused for a different request is refused, not silently answered.
+     */
+    private Booking repeatOf(long passengerId, String key, long rideId, int fromSeq, int toSeq,
+            int seats) {
+        List<Long> found = jdbc.queryForList(
+                "SELECT id FROM bookings WHERE passenger_id = ? AND idempotency_key = ?",
+                Long.class, passengerId, key);
+        if (found.isEmpty()) {
+            return null;
+        }
+        Booking earlier = load(found.get(0));
+        if (earlier.rideId() != rideId || earlier.fromSeq() != fromSeq
+                || earlier.toSeq() != toSeq || earlier.seats() != seats) {
+            throw conflict("This idempotency key was already used for a different booking");
+        }
+        return earlier;
     }
 
     void recordCancelledBy(long bookingId, String who) {

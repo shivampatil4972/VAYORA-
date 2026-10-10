@@ -142,7 +142,9 @@ class ApiIntegrationTest extends PostgresIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON).content(bookingJson(rideId, 0, 2)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("PENDING"))
-                .andExpect(jsonPath("$.price").value(1040.0)))
+                .andExpect(jsonPath("$.price").value(1040.0))
+                .andExpect(jsonPath("$.serviceFee").value(104.0))
+                .andExpect(jsonPath("$.total").value(1144.0)))
                 .get("id").asLong();
 
         // Another passenger can neither see nor cancel it.
@@ -235,6 +237,7 @@ class ApiIntegrationTest extends PostgresIntegrationTest {
 
     private String bookingJson(long rideId, int fromSeq, int toSeq) throws Exception {
         return json.writeValueAsString(Map.of(
-                "rideId", rideId, "fromSeq", fromSeq, "toSeq", toSeq, "seats", 2));
+                "rideId", rideId, "fromSeq", fromSeq, "toSeq", toSeq, "seats", 2,
+                "paymentMethod", "UPI"));
     }
 }

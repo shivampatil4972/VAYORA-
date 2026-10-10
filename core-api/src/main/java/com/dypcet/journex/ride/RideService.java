@@ -3,6 +3,7 @@ package com.dypcet.journex.ride;
 import com.dypcet.journex.eventlog.EventLogService;
 import com.dypcet.journex.eventlog.EventType;
 import com.dypcet.journex.eventlog.HasActor;
+import com.dypcet.journex.payment.ServiceFee;
 import com.dypcet.journex.vehicle.VehicleService;
 import com.dypcet.journex.vehicle.VehicleService.Vehicle;
 import java.math.BigDecimal;
@@ -46,10 +47,17 @@ public class RideService {
             List<Stop> stops, List<Segment> segments) {
     }
 
-    /** One search result: a ride and the stretch of it the passenger would travel. */
+    /**
+     * One search result: a ride and the stretch of it the passenger would travel.
+     *
+     * @param fare       for the seats searched for
+     * @param serviceFee the platform's fee on that fare
+     * @param total      fare plus fee: what booking it would hold
+     */
     public record Candidate(long rideId, String driverName, boolean instantBooking,
             int fromSeq, int toSeq, String fromStop, String toStop, Instant boardingTime,
-            Instant arrivalTime, BigDecimal pricePerSeat, int seatsAvailable) {
+            Instant arrivalTime, BigDecimal pricePerSeat, int seatsAvailable, BigDecimal fare,
+            BigDecimal serviceFee, BigDecimal total) {
     }
 
     record SearchIssued(long passengerId, String origin, String destination, String date,
@@ -80,13 +88,15 @@ public class RideService {
     private final JdbcTemplate jdbc;
     private final VehicleService vehicles;
     private final EventLogService events;
+    private final ServiceFee serviceFee;
     private final Clock clock;
 
     public RideService(JdbcTemplate jdbc, VehicleService vehicles, EventLogService events,
-            Clock clock) {
+            ServiceFee serviceFee, Clock clock) {
         this.jdbc = jdbc;
         this.vehicles = vehicles;
         this.events = events;
+        this.serviceFee = serviceFee;
         this.clock = clock;
     }
 
@@ -214,12 +224,16 @@ public class RideService {
                          o.offset_minutes, d.offset_minutes
                 HAVING MIN(s.seats_available) >= ?
                 ORDER BY boarding, r.id""",
-                (rs, n) -> new Candidate(rs.getLong("id"), rs.getString("full_name"),
-                        rs.getBoolean("instant_booking"), rs.getInt("from_seq"),
-                        rs.getInt("to_seq"), rs.getString("from_stop"), rs.getString("to_stop"),
-                        rs.getObject("boarding", OffsetDateTime.class).toInstant(),
-                        rs.getObject("arrival", OffsetDateTime.class).toInstant(),
-                        rs.getBigDecimal("price"), rs.getInt("seats")),
+                (rs, n) -> {
+                    BigDecimal fare = rs.getBigDecimal("price").multiply(BigDecimal.valueOf(seats));
+                    BigDecimal fee = serviceFee.on(fare);
+                    return new Candidate(rs.getLong("id"), rs.getString("full_name"),
+                            rs.getBoolean("instant_booking"), rs.getInt("from_seq"),
+                            rs.getInt("to_seq"), rs.getString("from_stop"), rs.getString("to_stop"),
+                            rs.getObject("boarding", OffsetDateTime.class).toInstant(),
+                            rs.getObject("arrival", OffsetDateTime.class).toInstant(),
+                            rs.getBigDecimal("price"), rs.getInt("seats"), fare, fee, fare.add(fee));
+                },
                 origin.strip(), destination.strip(), utc(dayStart), utc(dayEnd),
                 utc(clock.instant()), seats);
 

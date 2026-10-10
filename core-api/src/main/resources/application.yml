@@ -30,6 +30,17 @@ journex:
   hazard:
     # When confirmed bookings are re-scored (corridor time). "-" turns it off.
     scoring-cron: ${HAZARD_SCORING_CRON:0 0 6 * * *}
+  payment:
+    # The platform's fee, as a fraction of the fare, charged on top of it.
+    service-fee-rate: 0.10
+  refund:
+    # A passenger cancelling a booking the driver had accepted gets this share of the
+    # fare back, by how long before boarding they cancel. Later than the last tier: none.
+    tiers:
+      - at-least-before: PT48H
+        fare-share: 1.0
+      - at-least-before: PT24H
+        fare-share: 0.5
   trip:
     # How long before the scheduled departure a driver may start the ride.
     early-start: PT1H

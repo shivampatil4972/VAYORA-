@@ -2,10 +2,12 @@ package com.dypcet.journex.booking;
 
 import com.dypcet.journex.booking.BookingService.Booking;
 import com.dypcet.journex.identity.CurrentUser;
+import com.dypcet.journex.payment.PaymentChoice;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,9 +17,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -27,8 +31,13 @@ public class BookingController {
             @NotNull Long rideId,
             @Min(0) int fromSeq,
             @Min(1) int toSeq,
-            @Min(1) @Max(8) int seats) {
+            @Min(1) @Max(8) int seats,
+            @NotNull PaymentChoice.Method paymentMethod,
+            // Mock provider only: "DECLINE" makes the payment fail.
+            @Size(max = 20) String mockOutcome) {
     }
+
+    private static final int MAX_IDEMPOTENCY_KEY_LENGTH = 100;
 
     private final BookingService bookings;
 
@@ -40,9 +49,16 @@ public class BookingController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('PASSENGER')")
     public Booking request(@AuthenticationPrincipal Jwt jwt,
+            @RequestHeader(name = "Idempotency-Key", required = false) String idempotencyKey,
             @Valid @RequestBody CreateBookingRequest request) {
+        if (idempotencyKey != null && (idempotencyKey.isBlank()
+                || idempotencyKey.length() > MAX_IDEMPOTENCY_KEY_LENGTH)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Idempotency-Key must be 1 to " + MAX_IDEMPOTENCY_KEY_LENGTH + " characters");
+        }
         return bookings.request(CurrentUser.id(jwt), request.rideId(), request.fromSeq(),
-                request.toSeq(), request.seats());
+                request.toSeq(), request.seats(),
+                new PaymentChoice(request.paymentMethod(), request.mockOutcome()), idempotencyKey);
     }
 
     @GetMapping("/bookings")

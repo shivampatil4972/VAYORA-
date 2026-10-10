@@ -7,6 +7,7 @@ import com.dypcet.journex.PostgresIntegrationTest;
 import com.dypcet.journex.booking.BookingService.Booking;
 import com.dypcet.journex.identity.IdentityService;
 import com.dypcet.journex.identity.UserRole;
+import com.dypcet.journex.payment.PaymentChoice;
 import com.dypcet.journex.ride.RideService;
 import com.dypcet.journex.ride.RideService.Candidate;
 import com.dypcet.journex.ride.RideService.PublishRide;
@@ -74,8 +75,8 @@ class BookingFlowIntegrationTest extends PostgresIntegrationTest {
     void bookingsOnDifferentStretchesConsumeOnlyTheirOwnLegs() {
         long rideId = ride(2, true);
 
-        bookings.request(user(UserRole.PASSENGER), rideId, 0, 2, 1); // Kolhapur to Satara
-        bookings.request(user(UserRole.PASSENGER), rideId, 1, 3, 1); // Karad to Pune
+        bookings.request(user(UserRole.PASSENGER), rideId, 0, 2, 1, PaymentChoice.card(), null); // Kolhapur to Satara
+        bookings.request(user(UserRole.PASSENGER), rideId, 1, 3, 1, PaymentChoice.card(), null); // Karad to Pune
 
         assertThat(seatsAvailable(rideId)).containsExactly(1, 0, 1);
     }
@@ -83,15 +84,15 @@ class BookingFlowIntegrationTest extends PostgresIntegrationTest {
     @Test
     void aFullMiddleLegBlocksEveryStretchThatCrossesIt() {
         long rideId = ride(1, true);
-        bookings.request(user(UserRole.PASSENGER), rideId, 1, 2, 1); // Karad to Satara
+        bookings.request(user(UserRole.PASSENGER), rideId, 1, 2, 1, PaymentChoice.card(), null); // Karad to Satara
 
-        assertConflict(() -> bookings.request(user(UserRole.PASSENGER), rideId, 0, 3, 1));
-        assertConflict(() -> bookings.request(user(UserRole.PASSENGER), rideId, 0, 2, 1));
+        assertConflict(() -> bookings.request(user(UserRole.PASSENGER), rideId, 0, 3, 1, PaymentChoice.card(), null));
+        assertConflict(() -> bookings.request(user(UserRole.PASSENGER), rideId, 0, 2, 1, PaymentChoice.card(), null));
 
         // The failed attempts must not have left a partial decrement behind.
         assertThat(seatsAvailable(rideId)).containsExactly(1, 0, 1);
-        bookings.request(user(UserRole.PASSENGER), rideId, 0, 1, 1);
-        bookings.request(user(UserRole.PASSENGER), rideId, 2, 3, 1);
+        bookings.request(user(UserRole.PASSENGER), rideId, 0, 1, 1, PaymentChoice.card(), null);
+        bookings.request(user(UserRole.PASSENGER), rideId, 2, 3, 1, PaymentChoice.card(), null);
         assertThat(seatsAvailable(rideId)).containsExactly(0, 0, 0);
     }
 
@@ -111,7 +112,7 @@ class BookingFlowIntegrationTest extends PostgresIntegrationTest {
             attempts.add(pool.submit(() -> {
                 go.await();
                 try {
-                    bookings.request(passenger, rideId, 0, 3, 1);
+                    bookings.request(passenger, rideId, 0, 3, 1, PaymentChoice.card(), null);
                     return true;
                 } catch (ResponseStatusException e) {
                     assertThat(e.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
@@ -140,7 +141,7 @@ class BookingFlowIntegrationTest extends PostgresIntegrationTest {
         long rideId = ride(3, true);
         long passenger = user(UserRole.PASSENGER);
 
-        Booking booking = bookings.request(passenger, rideId, 0, 3, 2);
+        Booking booking = bookings.request(passenger, rideId, 0, 3, 2, PaymentChoice.card(), null);
 
         assertThat(booking.status()).isEqualTo(BookingStatus.CONFIRMED);
         assertThat(booking.price()).isEqualByComparingTo("1040.00"); // (150 + 120 + 250) x 2
@@ -155,7 +156,7 @@ class BookingFlowIntegrationTest extends PostgresIntegrationTest {
     void approvalRideHoldsSeatsUntilTheDriverDecides() {
         long rideId = ride(1, false);
 
-        Booking pending = bookings.request(user(UserRole.PASSENGER), rideId, 0, 3, 1);
+        Booking pending = bookings.request(user(UserRole.PASSENGER), rideId, 0, 3, 1, PaymentChoice.card(), null);
         assertThat(pending.status()).isEqualTo(BookingStatus.PENDING);
         assertThat(seatsAvailable(rideId)).containsExactly(0, 0, 0);
 
@@ -168,7 +169,7 @@ class BookingFlowIntegrationTest extends PostgresIntegrationTest {
     @Test
     void rejectionReturnsTheSeatsAndIsFinal() {
         long rideId = ride(1, false);
-        Booking pending = bookings.request(user(UserRole.PASSENGER), rideId, 0, 3, 1);
+        Booking pending = bookings.request(user(UserRole.PASSENGER), rideId, 0, 3, 1, PaymentChoice.card(), null);
 
         assertThat(bookings.reject(driverId, pending.id()).status())
                 .isEqualTo(BookingStatus.REJECTED);
@@ -182,7 +183,7 @@ class BookingFlowIntegrationTest extends PostgresIntegrationTest {
     void cancellationReturnsTheSeatsOnceAndLogsTheBoardingTime() {
         long rideId = ride(2, true);
         long passenger = user(UserRole.PASSENGER);
-        Booking booking = bookings.request(passenger, rideId, 1, 3, 2); // boards at Karad
+        Booking booking = bookings.request(passenger, rideId, 1, 3, 2, PaymentChoice.card(), null); // boards at Karad
 
         assertThat(bookings.cancel(passenger, booking.id()).status())
                 .isEqualTo(BookingStatus.CANCELLED);
@@ -202,7 +203,7 @@ class BookingFlowIntegrationTest extends PostgresIntegrationTest {
     @Test
     void aBookingCanOnlyBeCancelledByItsPassengerAndDecidedByItsDriver() {
         long rideId = ride(1, false);
-        Booking booking = bookings.request(user(UserRole.PASSENGER), rideId, 0, 3, 1);
+        Booking booking = bookings.request(user(UserRole.PASSENGER), rideId, 0, 3, 1, PaymentChoice.card(), null);
 
         assertNotFound(() -> bookings.cancel(user(UserRole.PASSENGER), booking.id()));
         assertNotFound(() -> bookings.accept(user(UserRole.DRIVER), booking.id()));
@@ -216,9 +217,9 @@ class BookingFlowIntegrationTest extends PostgresIntegrationTest {
         long rideId = ride(1, true);
         long passenger = user(UserRole.PASSENGER);
 
-        assertStatus(HttpStatus.BAD_REQUEST, () -> bookings.request(passenger, rideId, 2, 4, 1));
-        assertStatus(HttpStatus.BAD_REQUEST, () -> bookings.request(passenger, rideId, 2, 1, 1));
-        assertNotFound(() -> bookings.request(passenger, Long.MAX_VALUE, 0, 1, 1));
+        assertStatus(HttpStatus.BAD_REQUEST, () -> bookings.request(passenger, rideId, 2, 4, 1, PaymentChoice.card(), null));
+        assertStatus(HttpStatus.BAD_REQUEST, () -> bookings.request(passenger, rideId, 2, 1, 1, PaymentChoice.card(), null));
+        assertNotFound(() -> bookings.request(passenger, Long.MAX_VALUE, 0, 1, 1, PaymentChoice.card(), null));
     }
 
     @Test
@@ -238,7 +239,7 @@ class BookingFlowIntegrationTest extends PostgresIntegrationTest {
 
         // Wrong direction, and more seats than are left.
         assertThat(mine(rides.search(passenger, "Pune", "Kolhapur", day, 1), rideId)).isEmpty();
-        bookings.request(passenger, rideId, 2, 3, 1);
+        bookings.request(passenger, rideId, 2, 3, 1, PaymentChoice.card(), null);
         assertThat(mine(rides.search(passenger, "Karad", "Pune", karadDay, 2), rideId)).isEmpty();
         assertThat(mine(rides.search(passenger, "Kolhapur", "Satara", day, 2), rideId)).hasSize(1);
 

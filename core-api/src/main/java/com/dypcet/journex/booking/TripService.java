@@ -10,6 +10,9 @@ import com.dypcet.journex.booking.BookingService.LockedRide;
 import com.dypcet.journex.eventlog.EventLogService;
 import com.dypcet.journex.eventlog.EventType;
 import com.dypcet.journex.eventlog.HasActor;
+import com.dypcet.journex.payment.PaymentService;
+import com.dypcet.journex.payment.PaymentService.RefundReason;
+import com.dypcet.journex.payment.PaymentService.SettlementReason;
 import com.dypcet.journex.ride.RideService;
 import com.dypcet.journex.ride.RideService.Ride;
 import java.time.Clock;
@@ -58,16 +61,19 @@ public class TripService {
 
     private final JdbcTemplate jdbc;
     private final BookingService bookings;
+    private final PaymentService payments;
     private final RideService rides;
     private final EventLogService events;
     private final Clock clock;
     private final Duration earlyStart;
 
-    public TripService(JdbcTemplate jdbc, BookingService bookings, RideService rides,
+    public TripService(JdbcTemplate jdbc, BookingService bookings, PaymentService payments,
+            RideService rides,
             EventLogService events, Clock clock,
             @Value("${journex.trip.early-start}") Duration earlyStart) {
         this.jdbc = jdbc;
         this.bookings = bookings;
+        this.payments = payments;
         this.rides = rides;
         this.events = events;
         this.clock = clock;
@@ -90,6 +96,7 @@ public class TripService {
         setStatus(rideId, "IN_PROGRESS");
         for (Booking unanswered : bookings.lockAll(rideId, BookingStatus.PENDING)) {
             bookings.move(unanswered, BookingStatus.REJECTED);
+            payments.releaseInFull(unanswered.id(), RefundReason.NOT_ACCEPTED);
             events.write(EventType.BOOKING_REJECTED,
                     new Decided(unanswered.id(), rideId, driverId, false));
         }
@@ -116,6 +123,7 @@ public class TripService {
         }
         Booking booking = bookings.lockBooking(bookingId);
         bookings.move(booking, BookingStatus.NO_SHOW);
+        payments.captureInFull(bookingId, driverId, SettlementReason.PASSENGER_NO_SHOW);
         events.write(EventType.TRIP_FAILED, new TripFailed(bookingId, rideId,
                 booking.passengerId(), driverId, "passenger_no_show"));
         return bookings.load(bookingId);
@@ -131,6 +139,7 @@ public class TripService {
         setStatus(rideId, "COMPLETED");
         for (Booking booking : bookings.lockAll(rideId, BookingStatus.CONFIRMED)) {
             bookings.move(booking, BookingStatus.COMPLETED);
+            payments.captureInFull(booking.id(), driverId, SettlementReason.TRIP_COMPLETED);
             events.write(EventType.TRIP_COMPLETED,
                     new Trip(booking.id(), rideId, booking.passengerId(), driverId));
         }
@@ -149,6 +158,7 @@ public class TripService {
             for (Booking booking : bookings.lockAll(rideId, live)) {
                 bookings.move(booking, BookingStatus.CANCELLED);
                 bookings.recordCancelledBy(booking.id(), "driver");
+                payments.releaseInFull(booking.id(), RefundReason.DRIVER_CANCELLED);
                 events.write(EventType.BOOKING_CANCELLED, new Cancelled(booking.id(), rideId,
                         booking.passengerId(), booking.seats(), booking.boardingTime(),
                         "driver", driverId));
