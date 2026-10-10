@@ -1,0 +1,80 @@
+# The synthetic world every variant is run in: who supplies rides, who searches, and
+# how bookings fall apart. Variants change the platform's policy, never this file.
+#
+# EVERY VALUE HERE IS A MODELLING ASSUMPTION. None is estimated from data. They are
+# plausible magnitudes chosen so the corridor is neither empty nor saturated; results
+# must be read as "under these assumptions", and the robustness sweeps exist to show
+# how much the conclusions move when the assumptions do.
+
+# Simulated instant of hour 0. The offset matters: event timestamps carry it.
+start: "2026-01-05T00:00:00+05:30"
+
+supply:
+  # Mean rides departing per day (Poisson).
+  rides_per_day: 12
+  # Departure hour of day: weight. Morning and evening peaks.
+  departure_hours: {6: 3, 7: 4, 8: 3, 9: 2, 14: 2, 16: 3, 17: 4, 18: 3}
+  # Seats offered per ride: weight.
+  seats: {1: 1, 2: 3, 3: 4, 4: 1}
+  # A ride is published this many days before it departs (uniform).
+  publish_lead_days_min: 1.0
+  publish_lead_days_max: 7.0
+  trip_duration_hours: 4.5
+  # Probability a driver accepts a booking request.
+  accept_probability: 0.85
+  # Mean of the (exponential) time a driver takes to answer.
+  response_delay_mean_hours: 2.0
+  # Probability a driver withdraws a published ride before departure.
+  withdraw_probability: 0.04
+
+demand:
+  # Mean searches per day (Poisson process, constant rate).
+  searches_per_day: 60
+  # How far ahead a passenger wants to travel: exponential with this mean, cut off at
+  # the booking horizon.
+  lead_days_mean: 2.5
+  # Preferred departure hour of day: weight.
+  departure_hours: {6: 2, 7: 4, 8: 4, 9: 2, 14: 1, 16: 2, 17: 4, 18: 3, 19: 1}
+  # A ride is a candidate if it leaves within this many hours of the preferred time.
+  departure_tolerance_hours: 2.0
+  # Seats wanted per search: weight.
+  party_size: {1: 7, 2: 2, 3: 1}
+
+  # Latent passenger types. These drive behaviour and are NEVER a model feature
+  # (research integrity rule 1). A cancellation time is drawn from a Weibull hazard
+  # over hours since the booking was accepted:
+  #   shape < 1   hazard falls with time    cancels early if at all
+  #   shape = 1   constant hazard
+  #   shape > 1   hazard rises with time    cancels late
+  types:
+    committed:
+      share: 0.40
+      book_probability: 0.75
+      weibull_shape: 1.0
+      weibull_scale_hours: 2500
+      no_show_probability: 0.01
+    flexible:
+      share: 0.25
+      book_probability: 0.65
+      weibull_shape: 0.7
+      weibull_scale_hours: 400
+      no_show_probability: 0.02
+    opportunistic:
+      share: 0.20
+      book_probability: 0.80
+      weibull_shape: 1.8
+      weibull_scale_hours: 110
+      no_show_probability: 0.06
+    deadline_bound:
+      share: 0.15
+      book_probability: 0.70
+      weibull_shape: 1.3
+      weibull_scale_hours: 600
+      no_show_probability: 0.01
+
+  # An unobservable shock (illness, a change of plans) can hit any booking. From the
+  # moment it hits, that booking's hazard is multiplied. No feature records it
+  # (research integrity rule 2).
+  shock:
+    rate_per_day: 0.02
+    hazard_multiplier: 15

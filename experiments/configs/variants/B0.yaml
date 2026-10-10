@@ -1,0 +1,4 @@
+# B0: basic city and time matching. No feasibility filter, no behavioural model, no
+# intervention. Candidates are ordered by how close they leave to the preferred time.
+name: B0
+ranking: departure_time
