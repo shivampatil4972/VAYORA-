@@ -82,24 +82,24 @@ Last updated: 2026-10-10. Test suites and how to run them are in [TESTING.md](TE
 
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
-| 42 | Prepayment at booking | TBD | TBD | Not started |
-| 43 | Escrow-style payment hold | TBD | TBD | Not started |
-| 44 | Service fee calculation | TBD | TBD | Not started |
-| 45 | Driver payout after trip | TBD | TBD | Not started |
-| 46 | Card, UPI, and wallet selection | TBD | TBD | Not started |
-| 47 | Tiered refunds by cancellation timing | TBD | TBD | Not started |
-| 48 | Full refund for qualifying driver cancellations | TBD | TBD | Not started |
-| 49 | Transaction history | TBD | TBD | Not started |
+| 42 | Prepayment at booking | TBD | TBD | Verified (API and UI tests), mock provider, no money moves: fare plus fee is held when the booking is requested |
+| 43 | Escrow-style payment hold | TBD | TBD | Verified (API tests), mock provider, no money moves: hold, then capture or release once when the booking ends; append-only ledger |
+| 44 | Service fee calculation | TBD | TBD | Verified (API and UI tests): 10% of the fare, configurable, shown before booking |
+| 45 | Driver payout after trip | TBD | TBD | Verified (API and UI tests), mock provider, no money moves: fare paid to the driver on completion, no-show or late cancellation |
+| 46 | Card, UPI, and wallet selection | TBD | TBD | Partial: method is chosen and recorded, API and UI tested; mock provider, no money moves, so the choice changes nothing |
+| 47 | Tiered refunds by cancellation timing | TBD | TBD | Verified (API and UI tests): refund share by time before boarding, tiers in config and shown before cancelling |
+| 48 | Full refund for qualifying driver cancellations | TBD | TBD | Verified (API tests): everything returned, fee included, when the driver cancels, declines or never answers |
+| 49 | Transaction history | TBD | TBD | Partial: passenger payments and driver payouts by API; driver earnings screen tested; no passenger payments screen |
 | 50 | PDF invoice and receipt | TBD | TBD | Not started |
 
 ## Trust and safety
 
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
-| 51 | Two-way star ratings | TBD | TBD | Not started |
-| 52 | Written reviews | TBD | TBD | Not started |
+| 51 | Two-way star ratings | TBD | TBD | Verified (API and UI tests): each side rates the other once after a completed trip |
+| 52 | Written reviews | TBD | TBD | Verified (API and UI tests): optional comment, shown on the profile as plain text; no moderation |
 | 53 | Driver response rate and time | TBD | TBD | Not started |
-| 54 | Membership duration and completed rides | TBD | TBD | Not started |
+| 54 | Membership duration and completed rides | TBD | TBD | Verified (API and UI tests): member-since and completed trips on the profile |
 | 55 | Report a user | TBD | TBD | Not started |
 | 56 | Admin moderation queue | TBD | TBD | Not started |
 | 57 | SOS and emergency-contact workflow | TBD | TBD | Not started |
@@ -125,7 +125,7 @@ Last updated: 2026-10-10. Test suites and how to run them are in [TESTING.md](TE
 | 67 | Meeting-point details and map | TBD | TBD | Not started |
 | 68 | Live GPS tracking | TBD | TBD | Not started |
 | 69 | Two-sided completion confirmation | TBD | TBD | Partial: driver starts and completes, API verified; no passenger confirmation |
-| 70 | Post-trip rating prompt | TBD | TBD | Not started |
+| 70 | Post-trip rating prompt | TBD | TBD | Partial: a rating form appears on completed trips and a notification points to it; no reminder |
 
 ## General platform
 
@@ -177,3 +177,6 @@ Last updated: 2026-10-10. Test suites and how to run them are in [TESTING.md](TE
 | Service skeletons: core-api, intel, gateway, web | Verified 2026-10-10: all four health endpoints UP; gateway tests 6/6 |
 | OSRM routing | Not verified: container not started (220 MB download skipped) |
 | B0, B3, B4 simulator variants and paired comparison | Verified: 30-seed run, see EXPERIMENT_PROTOCOL.md |
+| Parameter sweeps over the simulated world | Verified: intervention-response sweep, see EXPERIMENT_PROTOCOL.md |
+| In-app notifications (MongoDB) | Verified (API and UI tests). Not one of the 95: features 62-64 are push, email and SMS, none of which exist |
+| Idempotent booking requests | Verified (API and UI tests) |

@@ -13,11 +13,12 @@ mistake for more. Updated 2026-10-10.
 
 ## The research result so far
 
-- The first 30-seed run does not support the central hypothesis on the primary metric:
-  the intervention moves cancellations earlier but adds no completed rides beyond what
-  ranking alone gives. See EXPERIMENT_PROTOCOL.md section 5.
-- That result depends on assumed passenger responses that have not been swept. It is
-  one point, not a conclusion.
+- The central hypothesis is not supported on the primary metric. The intervention moves
+  cancellations earlier but adds at most +0.06 completed rides per 100 searches, even
+  when every passenger destined to cancel releases the moment they are asked. See
+  EXPERIMENT_PROTOCOL.md sections 5 and 6.
+- This holds for one simulated world. Supply and demand density, the survival threshold
+  and repeat search by unserved passengers have not been varied.
 - Variants B1, B2 and B5 to B11 are not built. No component-removal or robustness
   experiment has been run.
 - The model discriminates weakly (concordance 0.59) and violates the
@@ -25,8 +26,14 @@ mistake for more. Updated 2026-10-10.
 
 ## Platform
 
-- **No payments of any kind.** No payment intent, hold, refund, payout, invoice or
-  ledger. A booking has a price and nobody is charged.
+- **Payments are simulated.** The only provider is a mock that approves every hold
+  unless told to decline. No money moves and nothing is verified with any bank, card
+  network or UPI. The ledger records what a real provider would have been asked to do.
+- The mock is synchronous. A real provider confirms by callback; there is no callback
+  endpoint, so duplicate-callback handling is unbuilt and untested.
+- No invoice or receipt, and no screen listing a passenger's payments.
+- A payout is recorded the moment a trip completes. There is no settlement delay,
+  dispute window or bank detail.
 - **No seat holds with expiry and no Redis use.** A pending request holds its seats
   until the driver answers or the ride starts.
 - **Search matches stop names exactly.** No distance, detour or route check. OSRM is
@@ -37,8 +44,13 @@ mistake for more. Updated 2026-10-10.
   confirmation.
 - **A driver withdrawing a ride triggers nothing** for the passengers: no notification,
   no recovery search, no alternative.
-- No ratings, reviews, reports, moderation, notifications, chat, live tracking, travel
-  passes, referral, recurring or return rides, or price suggestion.
+- Reviews are not moderated and cannot be reported, edited or removed.
+- Ratings are visible at once; one side can see the other's rating before giving theirs.
+- Notifications are in-app only. No email, SMS or push, and no preferences.
+- With MongoDB down, a booking still succeeds but its response waits about two seconds
+  for the notification write to time out.
+- No reports, moderation, chat, live tracking, travel passes, referral, recurring or
+  return rides, or price suggestion.
 - No email verification, phone OTP, Google sign-in, profile, photo upload or identity
   verification.
 
@@ -75,7 +87,8 @@ mistake for more. Updated 2026-10-10.
 
 - **No screen has been viewed in a browser.** The UI is checked by component tests and
   a production build only.
-- The vehicle, publish-ride and my-rides pages have no page-level test.
+- The vehicle, publish-ride and my-rides pages have no page-level test, so the driver's
+  accept, start, no-show and complete buttons are untested in the UI.
 - English only. No Hindi or Marathi.
 - No map anywhere.
 - No end-to-end browser test.

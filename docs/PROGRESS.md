@@ -1,5 +1,34 @@
 # Progress
 
+## 2026-10-10 (later) — sweep, payments, ratings, notifications
+
+Committed on `stage-2-3-booking-core-and-simulator`.
+
+| Slice | What | Verified by |
+|---|---|---|
+| Parameter sweeps | Any world parameter can be swept against a baseline, paired by seed | `experiments/tests/test_sweep.py` |
+| Intervention-response sweep | 9 cells x 30 seeds | `experiments/reports/sweep-intervention-response-5eeb0000-*.md` |
+| Payments | Mock provider; fare plus 10% fee held at request; settled once; append-only ledger; tiered refunds; payouts; idempotency key | `PaymentFlowIntegrationTest`, `RefundPolicyTest`, live run |
+| Ratings | Two-way, once per side per completed trip; reviews; profiles | `RatingFlowIntegrationTest`, live run |
+| Notifications | In-app, in MongoDB, written after commit | `NotificationIntegrationTest`, live run with MongoDB stopped |
+
+**Sweep result, synthetic data:** across the whole grid of assumed passenger responses the
+intervention is worth at most +0.06 completed rides per 100 searches (0.2%), and is
+harmful when 5% of contacted travellers are put off. It makes cancellations earlier in
+every cell. The null result on the primary metric is therefore not an artefact of the
+response assumptions. EXPERIMENT_PROTOCOL.md section 6.
+
+**Decisions made here**
+
+- Payment is taken in the same transaction as the booking. A declined payment leaves no
+  booking, which avoids unpaid bookings and the hold-expiry machinery they would need.
+- The service fee is not refunded once a driver has accepted; it is refunded in full if
+  the driver declines, never answers or cancels.
+- The part of the fare a late-cancelling passenger forfeits goes to the driver.
+- Notifications use MongoDB, as CLAUDE.md places them, which gives core-api a second
+  database client. core-api's health does not depend on it.
+- The refund terms shown in the UI are fetched from the server, not written twice.
+
 ## 2026-10-10 — model, variants, first experiment, web app, model in the platform
 
 Committed on branch `stage-2-3-booking-core-and-simulator`. On the user's instruction
