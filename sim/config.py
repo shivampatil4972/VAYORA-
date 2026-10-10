@@ -24,6 +24,7 @@ class ConfigError(ValueError):
 @dataclass(frozen=True)
 class PassengerType:
     share: float
+    lead_days_mean: float
     book_probability: float
     weibull_shape: float
     weibull_scale_hours: float
@@ -52,7 +53,7 @@ class Supply:
 @dataclass(frozen=True)
 class Demand:
     searches_per_day: float
-    lead_days_mean: float
+    population: int
     departure_hours: Mapping[int, float]
     departure_tolerance_hours: float
     party_size: Mapping[int, float]
@@ -112,7 +113,7 @@ def validate(world: World) -> None:
         ("supply.trip_duration_hours", supply.trip_duration_hours),
         ("supply.response_delay_mean_hours", supply.response_delay_mean_hours),
         ("demand.searches_per_day", demand.searches_per_day),
-        ("demand.lead_days_mean", demand.lead_days_mean),
+        ("demand.population", demand.population),
         ("demand.shock.hazard_multiplier", demand.shock.hazard_multiplier),
     ]:
         if value <= 0:
@@ -131,8 +132,9 @@ def validate(world: World) -> None:
             (f"demand.types.{name}.book_probability", kind.book_probability),
             (f"demand.types.{name}.no_show_probability", kind.no_show_probability),
         ]
-        if kind.weibull_shape <= 0 or kind.weibull_scale_hours <= 0:
-            raise ConfigError(f"demand.types.{name}: Weibull shape and scale must be positive")
+        if min(kind.weibull_shape, kind.weibull_scale_hours, kind.lead_days_mean) <= 0:
+            raise ConfigError(
+                f"demand.types.{name}: Weibull shape, scale and lead time must be positive")
     for name, value in probabilities:
         if not 0 <= value <= 1:
             raise ConfigError(f"{name} must be between 0 and 1")

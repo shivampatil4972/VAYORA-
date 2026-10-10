@@ -156,7 +156,7 @@ def test_no_ride_is_ever_oversold(baseline):
 def test_bookings_respect_the_horizon_and_the_passengers_time_window(baseline):
     _, events = baseline
     wanted = {
-        e.payload["passenger_id"]: datetime.fromisoformat(e.payload["desired_departure"])
+        e.payload["search_id"]: datetime.fromisoformat(e.payload["desired_departure"])
         for e in events if e.event_type == "search_issued"
     }
     requests = [e for e in events if e.event_type == "booking_requested"]
@@ -164,7 +164,7 @@ def test_bookings_respect_the_horizon_and_the_passengers_time_window(baseline):
     for event in requests:
         departure = datetime.fromisoformat(event.payload["departure_time"])
         assert timedelta(0) < departure - event.sim_time <= timedelta(days=BOOKING_HORIZON_DAYS)
-        gap = abs(departure - wanted[event.payload["passenger_id"]])
+        gap = abs(departure - wanted[event.payload["search_id"]])
         assert gap <= timedelta(hours=WORLD.demand.departure_tolerance_hours)
 
 

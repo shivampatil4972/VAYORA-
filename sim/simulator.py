@@ -5,8 +5,9 @@ face the same world:
 
 - ``supply``          every ride: when it leaves, its seats, whether the driver withdraws
 - ``demand``          when each search arrives
-- ``passenger:<id>``  everything about one passenger, drawn in full on arrival whether
-                      or not it ends up being used
+- ``person:<id>``     a person's latent type, fixed for the whole run
+- ``search:<n>``      who makes the n-th search and everything about that search, drawn
+                      in full on arrival whether or not it ends up being used
 
 A variant changes what the platform does with a search. It cannot change who shows up,
 what they are like, or what was on offer.
@@ -91,9 +92,10 @@ class Booking:
 
 @dataclass(frozen=True)
 class Passenger:
-    """One searching passenger and every random draw their story will need."""
+    """One search by one person, and every random draw its story will need."""
 
     id: int
+    search_id: int
     # Latent. Must never leave this module in an event payload or a feature.
     kind: str
     desired_departure: float
@@ -128,7 +130,7 @@ class Simulation:
         self.rides: list[Ride] = []
         self.bookings: list[Booking] = []
         self._rank = RANKINGS[variant.ranking]
-        self._passengers = 0
+        self._searches = 0
         self._passenger_of: dict[int, Passenger] = {}  # by booking id
 
     def run(self) -> None:
@@ -216,16 +218,20 @@ class Simulation:
 
     def _new_passenger(self) -> Passenger:
         demand, supply = self.world.demand, self.world.supply
-        self._passengers += 1
-        rng = self._stream(f"passenger:{self._passengers}")
+        self._searches += 1
+        rng = self._stream(f"search:{self._searches}")
 
-        kind = rng.choices(LATENT_TYPES, weights=[demand.types[k].share for k in LATENT_TYPES])[0]
-        lead_days = min(rng.expovariate(1.0 / demand.lead_days_mean), BOOKING_HORIZON_DAYS)
+        person = rng.randrange(demand.population) + 1
+        kind = self._stream(f"person:{person}").choices(
+            LATENT_TYPES, weights=[demand.types[k].share for k in LATENT_TYPES])[0]
+        lead_days = min(rng.expovariate(1.0 / demand.types[kind].lead_days_mean),
+                        BOOKING_HORIZON_DAYS)
         day = min(int((self.env.now + lead_days * HOURS_PER_DAY) // HOURS_PER_DAY), SPAN_DAYS - 1)
         hour = _weighted(rng, demand.departure_hours)
         shock_rate = demand.shock.rate_per_day / HOURS_PER_DAY
         return Passenger(
-            id=self._passengers,
+            id=person,
+            search_id=self._searches,
             kind=kind,
             desired_departure=day * HOURS_PER_DAY + hour,
             seats=_weighted(rng, demand.party_size),
@@ -240,6 +246,7 @@ class Simulation:
     def _search(self, passenger: Passenger) -> None:
         now = self.env.now
         self._emit(EventType.SEARCH_ISSUED, {
+            "search_id": passenger.search_id,
             "passenger_id": passenger.id,
             "origin": ORIGIN,
             "destination": DESTINATION,
@@ -258,11 +265,13 @@ class Simulation:
         ], passenger)
 
         self._emit(EventType.CANDIDATES_RETURNED,
-                   {"passenger_id": passenger.id, "count": len(candidates)},
+                   {"search_id": passenger.search_id, "passenger_id": passenger.id,
+                    "count": len(candidates)},
                    "passenger", passenger.id)
         for rank, ride in enumerate(candidates, start=1):
             self._emit(EventType.CANDIDATE_RANKED,
-                       {"passenger_id": passenger.id, "ride_id": ride.id, "rank": rank},
+                       {"search_id": passenger.search_id, "passenger_id": passenger.id,
+                        "ride_id": ride.id, "rank": rank},
                        "passenger", passenger.id)
 
         kind = self.world.demand.types[passenger.kind]
@@ -280,6 +289,7 @@ class Simulation:
 
         self._emit(EventType.BOOKING_REQUESTED, {
             "booking_id": booking.id,
+            "search_id": passenger.search_id,
             "ride_id": ride.id,
             "passenger_id": passenger.id,
             "seats": booking.seats,
