@@ -6,9 +6,11 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { homeFor } from '../components/Layout';
 import { Button, Card, Notice, Page, SelectField, TextField } from '../components/ui';
 import { useAuth } from '../lib/auth';
+import { useT } from '../lib/i18n';
 import { loginSchema, registerSchema, type LoginForm, type RegisterForm } from '../lib/schemas';
 
 export function LoginPage() {
+  const t = useT();
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,27 +31,27 @@ export function LoginPage() {
   });
 
   return (
-    <Page title="Sign in">
+    <Page title={t('Sign in')}>
       <Card>
         <form onSubmit={submit} noValidate className="space-y-4">
           {failure && <Notice tone="error">{failure}</Notice>}
-          <TextField label="Email" type="email" autoComplete="email" error={formState.errors.email?.message} {...register('email')} />
+          <TextField label={t('Email')} type="email" autoComplete="email" error={formState.errors.email?.message} {...register('email')} />
           <TextField
-            label="Password"
+            label={t('Password')}
             type="password"
             autoComplete="current-password"
             error={formState.errors.password?.message}
             {...register('password')}
           />
           <Button type="submit" disabled={formState.isSubmitting}>
-            {formState.isSubmitting ? 'Signing in…' : 'Sign in'}
+            {formState.isSubmitting ? t('Signing in…') : t('Sign in')}
           </Button>
         </form>
       </Card>
       <p className="text-sm text-slate-600">
-        New here?{' '}
+        {t('New here?')}{' '}
         <Link to="/register" className="font-medium text-teal-800 underline">
-          Create an account
+          {t('Create an account')}
         </Link>
       </p>
     </Page>
@@ -57,6 +59,7 @@ export function LoginPage() {
 }
 
 export function RegisterPage() {
+  const t = useT();
   const { user, register: signUp } = useAuth();
   const navigate = useNavigate();
   const [failure, setFailure] = useState<string | null>(null);
@@ -75,42 +78,42 @@ export function RegisterPage() {
   });
 
   return (
-    <Page title="Create an account">
+    <Page title={t('Create an account')}>
       <Card>
         <form onSubmit={submit} noValidate className="space-y-4">
           {failure && <Notice tone="error">{failure}</Notice>}
-          <TextField label="Full name" autoComplete="name" error={formState.errors.fullName?.message} {...register('fullName')} />
-          <TextField label="Email" type="email" autoComplete="email" error={formState.errors.email?.message} {...register('email')} />
+          <TextField label={t('Full name')} autoComplete="name" error={formState.errors.fullName?.message} {...register('fullName')} />
+          <TextField label={t('Email')} type="email" autoComplete="email" error={formState.errors.email?.message} {...register('email')} />
           <TextField
-            label="Password"
+            label={t('Password')}
             type="password"
             autoComplete="new-password"
-            hint="At least 8 characters."
+            hint={t('At least 8 characters.')}
             error={formState.errors.password?.message}
             {...register('password')}
           />
           <SelectField
-            label="I want to"
+            label={t('I want to')}
             defaultValue=""
-            hint="An account is either a passenger or a driver. This cannot be changed later."
+            hint={t('An account is either a passenger or a driver. This cannot be changed later.')}
             error={formState.errors.role?.message}
             {...register('role')}
           >
             <option value="" disabled>
-              Choose one
+              {t('Choose one')}
             </option>
-            <option value="PASSENGER">Find rides as a passenger</option>
-            <option value="DRIVER">Offer rides as a driver</option>
+            <option value="PASSENGER">{t('Find rides as a passenger')}</option>
+            <option value="DRIVER">{t('Offer rides as a driver')}</option>
           </SelectField>
           <Button type="submit" disabled={formState.isSubmitting}>
-            {formState.isSubmitting ? 'Creating…' : 'Create account'}
+            {formState.isSubmitting ? t('Creating…') : t('Create account')}
           </Button>
         </form>
       </Card>
       <p className="text-sm text-slate-600">
-        Already have an account?{' '}
+        {t('Already have an account?')}{' '}
         <Link to="/login" className="font-medium text-teal-800 underline">
-          Sign in
+          {t('Sign in')}
         </Link>
       </p>
     </Page>

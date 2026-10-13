@@ -3,9 +3,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Card, Notice, Page, QueryState } from '../components/ui';
 import { api } from '../lib/api';
 import { formatDateTime } from '../lib/format';
+import { useT } from '../lib/i18n';
 import type { AppNotification } from '../lib/types';
 
 export function NotificationsPage() {
+  const t = useT();
   const queryClient = useQueryClient();
   const notifications = useQuery({ queryKey: ['notifications'], queryFn: () => api<AppNotification[]>('/notifications') });
   const markRead = useMutation({
@@ -17,18 +19,18 @@ export function NotificationsPage() {
   const anyUnread = notifications.data?.some((notification) => !notification.read) ?? false;
 
   return (
-    <Page title="Notifications">
+    <Page title={t('Notifications')}>
       {markRead.error && <Notice tone="error">{markRead.error.message}</Notice>}
       {anyUnread && (
         <Button tone="secondary" disabled={markRead.isPending} onClick={() => markRead.mutate(null)}>
-          Mark all as read
+          {t('Mark all as read')}
         </Button>
       )}
       <QueryState
         isPending={notifications.isPending}
         error={notifications.error}
         isEmpty={notifications.data?.length === 0}
-        empty="You have no notifications."
+        empty={t('You have no notifications.')}
         onRetry={() => void notifications.refetch()}
       />
       <ul className="space-y-3">
@@ -37,15 +39,16 @@ export function NotificationsPage() {
             <Card>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className={notification.read ? 'text-slate-700' : 'font-semibold text-slate-900'}>
-                    {!notification.read && <span className="sr-only">Unread: </span>}
+                  {/* The message is written by the server, in English, whatever language is chosen. */}
+                  <p className={notification.read ? 'text-slate-700' : 'font-semibold text-slate-900'} lang="en">
+                    {!notification.read && <span className="sr-only">{t('Unread:')} </span>}
                     {notification.message}
                   </p>
                   <p className="mt-1 text-sm text-slate-500">{formatDateTime(notification.createdAt)}</p>
                 </div>
                 {!notification.read && (
                   <Button tone="secondary" disabled={markRead.isPending} onClick={() => markRead.mutate(notification.id)}>
-                    Mark as read
+                    {t('Mark as read')}
                   </Button>
                 )}
               </div>

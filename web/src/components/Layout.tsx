@@ -3,26 +3,27 @@ import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom';
 
 import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
+import { LANGUAGES, msg, useLanguage, useT, type Language } from '../lib/i18n';
 import type { Role } from '../lib/types';
 import { Button } from './ui';
 
 const links: Record<Role, { to: string; label: string }[]> = {
   PASSENGER: [
-    { to: '/search', label: 'Find a ride' },
-    { to: '/bookings', label: 'My bookings' },
+    { to: '/search', label: msg('Find a ride') },
+    { to: '/bookings', label: msg('My bookings') },
   ],
   DRIVER: [
-    { to: '/rides', label: 'My rides' },
-    { to: '/rides/new', label: 'Publish a ride' },
-    { to: '/vehicles', label: 'My vehicles' },
-    { to: '/earnings', label: 'Earnings' },
+    { to: '/rides', label: msg('My rides') },
+    { to: '/rides/new', label: msg('Publish a ride') },
+    { to: '/vehicles', label: msg('My vehicles') },
+    { to: '/earnings', label: msg('Earnings') },
   ],
   ADMIN: [
-    { to: '/admin', label: 'Overview' },
-    { to: '/admin/reports', label: 'Reports' },
-    { to: '/admin/users', label: 'Members' },
-    { to: '/admin/durability', label: 'Booking durability' },
-    { to: '/admin/audit', label: 'Audit log' },
+    { to: '/admin', label: msg('Overview') },
+    { to: '/admin/reports', label: msg('Reports') },
+    { to: '/admin/users', label: msg('Members') },
+    { to: '/admin/durability', label: msg('Booking durability') },
+    { to: '/admin/audit', label: msg('Audit log') },
   ],
 };
 
@@ -34,6 +35,7 @@ const navLink = ({ isActive }: { isActive: boolean }) =>
   }`;
 
 function NotificationsLink() {
+  const t = useT();
   // Checked once a minute while the tab is visible; react-query pauses it in the background.
   const unread = useQuery({
     queryKey: ['notifications', 'unread-count'],
@@ -43,45 +45,73 @@ function NotificationsLink() {
   const count = unread.data?.unread ?? 0;
   return (
     <NavLink to="/notifications" className={navLink}>
-      Notifications
+      {t('Notifications')}
       {count > 0 && (
         <span className="ml-1 rounded-full bg-teal-700 px-1.5 py-0.5 text-xs font-semibold text-white">
           {count}
-          <span className="sr-only"> unread</span>
+          <span className="sr-only"> {t('unread')}</span>
         </span>
       )}
     </NavLink>
   );
 }
 
+/** Each language is listed in its own script, so it can be found by someone who reads only that one. */
+function LanguageSwitcher() {
+  const t = useT();
+  const { language, setLanguage } = useLanguage();
+  return (
+    <label className="flex items-center gap-2 text-sm text-slate-600">
+      <span className="sr-only">{t('Language')}</span>
+      <select
+        value={language}
+        onChange={(event) => setLanguage(event.target.value as Language)}
+        className="rounded-md border border-slate-300 bg-white px-2 py-1 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600"
+      >
+        {LANGUAGES.map((option) => (
+          <option key={option.code} value={option.code} lang={option.code}>
+            {option.name}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 export function Layout() {
+  const t = useT();
   const { user, logout } = useAuth();
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:rounded focus:bg-white focus:px-3 focus:py-2">
-        Skip to content
+        {t('Skip to content')}
       </a>
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
-          <span className="text-lg font-semibold tracking-tight text-teal-800">JOURNEX</span>
+          <span className="text-lg font-semibold tracking-tight text-teal-800" translate="no">
+            {'JOURNEX'}
+          </span>
           {user && (
-            <nav aria-label="Main" className="flex flex-wrap gap-x-4 gap-y-1">
+            <nav aria-label={t('Main')} className="flex flex-wrap gap-x-4 gap-y-1">
               {links[user.role].map((link) => (
                 <NavLink key={link.to} to={link.to} end className={navLink}>
-                  {link.label}
+                  {t(link.label)}
                 </NavLink>
               ))}
               <NotificationsLink />
             </nav>
           )}
-          {user && (
-            <div className="ml-auto flex items-center gap-3 text-sm text-slate-600">
-              <span>{user.fullName}</span>
-              <Button tone="secondary" onClick={logout}>
-                Sign out
-              </Button>
-            </div>
-          )}
+          <div className="ml-auto flex flex-wrap items-center gap-3 text-sm text-slate-600">
+            <LanguageSwitcher />
+            {user && (
+              <>
+                <span>{user.fullName}</span>
+                <Button tone="secondary" onClick={logout}>
+                  {t('Sign out')}
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </header>
       <main id="main" className="mx-auto max-w-4xl px-4 py-8">

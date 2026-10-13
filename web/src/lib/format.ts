@@ -1,37 +1,74 @@
-// Times are shown in the corridor's time zone whatever the browser's is.
+// Dates, times, money and distances, in the language the reader chose. Times are shown
+// in the corridor's time zone whatever the browser's is.
+
 const ZONE = 'Asia/Kolkata';
 
-const dateTime = new Intl.DateTimeFormat('en-IN', {
-  timeZone: ZONE,
-  weekday: 'short',
-  day: 'numeric',
-  month: 'short',
-  hour: 'numeric',
-  minute: '2-digit',
-});
+const LOCALES = { en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN' } as const;
+type FormatLanguage = keyof typeof LOCALES;
 
-const time = new Intl.DateTimeFormat('en-IN', { timeZone: ZONE, hour: 'numeric', minute: '2-digit' });
+let language: FormatLanguage = 'en';
 
-const rupees = new Intl.NumberFormat('en-IN', {
-  style: 'currency',
-  currency: 'INR',
-  maximumFractionDigits: 0,
-});
-
-export const formatDateTime = (iso: string): string => dateTime.format(new Date(iso));
-export const formatTime = (iso: string): string => time.format(new Date(iso));
-export const formatRupees = (amount: number): string => rupees.format(amount);
-
-/** A distance for reading: metres when short, otherwise kilometres to one decimal. */
-export function formatKm(metres: number): string {
-  return metres < 1000 ? `${Math.round(metres / 10) * 10} m` : `${(metres / 1000).toFixed(1)} km`;
+/** Called by the language provider. Components re-render with it, so they pick this up. */
+export function setFormatLanguage(next: FormatLanguage): void {
+  language = next;
 }
 
-/** "3 h 23 min" */
-export function formatDuration(minutes: number): string {
-  const hours = Math.floor(minutes / 60);
-  const rest = minutes % 60;
-  return hours === 0 ? `${rest} min` : rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
+// Latin digits in every language: a fare or a time must read the same to a passenger
+// and a driver who chose different languages.
+const options = (extra: Intl.DateTimeFormatOptions): Intl.DateTimeFormatOptions => ({
+  timeZone: ZONE,
+  numberingSystem: 'latn',
+  ...extra,
+});
+
+const cache = new Map<string, Intl.DateTimeFormat>();
+
+function dateFormat(name: string, extra: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
+  const key = `${language}:${name}`;
+  let format = cache.get(key);
+  if (!format) {
+    format = new Intl.DateTimeFormat(LOCALES[language], options(extra));
+    cache.set(key, format);
+  }
+  return format;
+}
+
+export const formatDateTime = (iso: string): string =>
+  dateFormat('dateTime', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(
+    new Date(iso),
+  );
+
+export const formatTime = (iso: string): string => dateFormat('time', { hour: 'numeric', minute: '2-digit' }).format(new Date(iso));
+
+export const formatDate = (iso: string): string =>
+  dateFormat('date', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso));
+
+export const formatMonthYear = (iso: string): string => dateFormat('monthYear', { month: 'long', year: 'numeric' }).format(new Date(iso));
+
+export const formatRupees = (amount: number): string =>
+  new Intl.NumberFormat(LOCALES[language], {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0,
+    numberingSystem: 'latn',
+  }).format(amount);
+
+export const formatPercent = (fraction: number): string =>
+  new Intl.NumberFormat(LOCALES[language], { style: 'percent', maximumFractionDigits: 0, numberingSystem: 'latn' }).format(fraction);
+
+export const formatOneDecimal = (value: number): string =>
+  new Intl.NumberFormat(LOCALES[language], { minimumFractionDigits: 1, maximumFractionDigits: 1, numberingSystem: 'latn' }).format(value);
+
+/** A distance as a number and a unit to translate: metres when short, else kilometres. */
+export function distanceParts(metres: number): { value: string; unit: 'm' | 'km' } {
+  return metres < 1000
+    ? { value: String(Math.round(metres / 10) * 10), unit: 'm' }
+    : { value: (metres / 1000).toFixed(1), unit: 'km' };
+}
+
+/** A duration as whole hours and the minutes left over. */
+export function durationParts(minutes: number): { hours: number; minutes: number } {
+  return { hours: Math.floor(minutes / 60), minutes: minutes % 60 };
 }
 
 /** Today's date in the corridor, as the yyyy-mm-dd a date input wants. */

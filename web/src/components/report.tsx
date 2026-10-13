@@ -2,11 +2,22 @@ import { useMutation } from '@tanstack/react-query';
 import { useId, useState } from 'react';
 
 import { api } from '../lib/api';
+import { msg, useT } from '../lib/i18n';
 import type { MemberReport } from '../lib/types';
 import { Button, Notice, SelectField } from './ui';
 
+/** What a report can be about, in the words shown to members and administrators alike. */
+export const reportReasons: Record<MemberReport['reason'], string> = {
+  UNSAFE_DRIVING: msg('Unsafe driving'),
+  HARASSMENT: msg('Harassment'),
+  NO_SHOW: msg('Did not turn up'),
+  FRAUD: msg('Fraud'),
+  OTHER: msg('Something else'),
+};
+
 /** Lets a member report another to the administrators. The server decides who may. */
 export function ReportMember({ userId, name }: { userId: number; name: string }) {
+  const t = useT();
   const id = useId();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState<MemberReport['reason'] | ''>('');
@@ -16,12 +27,16 @@ export function ReportMember({ userId, name }: { userId: number; name: string })
   });
 
   if (file.isSuccess) {
-    return <Notice tone="success">Your report has been sent to the administrators. They will not tell {name} who filed it.</Notice>;
+    return (
+      <Notice tone="success">
+        {t('Your report has been sent to the administrators. They will not tell {name} who filed it.', { name })}
+      </Notice>
+    );
   }
   if (!open) {
     return (
       <Button tone="secondary" onClick={() => setOpen(true)}>
-        Report {name}
+        {t('Report {name}', { name })}
       </Button>
     );
   }
@@ -34,19 +49,19 @@ export function ReportMember({ userId, name }: { userId: number; name: string })
       }}
     >
       {file.error && <Notice tone="error">{file.error.message}</Notice>}
-      <SelectField label="What happened?" value={reason} onChange={(event) => setReason(event.target.value as MemberReport['reason'])}>
+      <SelectField label={t('What happened?')} value={reason} onChange={(event) => setReason(event.target.value as MemberReport['reason'])}>
         <option value="" disabled>
-          Choose one
+          {t('Choose one')}
         </option>
-        <option value="UNSAFE_DRIVING">Unsafe driving</option>
-        <option value="HARASSMENT">Harassment</option>
-        <option value="NO_SHOW">Did not turn up</option>
-        <option value="FRAUD">Fraud</option>
-        <option value="OTHER">Something else</option>
+        {(Object.keys(reportReasons) as MemberReport['reason'][]).map((key) => (
+          <option key={key} value={key}>
+            {t(reportReasons[key])}
+          </option>
+        ))}
       </SelectField>
       <div>
         <label htmlFor={`${id}-details`} className="block text-sm font-medium text-slate-700">
-          Details (optional)
+          {t('Details (optional)')}
         </label>
         <textarea
           id={`${id}-details`}
@@ -58,14 +73,14 @@ export function ReportMember({ userId, name }: { userId: number; name: string })
         />
       </div>
       <p className="text-sm text-slate-600">
-        If you are in danger now, call 112. A report here is read by an administrator later, not straight away.
+        {t('If you are in danger now, call 112. A report here is read by an administrator later, not straight away.')}
       </p>
       <div className="flex gap-2">
         <Button type="submit" tone="danger" disabled={!reason || file.isPending}>
-          {file.isPending ? 'Sending…' : 'Send report'}
+          {file.isPending ? t('Sending…') : t('Send report')}
         </Button>
         <Button tone="secondary" onClick={() => setOpen(false)}>
-          Never mind
+          {t('Never mind')}
         </Button>
       </div>
     </form>

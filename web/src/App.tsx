@@ -5,6 +5,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { homeFor, Layout, RequireRole } from './components/Layout';
 import { Notice, Page } from './components/ui';
 import { AuthProvider, useAuth } from './lib/auth';
+import { LanguageProvider, useT } from './lib/i18n';
 import { DurabilityPage } from './pages/AdminPages';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
 import { AuditPage, MembersPage, OverviewPage, ReportsPage } from './pages/BackOfficePages';
@@ -19,9 +20,10 @@ function Home() {
 }
 
 function NotFound() {
+  const t = useT();
   return (
-    <Page title="Page not found">
-      <Notice tone="info">There is nothing at this address.</Notice>
+    <Page title={t('Page not found')}>
+      <Notice tone="info">{t('There is nothing at this address.')}</Notice>
     </Page>
   );
 }
@@ -65,12 +67,14 @@ export default function App() {
   // hide a 4xx the user needs to read.
   const [queryClient] = useState(() => new QueryClient({ defaultOptions: { queries: { retry: false, refetchOnWindowFocus: false } } }));
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </AuthProvider>
-    </QueryClientProvider>
+    <LanguageProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </AuthProvider>
+      </QueryClientProvider>
+    </LanguageProvider>
   );
 }

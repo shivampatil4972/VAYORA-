@@ -1,5 +1,6 @@
 import { forwardRef, useId, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
 
+import { msg, useT } from '../lib/i18n';
 import type { BookingStatus, RideStatus } from '../lib/types';
 
 const control =
@@ -19,6 +20,8 @@ function useFieldIds(error?: string, hint?: string) {
 }
 
 function FieldFrame({ id, label, error, hint, children }: FieldShell & { id: string; children: ReactNode }) {
+  // Validation messages come from the schemas in English; this is where they are translated.
+  const t = useT();
   return (
     <div>
       <label htmlFor={id} className="block text-sm font-medium text-slate-700">
@@ -32,7 +35,7 @@ function FieldFrame({ id, label, error, hint, children }: FieldShell & { id: str
       )}
       {error && (
         <p id={`${id}-error`} className="mt-1 text-sm text-red-700">
-          {error}
+          {t(error)}
         </p>
       )}
     </div>
@@ -93,6 +96,7 @@ export function ConfirmButton({ label, confirmLabel, onConfirm, disabled, tone =
   disabled?: boolean;
   tone?: Tone;
 }) {
+  const t = useT();
   const [asking, setAsking] = useState(false);
   if (!asking) {
     return (
@@ -114,7 +118,7 @@ export function ConfirmButton({ label, confirmLabel, onConfirm, disabled, tone =
         {confirmLabel}
       </Button>
       <Button tone="secondary" onClick={() => setAsking(false)}>
-        Keep it
+        {t('Keep it')}
       </Button>
     </span>
   );
@@ -142,13 +146,14 @@ export function QueryState({ isPending, error, isEmpty, empty, onRetry }: {
   empty: string;
   onRetry: () => void;
 }) {
-  if (isPending) return <Notice tone="info">Loading…</Notice>;
+  const t = useT();
+  if (isPending) return <Notice tone="info">{t('Loading…')}</Notice>;
   if (error) {
     return (
       <div className="space-y-3">
         <Notice tone="error">{error.message}</Notice>
         <Button tone="secondary" onClick={onRetry}>
-          Try again
+          {t('Try again')}
         </Button>
       </div>
     );
@@ -158,19 +163,20 @@ export function QueryState({ isPending, error, isEmpty, empty, onRetry }: {
 }
 
 const statusLabel: Record<BookingStatus | RideStatus, [string, string]> = {
-  PENDING: ['Waiting for the driver', 'bg-amber-100 text-amber-900'],
-  CONFIRMED: ['Confirmed', 'bg-emerald-100 text-emerald-900'],
-  REJECTED: ['Declined by the driver', 'bg-slate-200 text-slate-800'],
-  CANCELLED: ['Cancelled', 'bg-slate-200 text-slate-800'],
-  COMPLETED: ['Completed', 'bg-teal-100 text-teal-900'],
-  NO_SHOW: ['Did not board', 'bg-red-100 text-red-900'],
-  SCHEDULED: ['Scheduled', 'bg-sky-100 text-sky-900'],
-  IN_PROGRESS: ['On the road', 'bg-amber-100 text-amber-900'],
+  PENDING: [msg('Waiting for the driver'), 'bg-amber-100 text-amber-900'],
+  CONFIRMED: [msg('Confirmed'), 'bg-emerald-100 text-emerald-900'],
+  REJECTED: [msg('Declined by the driver'), 'bg-slate-200 text-slate-800'],
+  CANCELLED: [msg('Cancelled'), 'bg-slate-200 text-slate-800'],
+  COMPLETED: [msg('Completed'), 'bg-teal-100 text-teal-900'],
+  NO_SHOW: [msg('Did not board'), 'bg-red-100 text-red-900'],
+  SCHEDULED: [msg('Scheduled'), 'bg-sky-100 text-sky-900'],
+  IN_PROGRESS: [msg('On the road'), 'bg-amber-100 text-amber-900'],
 };
 
 export function StatusBadge({ status }: { status: BookingStatus | RideStatus }) {
+  const t = useT();
   const [label, style] = statusLabel[status];
-  return <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${style}`}>{label}</span>;
+  return <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${style}`}>{t(label)}</span>;
 }
 
 export function Page({ title, children }: { title: string; children: ReactNode }) {

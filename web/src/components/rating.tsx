@@ -2,23 +2,31 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useId, useState } from 'react';
 
 import { api } from '../lib/api';
+import { formatOneDecimal } from '../lib/format';
+import { useT } from '../lib/i18n';
 import { Button, Notice } from './ui';
-
-const oneDecimal = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 /** A member's average, or an honest "none yet". Never a made-up score. */
 export function RatingSummary({ average, count }: { average: number | null; count: number }) {
-  if (average === null || count === 0) return <span className="text-slate-500">No ratings yet</span>;
+  const t = useT();
+  if (average === null || count === 0) return <span className="text-slate-500">{t('No ratings yet')}</span>;
   return (
     <span>
       <span aria-hidden="true">★ </span>
-      {oneDecimal.format(average)} out of 5 · {count} {count === 1 ? 'rating' : 'ratings'}
+      {count === 1
+        ? t('{average} out of 5 · {count} rating', { average: formatOneDecimal(average), count })
+        : t('{average} out of 5 · {count} ratings', { average: formatOneDecimal(average), count })}
     </span>
   );
 }
 
-/** Rates the other person on a completed trip. Shown once; the server refuses a second. */
-export function RateForm({ bookingId, who }: { bookingId: number; who: string }) {
+/**
+ * Rates the other person on a completed trip. Shown once; the server refuses a second.
+ *
+ * @param legend the form's heading, already in the reader's language
+ */
+export function RateForm({ bookingId, legend }: { bookingId: number; legend: string }) {
+  const t = useT();
   const queryClient = useQueryClient();
   const id = useId();
   const [stars, setStars] = useState<number | null>(null);
@@ -42,19 +50,19 @@ export function RateForm({ bookingId, who }: { bookingId: number; who: string })
     >
       {rate.error && <Notice tone="error">{rate.error.message}</Notice>}
       <fieldset>
-        <legend className="text-sm font-medium text-slate-700">Rate {who}</legend>
+        <legend className="text-sm font-medium text-slate-700">{legend}</legend>
         <div className="mt-1 flex flex-wrap gap-3">
           {[1, 2, 3, 4, 5].map((value) => (
             <label key={value} className="flex items-center gap-1 text-sm">
               <input type="radio" name={`${id}-stars`} checked={stars === value} onChange={() => setStars(value)} />
-              {value} {value === 1 ? 'star' : 'stars'}
+              {value === 1 ? t('{n} star', { n: value }) : t('{n} stars', { n: value })}
             </label>
           ))}
         </div>
       </fieldset>
       <div>
         <label htmlFor={`${id}-comment`} className="block text-sm font-medium text-slate-700">
-          Comment (optional, shown on their profile)
+          {t('Comment (optional, shown on their profile)')}
         </label>
         <textarea
           id={`${id}-comment`}
@@ -66,7 +74,7 @@ export function RateForm({ bookingId, who }: { bookingId: number; who: string })
         />
       </div>
       <Button type="submit" disabled={stars === null || rate.isPending}>
-        {rate.isPending ? 'Sending…' : 'Send rating'}
+        {rate.isPending ? t('Sending…') : t('Send rating')}
       </Button>
     </form>
   );
