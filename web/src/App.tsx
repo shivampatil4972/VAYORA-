@@ -7,6 +7,7 @@ import { Notice, Page } from './components/ui';
 import { AuthProvider, useAuth } from './lib/auth';
 import { DurabilityPage } from './pages/AdminPages';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
+import { AuditPage, MembersPage, OverviewPage, ReportsPage } from './pages/BackOfficePages';
 import { EarningsPage, PublishRidePage, RidesPage, VehiclesPage } from './pages/DriverPages';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { BookingsPage, SearchPage } from './pages/PassengerPages';
@@ -47,7 +48,11 @@ export function AppRoutes() {
           <Route path="notifications" element={<NotificationsPage />} />
         </Route>
         <Route element={<RequireRole role="ADMIN" />}>
+          <Route path="admin" element={<OverviewPage />} />
+          <Route path="admin/reports" element={<ReportsPage />} />
+          <Route path="admin/users" element={<MembersPage />} />
           <Route path="admin/durability" element={<DurabilityPage />} />
+          <Route path="admin/audit" element={<AuditPage />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Route>

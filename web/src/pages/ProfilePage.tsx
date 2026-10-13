@@ -2,8 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 
 import { RatingSummary } from '../components/rating';
+import { ReportMember } from '../components/report';
 import { Card, Page, QueryState } from '../components/ui';
 import { api } from '../lib/api';
+import { useAuth } from '../lib/auth';
 import type { Profile } from '../lib/types';
 
 const monthYear = new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', month: 'long', year: 'numeric' });
@@ -11,6 +13,7 @@ const day = new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', day: 'n
 
 export function ProfilePage() {
   const { id } = useParams();
+  const { user } = useAuth();
   const profile = useQuery({ queryKey: ['profile', id], queryFn: () => api<Profile>(`/users/${id}/profile`) });
   const member = profile.data;
 
@@ -50,6 +53,7 @@ export function ProfilePage() {
               </Card>
             ))}
           </section>
+          {user && user.role !== 'ADMIN' && user.id !== member.id && <ReportMember userId={member.id} name={member.fullName} />}
         </>
       )}
     </Page>

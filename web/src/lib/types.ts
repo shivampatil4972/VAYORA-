@@ -100,6 +100,55 @@ export interface ScoringSummary {
   skippedRun: boolean;
 }
 
+export type ReportOutcome = 'DISMISS' | 'WARN' | 'SUSPEND';
+
+/** One member's report about another, as an administrator sees it. */
+export interface MemberReport {
+  id: number;
+  reporterId: number;
+  reporterName: string;
+  reportedUserId: number;
+  reportedUserName: string;
+  reportedUserStatus: 'ACTIVE' | 'SUSPENDED';
+  bookingId: number | null;
+  reason: 'UNSAFE_DRIVING' | 'HARASSMENT' | 'NO_SHOW' | 'FRAUD' | 'OTHER';
+  details: string | null;
+  status: 'OPEN' | 'RESOLVED' | 'DISMISSED';
+  outcome: ReportOutcome | null;
+  resolutionNote: string | null;
+  createdAt: string;
+  resolvedAt: string | null;
+}
+
+export interface AdminOverview {
+  users: Record<string, number>;
+  rides: Record<string, number>;
+  bookings: Record<string, number>;
+  suspendedMembers: number;
+  openReports: number;
+}
+
+export interface Member {
+  id: number;
+  fullName: string;
+  email: string;
+  role: Role;
+  status: 'ACTIVE' | 'SUSPENDED';
+  memberSince: string;
+}
+
+export interface AuditEntry {
+  id: number;
+  actorId: number;
+  actorName: string;
+  action: string;
+  targetType: string | null;
+  targetId: number | null;
+  /** JSON text, shown as it is. */
+  detail: string;
+  createdAt: string;
+}
+
 /** Named so as not to shadow the browser's own Notification. */
 export interface AppNotification {
   id: string;

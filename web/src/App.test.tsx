@@ -302,6 +302,153 @@ describe('booking durability (administrator)', () => {
   });
 });
 
+describe('reporting and moderation', () => {
+  const profile = {
+    id: 7,
+    fullName: 'Ravi Jadhav',
+    role: 'DRIVER',
+    memberSince: '2026-03-14T08:00:00Z',
+    completedTrips: 12,
+    averageStars: null,
+    ratingCount: 0,
+    reviews: [],
+  };
+  const report = {
+    id: 4,
+    reporterId: 1,
+    reporterName: 'Asha Patil',
+    reportedUserId: 7,
+    reportedUserName: 'Ravi Jadhav',
+    reportedUserStatus: 'ACTIVE',
+    bookingId: 90,
+    reason: 'UNSAFE_DRIVING',
+    details: 'Overtook on a blind bend.',
+    status: 'OPEN',
+    outcome: null,
+    resolutionNote: null,
+    createdAt: '2026-10-30T10:00:00Z',
+    resolvedAt: null,
+  };
+
+  it('lets a member report another, pointing to the emergency number first', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({
+      'GET /users/7/profile': () => json(profile),
+      'POST /reports': () => json({ id: 4 }, 201),
+    });
+    open('/users/7');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Report Ravi Jadhav' }));
+    expect(screen.getByText(/If you are in danger now, call 112/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Send report' })).toBeDisabled();
+    await userEvent.selectOptions(screen.getByLabelText('What happened?'), 'Unsafe driving');
+    await userEvent.type(screen.getByLabelText(/Details/), 'Overtook on a blind bend.');
+    await userEvent.click(screen.getByRole('button', { name: 'Send report' }));
+
+    expect(await screen.findByText(/Your report has been sent/)).toBeInTheDocument();
+    const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')!;
+    expect(JSON.parse(post[1]!.body as string)).toEqual({
+      reportedUserId: 7,
+      reason: 'UNSAFE_DRIVING',
+      details: 'Overtook on a blind bend.',
+    });
+  });
+
+  it("shows the server's reason when the member may not be reported", async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /users/7/profile': () => json(profile),
+      'POST /reports': () => json({ detail: 'You can only report someone you have booked or driven with' }, 403),
+    });
+    open('/users/7');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Report Ravi Jadhav' }));
+    await userEvent.selectOptions(screen.getByLabelText('What happened?'), 'Fraud');
+    await userEvent.click(screen.getByRole('button', { name: 'Send report' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('You can only report someone you have booked or driven with');
+  });
+
+  it('offers no report button on your own profile or to an administrator', async () => {
+    signIn('PASSENGER'); // signed-in id is 1
+    serve({ 'GET /users/1/profile': () => json({ ...profile, id: 1, fullName: 'Asha Patil', role: 'PASSENGER' }) });
+    open('/users/1');
+
+    expect(await screen.findByRole('heading', { name: 'Asha Patil' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Report/ })).not.toBeInTheDocument();
+  });
+
+  it('lets an administrator warn with a note, and suspends only after confirming', async () => {
+    signIn('ADMIN');
+    const fetchMock = serve({
+      'GET /admin/reports': () => json([report]),
+      'POST /admin/reports/4/resolve': () => json({ ...report, status: 'RESOLVED' }),
+    });
+    open('/admin/reports');
+
+    expect(await screen.findByText('Overtook on a blind bend.')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Suspend member' }));
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false);
+    await userEvent.click(screen.getByRole('button', { name: 'Keep it' }));
+
+    await userEvent.type(screen.getByLabelText('Note for report #4'), 'Please keep to the speed limit.');
+    await userEvent.click(screen.getByRole('button', { name: 'Warn member' }));
+
+    const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')!;
+    expect(JSON.parse(post[1]!.body as string)).toEqual({ outcome: 'WARN', note: 'Please keep to the speed limit.' });
+  });
+
+  it('shows the overview with real counts and a pointer to waiting reports', async () => {
+    signIn('ADMIN');
+    serve({
+      'GET /admin/overview': () =>
+        json({
+          users: { ADMIN: 1, DRIVER: 4, PASSENGER: 9 },
+          rides: { SCHEDULED: 3, COMPLETED: 2 },
+          bookings: {},
+          suspendedMembers: 1,
+          openReports: 2,
+        }),
+    });
+    open('/admin');
+
+    expect(await screen.findByText('2 reports are waiting.', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('Suspended members: 1')).toBeInTheDocument();
+    expect(screen.getByText('None yet.')).toBeInTheDocument(); // no bookings: said, not shown as zeroes
+    const nav = screen.getByRole('navigation', { name: 'Main' });
+    expect(within(nav).getByRole('link', { name: 'Audit log' })).toBeInTheDocument();
+  });
+
+  it('lists members and can reinstate a suspended one', async () => {
+    signIn('ADMIN');
+    const member = { id: 7, fullName: 'Ravi Jadhav', email: 'ravi@example.test', role: 'DRIVER', memberSince: '2026-03-14T08:00:00Z' };
+    const fetchMock = serve({
+      'GET /admin/users': () => json([{ ...member, status: 'SUSPENDED' }, { ...member, id: 8, fullName: 'Meera Kulkarni', status: 'ACTIVE' }]),
+      'POST /admin/users/7/reinstate': () => new Response(null, { status: 204 }),
+    });
+    open('/admin/users');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Reinstate Ravi Jadhav' }));
+    expect(fetchMock.mock.calls.some(([url, init]) => init?.method === 'POST' && String(url).endsWith('/admin/users/7/reinstate'))).toBe(true);
+    expect(screen.queryByRole('button', { name: 'Reinstate Meera Kulkarni' })).not.toBeInTheDocument();
+  });
+
+  it('shows the audit log', async () => {
+    signIn('ADMIN');
+    serve({
+      'GET /admin/audit': () =>
+        json([
+          { id: 2, actorId: 1, actorName: 'Administrator', action: 'REPORT_SUSPEND', targetType: 'report', targetId: 4, detail: '{"reason": "FRAUD"}', createdAt: '2026-10-30T10:00:00Z' },
+        ]),
+    });
+    open('/admin/audit');
+
+    const row = (await screen.findByText('report suspend')).closest('tr')!;
+    expect(within(row).getByText('report #4')).toBeInTheDocument();
+    expect(within(row).getByText('{"reason": "FRAUD"}')).toBeInTheDocument();
+  });
+});
+
 describe('my bookings', () => {
   it('cancels only after a second, explicit confirmation', async () => {
     signIn('PASSENGER');

@@ -17,7 +17,13 @@ const links: Record<Role, { to: string; label: string }[]> = {
     { to: '/vehicles', label: 'My vehicles' },
     { to: '/earnings', label: 'Earnings' },
   ],
-  ADMIN: [{ to: '/admin/durability', label: 'Booking durability' }],
+  ADMIN: [
+    { to: '/admin', label: 'Overview' },
+    { to: '/admin/reports', label: 'Reports' },
+    { to: '/admin/users', label: 'Members' },
+    { to: '/admin/durability', label: 'Booking durability' },
+    { to: '/admin/audit', label: 'Audit log' },
+  ],
 };
 
 export const homeFor = (role: Role): string => links[role][0]?.to ?? '/';
