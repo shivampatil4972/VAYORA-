@@ -67,6 +67,14 @@ journex:
   trip:
     # How long before the scheduled departure a driver may start the ride.
     early-start: PT1H
+  verification:
+    # One-time codes proving an email address or a phone number.
+    code-ttl: PT10M
+    resend-after: PT1M
+    max-attempts: 5
+  sos:
+    # Pressing the emergency button again within this long repeats nothing.
+    repeat-window: PT1M
 
 server:
   port: 8080

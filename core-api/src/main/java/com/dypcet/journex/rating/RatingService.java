@@ -22,9 +22,14 @@ public class RatingService {
      * @param completedTrips trips travelled as a passenger or driven as a driver
      * @param averageStars   null until somebody has rated them
      * @param reviews        the ten newest ratings that came with a comment
+     * @param emailVerified  they proved the address with a code; says nothing about who they are
+     * @param age            from the birth year they gave, so a year out either way; null if not said
+     * @param smoking        what they said about travelling; null, like the next three, if not said
      */
     public record Profile(long id, String fullName, String role, Instant memberSince,
-            int completedTrips, Double averageStars, int ratingCount, List<Review> reviews) {
+            int completedTrips, Double averageStars, int ratingCount, List<Review> reviews,
+            boolean emailVerified, boolean phoneVerified, String bio, Integer age,
+            Boolean smoking, Boolean pets, Boolean music, String chattiness) {
     }
 
     /** A completed trip the caller has not rated yet. */
@@ -89,13 +94,22 @@ public class RatingService {
                         WHERE b.status = 'COMPLETED'
                           AND (b.passenger_id = u.id OR r.driver_id = u.id)) AS completed,
                        (SELECT AVG(stars)::float8 FROM ratings WHERE ratee_id = u.id) AS average,
-                       (SELECT COUNT(*) FROM ratings WHERE ratee_id = u.id) AS rating_count
-                FROM users u WHERE u.id = ? AND u.role <> 'ADMIN'""",
+                       (SELECT COUNT(*) FROM ratings WHERE ratee_id = u.id) AS rating_count,
+                       u.email_verified_at IS NOT NULL AS email_verified,
+                       u.phone_verified_at IS NOT NULL AS phone_verified,
+                       p.bio, EXTRACT(YEAR FROM now())::int - p.birth_year AS age,
+                       p.smoking, p.pets, p.music, p.chattiness
+                FROM users u LEFT JOIN profiles p ON p.user_id = u.id
+                WHERE u.id = ? AND u.role <> 'ADMIN'""",
                 (rs, n) -> new Profile(rs.getLong("id"), rs.getString("full_name"),
                         rs.getString("role"),
                         rs.getObject("created_at", OffsetDateTime.class).toInstant(),
                         rs.getInt("completed"), (Double) rs.getObject("average"),
-                        rs.getInt("rating_count"), reviews),
+                        rs.getInt("rating_count"), reviews,
+                        rs.getBoolean("email_verified"), rs.getBoolean("phone_verified"),
+                        rs.getString("bio"), (Integer) rs.getObject("age"),
+                        (Boolean) rs.getObject("smoking"), (Boolean) rs.getObject("pets"),
+                        (Boolean) rs.getObject("music"), rs.getString("chattiness")),
                 userId);
         if (found.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found");
