@@ -2,6 +2,7 @@ package com.dypcet.journex.ride;
 
 import com.dypcet.journex.identity.CurrentUser;
 import com.dypcet.journex.ride.RideService.Candidate;
+import com.dypcet.journex.ride.RideService.Membership;
 import com.dypcet.journex.ride.RideService.PublishRide;
 import com.dypcet.journex.ride.RideService.Ride;
 import com.dypcet.journex.ride.RideService.RoutePreview;
@@ -110,6 +111,11 @@ public class RideController {
     @PreAuthorize("hasRole('DRIVER')")
     public List<Ride> mine(@AuthenticationPrincipal Jwt jwt) {
         return rides.publishedBy(CurrentUser.id(jwt));
+    }
+
+    @GetMapping("/{id}/membership")
+    public Membership membership(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
+        return rides.membership(CurrentUser.id(jwt), id);
     }
 
     @GetMapping("/{id}")

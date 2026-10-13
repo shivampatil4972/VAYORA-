@@ -11,6 +11,8 @@ export function socketAuth(secret) {
     if (!token) return next(new Error('unauthorized: missing token'));
     try {
       socket.data.user = verifyToken(token, secret);
+      // Kept so the gateway can ask core-api, as this user, what they may join.
+      socket.data.token = token;
       next();
     } catch {
       next(new Error('unauthorized: invalid token'));

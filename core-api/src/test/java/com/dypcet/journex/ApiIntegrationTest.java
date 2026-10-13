@@ -148,6 +148,16 @@ class ApiIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.total").value(1144.0)))
                 .get("id").asLong();
 
+        // The driver and the booked passenger are on the ride; nobody else is.
+        as(driver, get("/api/v1/rides/" + rideId + "/membership"))
+                .andExpect(jsonPath("$.role").value("DRIVER"))
+                .andExpect(jsonPath("$.rideStatus").value("SCHEDULED"));
+        as(passenger, get("/api/v1/rides/" + rideId + "/membership"))
+                .andExpect(jsonPath("$.role").value("PASSENGER"))
+                .andExpect(jsonPath("$.fullName").value("Test User"));
+        as(stranger, get("/api/v1/rides/" + rideId + "/membership")).andExpect(status().isNotFound());
+        as(stranger, get("/api/v1/rides/999999999/membership")).andExpect(status().isNotFound());
+
         // Another passenger can neither see nor cancel it.
         as(stranger, get("/api/v1/bookings")).andExpect(jsonPath("$.length()").value(0));
         as(stranger, post("/api/v1/bookings/" + bookingId + "/cancel"))
@@ -172,6 +182,9 @@ class ApiIntegrationTest extends PostgresIntegrationTest {
         as(passenger, post("/api/v1/bookings/" + bookingId + "/cancel"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").exists());
+
+        // Having cancelled, the passenger is no longer on the ride.
+        as(passenger, get("/api/v1/rides/" + rideId + "/membership")).andExpect(status().isNotFound());
 
         as(passenger, get("/api/v1/rides/" + rideId))
                 .andExpect(jsonPath("$.segments[0].seatsAvailable").value(3))

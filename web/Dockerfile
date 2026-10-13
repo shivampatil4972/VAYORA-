@@ -6,6 +6,9 @@ COPY . .
 # Baked into the bundle: the address the browser uses to reach core-api.
 ARG VITE_API_URL=http://localhost:8080
 ENV VITE_API_URL=$VITE_API_URL
+# And the address it uses to reach the gateway, for chat and live position.
+ARG VITE_GATEWAY_URL=http://localhost:3000
+ENV VITE_GATEWAY_URL=$VITE_GATEWAY_URL
 RUN npm run build
 
 FROM nginx:1.27-alpine

@@ -89,6 +89,14 @@ public class RideService {
             int driverRatingCount, long pickupDistanceM, long dropoffDistanceM) {
     }
 
+    /**
+     * A person's place on a ride: its driver, or a passenger with a live booking on it.
+     * The gateway asks for this before letting someone into the ride's chat.
+     */
+    public record Membership(long rideId, long userId, String fullName, String role,
+            String rideStatus) {
+    }
+
     /** How search results are ordered. Ties fall back to boarding time. */
     public enum Sort {
         TIME("boarding, id"),
@@ -269,6 +277,30 @@ public class RideService {
                         rs.getObject("duration_s") == null ? null : minutes(rs.getDouble("duration_s")),
                         rs.getString("route_source"), path(rs.getString("route_json"))),
                 rideId);
+        if (found.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ride not found");
+        }
+        return found.get(0);
+    }
+
+    /**
+     * Whether this user is on the ride. A passenger counts while their booking is pending
+     * or confirmed; one who cancelled or was declined does not. Someone not on the ride
+     * and a ride that does not exist are the same 404.
+     */
+    public Membership membership(long userId, long rideId) {
+        List<Membership> found = jdbc.query("""
+                SELECT u.full_name, r.status,
+                       CASE WHEN r.driver_id = u.id THEN 'DRIVER' ELSE 'PASSENGER' END AS role
+                FROM rides r JOIN users u ON u.id = ?
+                WHERE r.id = ?
+                  AND (r.driver_id = u.id
+                       OR EXISTS (SELECT 1 FROM bookings b
+                                  WHERE b.ride_id = r.id AND b.passenger_id = u.id
+                                    AND b.status IN ('PENDING', 'CONFIRMED')))""",
+                (rs, n) -> new Membership(rideId, userId, rs.getString("full_name"),
+                        rs.getString("role"), rs.getString("status")),
+                userId, rideId);
         if (found.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ride not found");
         }
