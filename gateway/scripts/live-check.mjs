@@ -1,7 +1,7 @@
 // Not part of `npm test`: drives chat and live position through a running stack.
 //
 //   docker compose up -d --wait
-//   node gateway/test/live-check.mjs
+//   node gateway/scripts/live-check.mjs
 //
 // Registers a driver, a passenger and a stranger on core-api, books a ride, and checks
 // over real sockets that the two on the ride can talk, the stranger cannot join, and
