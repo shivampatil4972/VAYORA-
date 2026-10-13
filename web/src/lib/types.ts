@@ -101,6 +101,8 @@ export interface Candidate {
   /** Straight-line metres between the passenger's points and the stops used. */
   pickupDistanceM: number;
   dropoffDistanceM: number;
+  /** The driver confirmed an email address or a phone number. Not an identity check. */
+  driverConfirmed: boolean;
 }
 
 /** The newest durability estimate of one live booking. Administrators only. */

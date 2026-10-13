@@ -12,7 +12,7 @@ import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, Sta
 import { api } from '../lib/api';
 import { CORRIDOR } from '../lib/corridor';
 import { formatDateTime, formatRupees, formatTime, todayInCorridor } from '../lib/format';
-import { useT, useUnits } from '../lib/i18n';
+import { msg, useT, useUnits } from '../lib/i18n';
 import { searchSchema, type SearchForm } from '../lib/schemas';
 import type { Booking, Candidate, PaymentMethod, Ride, SearchSort } from '../lib/types';
 
@@ -21,12 +21,46 @@ interface LatLon {
   lon: number;
 }
 
-/** What was searched for: the form, plus any exact points and the ordering. */
+/** Parts of the day a passenger can ask for, as hours of boarding: from, and before. */
+const DAY_PARTS = {
+  ANY: [null, null],
+  MORNING: [null, 12],
+  AFTERNOON: [12, 17],
+  EVENING: [17, null],
+} as const;
+
+interface Filters {
+  dayPart: keyof typeof DAY_PARTS;
+  /** Per seat, as typed. Empty means no limit. */
+  maxPrice: string;
+  instantOnly: boolean;
+  confirmedDriver: boolean;
+  smokeFree: boolean;
+  petsWelcome: boolean;
+}
+
+const NO_FILTERS: Filters = { dayPart: 'ANY', maxPrice: '', instantOnly: false, confirmedDriver: false, smokeFree: false, petsWelcome: false };
+
+/** Only the filters that are set become query parameters. */
+function filterParams(filters: Filters): Record<string, string> {
+  const [earliestHour, latestHour] = DAY_PARTS[filters.dayPart];
+  const params: Record<string, string> = {};
+  if (earliestHour !== null) params.earliestHour = String(earliestHour);
+  if (latestHour !== null) params.latestHour = String(latestHour);
+  if (filters.maxPrice.trim() !== '' && Number(filters.maxPrice) >= 0) params.maxPrice = String(Number(filters.maxPrice));
+  for (const flag of ['instantOnly', 'confirmedDriver', 'smokeFree', 'petsWelcome'] as const) {
+    if (filters[flag]) params[flag] = 'true';
+  }
+  return params;
+}
+
+/** What was searched for: the form, plus any exact points, the filters and the ordering. */
 interface Criteria {
   form: SearchForm;
   origin: LatLon;
   destination: LatLon;
   sort: SearchSort;
+  filters: Filters;
 }
 
 const townPoint = (name: string): LatLon => {
@@ -82,6 +116,8 @@ export function SearchPage() {
   const [booked, setBooked] = useState<Booking | null>(null);
   const [method, setMethod] = useState<PaymentMethod>('UPI');
   const [sort, setSort] = useState<SearchSort>('TIME');
+  const [filters, setFilters] = useState<Filters>(NO_FILTERS);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   // Exact points chosen on the map. Either replaces its town's centre.
   const [picked, setPicked] = useState<{ origin?: LatLon; destination?: LatLon }>({});
   const [setting, setSetting] = useState<'origin' | 'destination'>('origin');
@@ -108,6 +144,7 @@ export function SearchPage() {
           date: criteria!.form.date,
           seats: String(criteria!.form.seats),
           sort: criteria!.sort,
+          ...filterParams(criteria!.filters),
         })}`,
       ),
     enabled: criteria !== null,
@@ -176,6 +213,7 @@ export function SearchPage() {
               origin: picked.origin ?? townPoint(form.origin),
               destination: picked.destination ?? townPoint(form.destination),
               sort,
+              filters,
             });
           })}
           noValidate
@@ -233,6 +271,46 @@ export function SearchPage() {
             )}
           </div>
 
+          <div className="space-y-3 sm:col-span-2">
+            <Button tone="secondary" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}>
+              {filtersOpen ? t('Hide filters') : t('Filters')}
+            </Button>
+            {filtersOpen && (
+              <fieldset className="grid gap-4 rounded-md border border-slate-200 p-4 sm:grid-cols-2">
+                <legend className="px-1 text-sm font-medium text-slate-700">{t('Show only rides that')}</legend>
+                <SelectField label={t('Leave in the')} value={filters.dayPart} onChange={(event) => setFilters({ ...filters, dayPart: event.target.value as Filters['dayPart'] })}>
+                  <option value="ANY">{t('Any time of day')}</option>
+                  <option value="MORNING">{t('Morning, before 12')}</option>
+                  <option value="AFTERNOON">{t('Afternoon, 12 to 5')}</option>
+                  <option value="EVENING">{t('Evening, from 5')}</option>
+                </SelectField>
+                <TextField
+                  label={t('Cost at most, per seat (₹)')}
+                  type="number"
+                  min={0}
+                  value={filters.maxPrice}
+                  onChange={(event) => setFilters({ ...filters, maxPrice: event.target.value })}
+                />
+                {(
+                  [
+                    ['instantOnly', msg('Confirm instantly')],
+                    ['confirmedDriver', msg('Have a driver with a confirmed email or phone')],
+                    ['smokeFree', msg('Have a driver who said no smoking')],
+                    ['petsWelcome', msg('Have a driver who said pets are welcome')],
+                  ] as const
+                ).map(([flag, label]) => (
+                  <label key={flag} className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={filters[flag]} onChange={(event) => setFilters({ ...filters, [flag]: event.target.checked })} />
+                    {t(label)}
+                  </label>
+                ))}
+                <p className="text-sm text-slate-600 sm:col-span-2">
+                  {t('The last two leave out drivers who have not said either way. Filters apply when you press Search.')}
+                </p>
+              </fieldset>
+            )}
+          </div>
+
           <div className="sm:col-span-2">
             <Button type="submit">{t('Search')}</Button>
           </div>
@@ -259,7 +337,11 @@ export function SearchPage() {
             isPending={results.isPending}
             error={results.error}
             isEmpty={results.data?.length === 0}
-            empty={t('No rides have a stop near both ends on that day with that many seats. Try another date or other points.')}
+            empty={
+              Object.keys(filterParams(criteria.filters)).length > 0
+                ? t('No rides match on that day with those filters. Try fewer filters, another date or other points.')
+                : t('No rides have a stop near both ends on that day with that many seats. Try another date or other points.')
+            }
             onRetry={() => void results.refetch()}
           />
           {results.data && results.data.length > 0 && (
@@ -307,6 +389,7 @@ export function SearchPage() {
                         {candidate.driverName}
                       </Link>{' '}
                       · <RatingSummary average={candidate.driverRating} count={candidate.driverRatingCount} />
+                      {candidate.driverConfirmed && ` · ${t('Contact confirmed')}`}
                     </p>
                     <p className="mt-1 text-sm text-slate-600">
                       {candidate.seatsAvailable === 1

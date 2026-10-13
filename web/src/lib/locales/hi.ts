@@ -580,4 +580,37 @@ export const hi: Record<string, string> = {
     '{n} आपातकालीन संपर्कों को संदेश भेजा गया।',
   'Acknowledge':
     'स्वीकार करें',
+  // Search filters
+  'Hide filters':
+    'फ़िल्टर छिपाएँ',
+  'Filters':
+    'फ़िल्टर',
+  'Show only rides that':
+    'केवल वे सवारियाँ दिखाएँ जो',
+  'Leave in the':
+    'इस समय निकलती हैं',
+  'Any time of day':
+    'दिन में किसी भी समय',
+  'Morning, before 12':
+    'सुबह, 12 बजे से पहले',
+  'Afternoon, 12 to 5':
+    'दोपहर, 12 से 5 बजे',
+  'Evening, from 5':
+    'शाम, 5 बजे से',
+  'Cost at most, per seat (₹)':
+    'प्रति सीट अधिकतम कीमत (₹)',
+  'Confirm instantly':
+    'तुरंत कन्फ़र्म होती हैं',
+  'Have a driver with a confirmed email or phone':
+    'जिनके चालक का ईमेल या फ़ोन पुष्ट है',
+  'Have a driver who said no smoking':
+    'जिनके चालक ने धूम्रपान के लिए मना किया है',
+  'Have a driver who said pets are welcome':
+    'जिनके चालक ने पालतू जानवरों को अनुमति दी है',
+  'The last two leave out drivers who have not said either way. Filters apply when you press Search.':
+    'आख़िरी दो फ़िल्टर उन चालकों को हटा देते हैं जिन्होंने कुछ नहीं बताया। फ़िल्टर खोजें दबाने पर लागू होते हैं।',
+  'No rides match on that day with those filters. Try fewer filters, another date or other points.':
+    'उस दिन इन फ़िल्टरों के साथ कोई सवारी नहीं मिली। कम फ़िल्टर, दूसरी तारीख या दूसरे स्थान आज़माएँ।',
+  'Contact confirmed':
+    'संपर्क की पुष्टि हुई',
 };

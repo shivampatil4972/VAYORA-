@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
@@ -78,6 +78,7 @@ const candidate: Candidate = {
   driverRatingCount: 3,
   pickupDistanceM: 1992,
   dropoffDistanceM: 0,
+  driverConfirmed: false,
 };
 
 const rideWithRoute = {
@@ -1126,5 +1127,74 @@ describe('what a profile says about a member', () => {
 
     await screen.findByText('JOURNEX has not checked any identity documents.');
     expect(within(screen.getByRole('list', { name: 'About this member' })).queryAllByRole('listitem')).toEqual([]);
+  });
+});
+
+describe('search filters', () => {
+  const searches = (fetchMock: ReturnType<typeof serve>) =>
+    fetchMock.mock.calls
+      .map(([url]) => new URL(String(url)))
+      .filter((url) => url.pathname.endsWith('/rides/search'))
+      .map((url) => Object.fromEntries(url.searchParams));
+
+  it('sends nothing extra until a filter is set, then only the ones that are', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({ 'GET /rides/search': () => json([{ ...candidate, driverConfirmed: true }]) });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+    expect(await screen.findByText(/Contact confirmed/)).toBeInTheDocument();
+    expect(Object.keys(searches(fetchMock)[0]).sort()).toEqual(['date', 'destLat', 'destLon', 'originLat', 'originLon', 'seats', 'sort']);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Filters' }));
+    const filters = within(screen.getByRole('group', { name: 'Show only rides that' }));
+    await userEvent.selectOptions(filters.getByLabelText('Leave in the'), 'Afternoon, 12 to 5');
+    await userEvent.type(filters.getByLabelText('Cost at most, per seat (₹)'), '600');
+    await userEvent.click(filters.getByLabelText('Confirm instantly'));
+    await userEvent.click(filters.getByLabelText('Have a driver who said no smoking'));
+    // Nothing is searched again until Search is pressed.
+    expect(searches(fetchMock)).toHaveLength(1);
+    await userEvent.click(screen.getByRole('button', { name: 'Search' }));
+
+    await waitFor(() => expect(searches(fetchMock)).toHaveLength(2));
+    expect(searches(fetchMock)[1]).toMatchObject({ earliestHour: '12', latestHour: '17', maxPrice: '600', instantOnly: 'true', smokeFree: 'true' });
+    expect(searches(fetchMock)[1]).not.toHaveProperty('confirmedDriver');
+    expect(searches(fetchMock)[1]).not.toHaveProperty('petsWelcome');
+  });
+
+  it('sends one bound for morning and evening, and keeps the filters when the order changes', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({ 'GET /rides/search': () => json([candidate]) });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Filters' }));
+    await userEvent.selectOptions(screen.getByLabelText('Leave in the'), 'Evening, from 5');
+    await userEvent.click(screen.getByLabelText('Have a driver with a confirmed email or phone'));
+    await userEvent.click(screen.getByRole('button', { name: 'Search' }));
+    await userEvent.selectOptions(await screen.findByLabelText('Sort by'), 'Lowest price');
+
+    await waitFor(() => expect(searches(fetchMock)).toHaveLength(2));
+    for (const sent of searches(fetchMock)) {
+      expect(sent).toMatchObject({ earliestHour: '17', confirmedDriver: 'true' });
+      expect(sent).not.toHaveProperty('latestHour');
+    }
+    expect(searches(fetchMock)[1].sort).toBe('PRICE');
+    expect(screen.queryByText(/Contact confirmed/)).not.toBeInTheDocument(); // this driver has confirmed nothing
+  });
+
+  it('says the filters may be why nothing was found', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /rides/search': () => json([]) });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+    expect(await screen.findByText(/Try another date or other points/)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Filters' }));
+    await userEvent.click(screen.getByLabelText('Have a driver who said pets are welcome'));
+    expect(screen.getByText(/leave out drivers who have not said either way/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Search' }));
+
+    expect(await screen.findByText(/Try fewer filters/)).toBeInTheDocument();
   });
 });

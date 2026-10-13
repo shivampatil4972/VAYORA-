@@ -580,4 +580,37 @@ export const mr: Record<string, string> = {
     '{n} आपत्कालीन संपर्कांना संदेश पाठवला.',
   'Acknowledge':
     'दखल घ्या',
+  // Search filters
+  'Hide filters':
+    'फिल्टर लपवा',
+  'Filters':
+    'फिल्टर',
+  'Show only rides that':
+    'फक्त असे प्रवास दाखवा जे',
+  'Leave in the':
+    'या वेळी निघतात',
+  'Any time of day':
+    'दिवसात कोणत्याही वेळी',
+  'Morning, before 12':
+    'सकाळी, 12 च्या आधी',
+  'Afternoon, 12 to 5':
+    'दुपारी, 12 ते 5',
+  'Evening, from 5':
+    'संध्याकाळी, 5 पासून',
+  'Cost at most, per seat (₹)':
+    'प्रति जागा कमाल किंमत (₹)',
+  'Confirm instantly':
+    'लगेच निश्चित होतात',
+  'Have a driver with a confirmed email or phone':
+    'ज्यांच्या चालकाचा ईमेल किंवा फोन खात्री केलेला आहे',
+  'Have a driver who said no smoking':
+    'ज्यांच्या चालकाने धूम्रपान नको सांगितले आहे',
+  'Have a driver who said pets are welcome':
+    'ज्यांच्या चालकाने पाळीव प्राणी चालतील सांगितले आहे',
+  'The last two leave out drivers who have not said either way. Filters apply when you press Search.':
+    'शेवटचे दोन फिल्टर काहीच न सांगितलेल्या चालकांना वगळतात. शोधा दाबल्यावर फिल्टर लागू होतात.',
+  'No rides match on that day with those filters. Try fewer filters, another date or other points.':
+    'त्या दिवशी या फिल्टरसह कोणताही प्रवास मिळाला नाही. कमी फिल्टर, दुसरी तारीख किंवा दुसरी ठिकाणे वापरून पहा.',
+  'Contact confirmed':
+    'संपर्काची खात्री झाली',
 };
