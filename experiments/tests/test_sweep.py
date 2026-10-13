@@ -40,6 +40,28 @@ def test_the_grid_is_every_combination_with_a_name_that_spells_it_out():
         "B4[early_release_probability=1.0,annoyed_cancel_probability=0.05]"
 
 
+def test_a_parameter_that_changes_the_baseline_gets_a_baseline_of_its_own(pg_conn, sa_conn):
+    run_id = uuid.uuid4()
+    world = dataclasses.replace(
+        WORLD, demand=dataclasses.replace(WORLD.demand, searches_per_day=20))
+    config = {"name": "t", "baseline": "variants/B3.yaml", "variant": "variants/B4.yaml",
+              "baseline_per_cell": True, "parameters": {"supply.rides_per_day": [4, 12]}}
+
+    labelled = run_sweep(pg_conn, config, world, range(1, 4), run_id)
+    report = build_report(sa_conn, config, labelled, run_id)
+
+    scarce, plenty = report["cells"]
+    # More rides, more completed trips: the two baselines must differ, and each cell is
+    # compared with its own.
+    assert scarce["measures"]["per_100"]["baseline_mean"] < plenty["measures"]["per_100"]["baseline_mean"]
+    assert report["baseline_means"] == {}
+    variants = {row[0] for row in pg_conn.execute(
+        "SELECT DISTINCT variant FROM events WHERE run_id = %s", (run_id,)).fetchall()}
+    assert variants == {"B3[rides_per_day=4]", "B4[rides_per_day=4]",
+                        "B3[rides_per_day=12]", "B4[rides_per_day=12]"}
+    assert "on the same world" in to_markdown(report)
+
+
 def test_every_shipped_sweep_names_real_variants_and_real_parameters():
     sweeps = sorted((CONFIGS / "sweeps").glob("*.yaml"))
 
@@ -75,5 +97,5 @@ def test_a_sweep_runs_each_cell_and_reports_it_against_the_baseline(pg_conn, sa_
     assert report["baseline_means"]["contact_rate"] == 0.0
 
     markdown = to_markdown(report)
-    assert "| early_release_probability | annoyed_cancel_probability | Mean |" in markdown
+    assert "| early_release_probability | annoyed_cancel_probability | B3 | Mean |" in markdown
     assert "B3: " in markdown

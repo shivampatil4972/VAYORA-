@@ -97,3 +97,14 @@ demand:
     annoyed_cancel_probability: 0.02
     # Mean of the (exponential) time a passenger takes to answer.
     response_delay_mean_hours: 3.0
+
+  # Whether a passenger left without a seat tries again: one who found nothing, whose
+  # request the driver declined or never answered, or whose ride the driver withdrew.
+  # A passenger who saw rides and chose not to book, or who cancelled, does not.
+  # Without this, a seat released early can only ever be taken by a new arrival.
+  retry:
+    probability: 0.6
+    # Mean of the (exponential) wait before searching again.
+    delay_mean_hours: 6.0
+    # Searches after the first. 0 turns retrying off.
+    max_attempts: 2

@@ -47,6 +47,15 @@ class InterventionResponse:
 
 
 @dataclass(frozen=True)
+class Retry:
+    """Whether a passenger who was left without a seat searches again."""
+
+    probability: float
+    delay_mean_hours: float
+    max_attempts: int
+
+
+@dataclass(frozen=True)
 class Supply:
     rides_per_day: float
     departure_hours: Mapping[int, float]
@@ -69,6 +78,7 @@ class Demand:
     types: Mapping[str, PassengerType]
     shock: Shock
     intervention_response: InterventionResponse
+    retry: Retry
 
 
 @dataclass(frozen=True)
@@ -110,6 +120,7 @@ def load_world(path: Path) -> World:
     types_raw = demand_raw.pop("types", None) or {}
     shock_raw = demand_raw.pop("shock", None) or {}
     response_raw = demand_raw.pop("intervention_response", None) or {}
+    retry_raw = demand_raw.pop("retry", None) or {}
     if set(types_raw) != set(LATENT_TYPES):
         raise ConfigError(f"demand.types must be exactly {sorted(LATENT_TYPES)}")
     types = {
@@ -120,7 +131,8 @@ def load_world(path: Path) -> World:
         Demand,
         {**demand_raw, "types": types, "shock": _build(Shock, shock_raw, "demand.shock"),
          "intervention_response": _build(
-             InterventionResponse, response_raw, "demand.intervention_response")},
+             InterventionResponse, response_raw, "demand.intervention_response"),
+         "retry": _build(Retry, retry_raw, "demand.retry")},
         "demand",
     )
     world = World(start=start, supply=_build(Supply, raw["supply"], "supply"), demand=demand)
@@ -157,11 +169,14 @@ def validate(world: World) -> None:
         ("demand.shock.hazard_multiplier", demand.shock.hazard_multiplier),
         ("demand.intervention_response.response_delay_mean_hours",
          demand.intervention_response.response_delay_mean_hours),
+        ("demand.retry.delay_mean_hours", demand.retry.delay_mean_hours),
     ]:
         if value <= 0:
             raise ConfigError(f"{name} must be positive")
     if demand.departure_tolerance_hours < 0 or demand.shock.rate_per_day < 0:
         raise ConfigError("tolerances and rates cannot be negative")
+    if demand.retry.max_attempts < 0 or demand.retry.max_attempts != int(demand.retry.max_attempts):
+        raise ConfigError("demand.retry.max_attempts must be a whole number, 0 or more")
     if not 0 <= supply.publish_lead_days_min <= supply.publish_lead_days_max:
         raise ConfigError("supply.publish_lead_days_min must not exceed the max")
 
@@ -172,6 +187,7 @@ def validate(world: World) -> None:
          demand.intervention_response.early_release_probability),
         ("demand.intervention_response.annoyed_cancel_probability",
          demand.intervention_response.annoyed_cancel_probability),
+        ("demand.retry.probability", demand.retry.probability),
     ]
     for name, kind in demand.types.items():
         probabilities += [

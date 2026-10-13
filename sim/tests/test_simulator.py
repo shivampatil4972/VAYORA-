@@ -110,7 +110,8 @@ def test_each_booking_follows_one_legal_path(baseline):
     _, events = baseline
     paths: dict[int, list[str]] = {}
     for event in events:
-        if "booking_id" in event.payload and event.event_type != "seat_refilled":
+        if "booking_id" in event.payload and event.event_type not in (
+                "seat_refilled", "recovery_booked"):
             paths.setdefault(event.payload["booking_id"], []).append(event.event_type)
 
     legal = {
@@ -191,6 +192,70 @@ def test_a_refilled_seat_was_first_released_by_a_passenger_on_that_ride(baseline
         elif event.event_type == "seat_refilled":
             released[ride] -= event.payload["seats"]
             assert released[ride] >= 0
+
+
+def test_only_a_passenger_left_without_a_seat_searches_again(baseline):
+    _, events = baseline
+    retry = WORLD.demand.retry
+    left_out: set[int] = set()   # search ids currently entitled to another attempt
+    search_of: dict[int, int] = {}
+    again = [e for e in events if e.event_type == "recovery_search"]
+
+    assert again
+    for event in events:
+        payload = event.payload
+        if event.event_type == "booking_requested":
+            search_of[payload["booking_id"]] = payload["search_id"]
+        elif event.event_type == "candidates_returned" and payload["count"] == 0:
+            left_out.add(payload["search_id"])
+        elif event.event_type == "booking_rejected":
+            left_out.add(search_of[payload["booking_id"]])
+        elif event.event_type == "booking_cancelled" and payload["cancelled_by"] == "driver":
+            left_out.add(search_of[payload["booking_id"]])
+        elif event.event_type == "recovery_search":
+            assert payload["search_id"] in left_out, event
+            assert 1 <= payload["attempt"] <= retry.max_attempts
+            left_out.discard(payload["search_id"])
+
+
+def test_a_recovery_booking_is_a_real_booking_made_on_a_repeat_search(baseline):
+    _, events = baseline
+    requested = {e.payload["booking_id"] for e in events if e.event_type == "booking_requested"}
+    searched_again = {e.payload["search_id"] for e in events if e.event_type == "recovery_search"}
+    recovered = [e for e in events if e.event_type == "recovery_booked"]
+
+    assert recovered
+    assert len(recovered) < len(searched_again) + sum(
+        1 for e in events if e.event_type == "recovery_search") - len(searched_again) + 1
+    for event in recovered:
+        assert event.payload["booking_id"] in requested
+        assert event.payload["search_id"] in searched_again
+        assert event.payload["attempt"] >= 1
+
+
+def test_first_searches_are_counted_once_however_often_people_try_again(baseline):
+    _, events = baseline
+    first = [e.payload["search_id"] for e in events if e.event_type == "search_issued"]
+
+    assert len(first) == len(set(first))
+    assert all(e.payload["attempt"] == 0 for e in events if e.event_type == "search_issued")
+
+
+def test_with_retrying_off_nobody_searches_twice():
+    quiet = _demand(WORLD, retry=dataclasses.replace(WORLD.demand.retry, max_attempts=0))
+    counts = _counts(_run(quiet)[1])
+
+    assert counts["recovery_search"] == 0 and counts["recovery_booked"] == 0
+    assert counts["search_issued"] > 0
+
+
+def test_retrying_fills_more_trips_from_the_same_first_searches(baseline):
+    quiet = _demand(WORLD, retry=dataclasses.replace(WORLD.demand.retry, max_attempts=0))
+    without = _counts(_run(quiet)[1])
+    with_retry = _counts(baseline[1])
+
+    assert with_retry["search_issued"] == without["search_issued"]
+    assert with_retry["trip_completed"] > without["trip_completed"]
 
 
 def test_demand_is_identical_whatever_the_supply_and_the_ranking():
@@ -343,7 +408,7 @@ def test_scores_are_probabilities_and_name_the_model_that_made_them(intervened):
         payload = event.payload
         assert 0.0 < payload["survival_probability"] <= 1.0
         assert 0.0 <= payload["elapsed_hours"] < payload["horizon_hours"]
-        assert (payload["model_version"], payload["feature_version"]) == ("h1-cox", "f1")
+        assert (payload["model_version"], payload["feature_version"]) == ("h2-cox", "f1")
 
 
 def test_a_booking_is_asked_at_most_once_only_when_risky_and_never_too_late(intervened):

@@ -8,6 +8,8 @@ face the same world:
 - ``person:<id>``     a person's latent type, fixed for the whole run
 - ``search:<n>``      who makes the n-th search and everything about that search, drawn
                       in full on arrival whether or not it ends up being used
+- ``search:<n>:retry:<k>``  whether that passenger searches a k-th further time, when,
+                      and the draws that attempt will need
 
 A variant changes what the platform does with a search. It cannot change who shows up,
 what they are like, or what was on offer.
@@ -21,6 +23,7 @@ Time is in hours since ``World.start``.
 
 from __future__ import annotations
 
+import dataclasses
 import random
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -123,6 +126,8 @@ class Passenger:
     intervention_delay: float
     release_draw: float
     annoyed_draw: float
+    # 0 for the first search; 1 and up for a search made after being left without a seat.
+    attempt: int = 0
 
 
 RANKINGS = ("departure_time", "predicted_survival")
@@ -265,15 +270,53 @@ class Simulation:
             annoyed_draw=rng.random(),
         )
 
+    def _maybe_retry(self, passenger: Passenger) -> None:
+        """A passenger left without a seat may search again later, with fresh luck."""
+        retry = self.world.demand.retry
+        if passenger.attempt >= retry.max_attempts:
+            return
+        rng = self._stream(f"search:{passenger.search_id}:retry:{passenger.attempt + 1}")
+        retries = rng.random() < retry.probability
+        delay = rng.expovariate(1.0 / retry.delay_mean_hours)
+        demand, supply = self.world.demand, self.world.supply
+        shock_rate = demand.shock.rate_per_day / HOURS_PER_DAY
+        again = dataclasses.replace(
+            passenger,
+            attempt=passenger.attempt + 1,
+            book_draw=rng.random(),
+            accept_draw=rng.random(),
+            response_delay=rng.expovariate(1.0 / supply.response_delay_mean_hours),
+            cancel_exposure=rng.expovariate(1.0),
+            shock_time=rng.expovariate(shock_rate) if shock_rate > 0 else None,
+            no_show_draw=rng.random(),
+            intervention_delay=rng.expovariate(
+                1.0 / demand.intervention_response.response_delay_mean_hours),
+            release_draw=rng.random(),
+            annoyed_draw=rng.random(),
+        )
+        if retries:
+            self.env.process(self._search_again(again, delay))
+
+    def _search_again(self, passenger: Passenger, delay: float):
+        yield self.env.timeout(delay)
+        # No point once every ride they could have taken has left.
+        latest = passenger.desired_departure + self.world.demand.departure_tolerance_hours
+        if self.env.now < latest:
+            self._search(passenger)
+
     def _search(self, passenger: Passenger) -> None:
         now = self.env.now
-        self._emit(EventType.SEARCH_ISSUED, {
+        # A repeat search is logged as a recovery search, not a new search: the primary
+        # metric counts people who came looking, once each.
+        first = passenger.attempt == 0
+        self._emit(EventType.SEARCH_ISSUED if first else EventType.RECOVERY_SEARCH, {
             "search_id": passenger.search_id,
             "passenger_id": passenger.id,
             "origin": ORIGIN,
             "destination": DESTINATION,
             "desired_departure": self._iso(passenger.desired_departure),
             "seats": passenger.seats,
+            "attempt": passenger.attempt,
         }, "passenger", passenger.id)
 
         tolerance = self.world.demand.departure_tolerance_hours
@@ -297,7 +340,9 @@ class Simulation:
                        "passenger", passenger.id)
 
         kind = self.world.demand.types[passenger.kind]
-        if candidates and passenger.book_draw < kind.book_probability:
+        if not candidates:
+            self._maybe_retry(passenger)
+        elif passenger.book_draw < kind.book_probability:
             self._request(passenger, candidates[0])
 
     # ---- bookings -------------------------------------------------------------
@@ -341,6 +386,15 @@ class Simulation:
             "seats": booking.seats,
             "departure_time": self._iso(ride.departure),
         }, "passenger", passenger.id)
+
+        if passenger.attempt > 0:
+            self._emit(EventType.RECOVERY_BOOKED, {
+                "booking_id": booking.id,
+                "search_id": passenger.search_id,
+                "ride_id": ride.id,
+                "passenger_id": passenger.id,
+                "attempt": passenger.attempt,
+            }, "passenger", passenger.id)
 
         refilled = min(booking.seats, ride.released)
         if refilled:
@@ -444,6 +498,7 @@ class Simulation:
             "ride_id": booking.ride.id,
             "driver_id": booking.ride.driver_id,
         }, "driver", booking.ride.driver_id)
+        self._maybe_retry(self._passenger_of[booking.id])
 
     def _cancel(self, booking: Booking, *, by: str, actor_id: int) -> None:
         ride = booking.ride
@@ -460,6 +515,8 @@ class Simulation:
             "departure_time": self._iso(ride.departure),
             "cancelled_by": by,
         }, by, actor_id)
+        if by == "driver":
+            self._maybe_retry(self._passenger_of[booking.id])
 
     def _take_seats(self, ride: Ride, seats: int) -> None:
         ride.seats_available -= seats

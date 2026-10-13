@@ -125,7 +125,7 @@ def test_a_model_survives_a_round_trip_through_its_file(tmp_path):
     assert HazardModel.load(path) == model
 
 
-@pytest.mark.parametrize("name", ["h1-km", "h1-cox"])
+@pytest.mark.parametrize("name", ["h1-km", "h1-cox", "h2-km", "h2-cox"])
 def test_the_shipped_models_load_and_give_sane_decreasing_probabilities(name):
     model = HazardModel.load(MODEL_DIR / f"{name}.json")
     typical = {**ZERO, "lead_hours": 48.0, "seats": 1.0, "departure_hour": 8.0}
@@ -138,7 +138,7 @@ def test_the_shipped_models_load_and_give_sane_decreasing_probabilities(name):
 
 
 def test_the_shipped_cox_model_treats_past_cancellations_as_a_risk():
-    model = HazardModel.load(MODEL_DIR / "h1-cox.json")
+    model = HazardModel.load(MODEL_DIR / "h2-cox.json")
     clean = {**ZERO, "lead_hours": 48.0, "seats": 1.0, "departure_hour": 8.0,
              "prior_accepted": 3.0, "prior_completed": 3.0}
     flaky = {**clean, "prior_completed": 0.0, "prior_cancellations": 3.0,
@@ -163,7 +163,7 @@ def test_scoring_returns_an_estimate_with_its_provenance():
     assert response.status_code == 200
     body = response.json()
     assert 0.0 < body["survival_probability"] < 1.0
-    assert body["model_version"] == "h1-cox"
+    assert body["model_version"] == "h2-cox"
     assert body["feature_version"] == FEATURE_VERSION
     assert body["trained_on"] == "synthetic"
     assert datetime.fromisoformat(body["scored_at"]).utcoffset() is not None

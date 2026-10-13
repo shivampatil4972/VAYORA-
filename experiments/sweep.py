@@ -2,9 +2,11 @@
 
     python -m experiments.sweep experiments/configs/sweeps/intervention_response.yaml
 
-The baseline is run once on the unmodified world; it must be a variant the swept
-parameters cannot affect. Each cell is the variant on a world with those parameters
-replaced, stored under a variant name that spells the cell out. Everything is paired by
+Each cell is the variant on a world with those parameters replaced, stored under a
+variant name that spells the cell out. By default the baseline is run once on the
+unmodified world, which is only right when the swept parameters cannot affect it. With
+``baseline_per_cell: true`` in the config the baseline is run on every cell's world too
+and each cell is compared with its own. Everything is paired by
 seed and every figure is read back from the event log through metrics.sql.
 
 Writes experiments/reports/sweep-<name>-<run id>.json and .md.
@@ -73,13 +75,17 @@ def run_sweep(conn: psycopg.Connection, config: dict[str, Any], world: World, se
               run_id: uuid.UUID) -> list[tuple[str, dict[str, Any]]]:
     baseline = load_variant(CONFIGS / config["baseline"])
     variant = load_variant(CONFIGS / config["variant"])
-    run(conn, world, baseline, baseline.name, seeds, run_id)
+    per_cell = config.get("baseline_per_cell", False)
+    if not per_cell:
+        run(conn, world, baseline, baseline.name, seeds, run_id)
     labelled = []
     for cell in cells(config["parameters"]):
         changed = world
         for path, value in cell.items():
             changed = with_parameter(changed, path, value)
         validate(changed)
+        if per_cell:
+            run(conn, changed, baseline, cell_label(baseline.name, cell), seeds, run_id)
         label = cell_label(variant.name, cell)
         run(conn, changed, variant, label, seeds, run_id)
         labelled.append((label, cell))
@@ -89,20 +95,26 @@ def run_sweep(conn: psycopg.Connection, config: dict[str, Any], world: World, se
 def build_report(conn: Connection, config: dict[str, Any], labelled: list[tuple[str, dict[str, Any]]],
                  run_id: uuid.UUID) -> dict[str, Any]:
     baseline = load_variant(CONFIGS / config["baseline"]).name
-    reference = per_seed(conn, run_id, baseline)
+    per_cell = config.get("baseline_per_cell", False)
+    shared = None if per_cell else per_seed(conn, run_id, baseline)
     report: dict[str, Any] = {
         "name": config["name"], "run_id": str(run_id), "data": "synthetic (simulator)",
-        "baseline": baseline, "parameters": config["parameters"],
-        "baseline_means": {column: statistics.fmean(reference[column].values())
-                           for column, _, _ in MEASURES if reference[column]},
+        "baseline": baseline, "baseline_per_cell": per_cell,
+        "parameters": config["parameters"],
+        "baseline_means": {} if per_cell else {
+            column: statistics.fmean(shared[column].values())
+            for column, _, _ in MEASURES if shared[column]},
         "cells": [],
     }
     for label, cell in labelled:
+        reference = per_seed(conn, run_id, cell_label(baseline, cell)) if per_cell else shared
         values = per_seed(conn, run_id, label)
         report["cells"].append({
             "variant": label, "parameters": cell,
             "measures": {
                 column: {"mean": statistics.fmean(values[column].values()),
+                         "baseline_mean": statistics.fmean(reference[column].values())
+                         if reference[column] else None,
                          "vs_baseline": paired(reference[column], values[column])}
                 for column, _, _ in MEASURES if values[column]},
         })
@@ -114,22 +126,27 @@ def to_markdown(report: dict[str, Any]) -> str:
     lines = [
         f"# Sweep `{report['name']}`, run `{report['run_id']}`", "",
         f"Synthetic data from the simulator. Each row is the variant on a world with those "
-        f"parameters, compared seed by seed with **{report['baseline']}** on the unmodified "
-        "world. Intervals are 95% t intervals on the mean per-seed difference.", "",
+        f"parameters, compared seed by seed with **{report['baseline']}** on "
+        + ("the same world." if report.get("baseline_per_cell") else "the unmodified world.")
+        + " Intervals are 95% t intervals on the mean per-seed difference.", "",
     ]
     for column, label, decimals in MEASURES:
         base = report["baseline_means"].get(column)
         lines += [f"## {label}", ""]
         if base is not None:
             lines += [f"{report['baseline']}: {base:.{decimals}f}", ""]
-        lines += ["| " + " | ".join(names) + " | Mean | Difference | 95% CI | Seeds up / down |",
-                  "|" + "---|" * (len(names) + 4)]
+        lines += ["| " + " | ".join(names)
+                  + f" | {report['baseline']} | Mean | Difference | 95% CI | Seeds up / down |",
+                  "|" + "---|" * (len(names) + 5)]
         for cell in report["cells"]:
             measure = cell["measures"].get(column)
             if measure is None:
                 continue
             diff = measure["vs_baseline"]
-            row = [str(v) for v in cell["parameters"].values()] + [f"{measure['mean']:.{decimals}f}"]
+            reference = measure.get("baseline_mean")
+            row = [str(v) for v in cell["parameters"].values()]
+            row += ["" if reference is None else f"{reference:.{decimals}f}",
+                    f"{measure['mean']:.{decimals}f}"]
             row += ["", "", ""] if diff is None else [
                 f"{diff['mean_difference']:+.{decimals}f}",
                 f"{diff['ci_low']:+.{decimals}f} to {diff['ci_high']:+.{decimals}f}",
