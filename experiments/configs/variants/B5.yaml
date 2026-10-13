@@ -1,0 +1,21 @@
+# B5: B4 under a contact budget. The same bookings are eligible (estimated survival below
+# the threshold, far enough from departure, not asked before), but each scoring round may
+# send only so many requests, and the scheduler (intel/app/scheduler, CP-SAT) chooses
+# which. A booking not chosen stays eligible for the next round.
+#
+# The question B5 asks: how much of what B4 does survives when most requests are not sent?
+#
+# Every number under `budget` is an assumption chosen by the authors, not an estimate.
+name: B5
+ranking: predicted_survival
+hazard_model: h2-cox
+intervention:
+  survival_threshold: 0.8
+  min_hours_before_departure: 24
+  scoring_interval_hours: 24
+  budget:
+    contacts_per_round: 2
+    max_contacts_per_ride: 1
+    max_seats_asked_per_departure_day: 4
+    refill_horizon_hours: 168
+    solver_time_limit_seconds: 5

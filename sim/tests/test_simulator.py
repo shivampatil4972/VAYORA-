@@ -358,6 +358,7 @@ def test_a_run_written_to_postgres_is_read_correctly_by_the_metric_queries(pg_co
 
 B3 = load_variant(CONFIGS / "variants" / "B3.yaml")
 B4 = load_variant(CONFIGS / "variants" / "B4.yaml")
+B5 = load_variant(CONFIGS / "variants" / "B5.yaml")
 POLICY_EVENTS = {"hazard_scored", "intervention_issued", "intervention_responded"}
 
 
@@ -473,3 +474,94 @@ def test_a_variant_that_needs_a_model_must_name_one(tmp_path):
     path.write_text("name: BX\nranking: departure_time\nnudge: true\n", encoding="utf-8")
     with pytest.raises(ConfigError, match="nudge"):
         load_variant(path)
+
+
+# ---- the contact budget ---------------------------------------------------------
+
+def _asked(events):
+    return [e for e in events if e.event_type == "intervention_issued"]
+
+
+def _budget(**changes):
+    return dataclasses.replace(B5, intervention=dataclasses.replace(
+        B5.intervention, budget=dataclasses.replace(B5.intervention.budget, **changes)))
+
+
+@pytest.fixture(scope="module")
+def budgeted():
+    return _run(variant=B5)
+
+
+def test_a_budget_never_sends_more_than_it_allows_in_a_round_a_ride_or_a_day(budgeted):
+    sim, events = budgeted
+    budget = B5.intervention.budget
+    booking = {b.id: b for b in sim.bookings}
+    rounds, rides, days = Counter(), Counter(), Counter()
+    for event in _asked(events):
+        asked = booking[event.payload["booking_id"]]
+        rounds[event.sim_time] += 1
+        rides[event.sim_time, asked.ride.id] += 1
+        days[event.sim_time, int(asked.ride.departure // 24)] += asked.seats
+
+    assert rounds
+    assert max(rounds.values()) <= budget.contacts_per_round
+    assert max(rides.values()) <= budget.max_contacts_per_ride
+    assert max(days.values()) <= budget.max_seats_asked_per_departure_day
+
+
+def test_a_budget_asks_only_bookings_the_threshold_would_and_fewer_of_them(budgeted, intervened):
+    sim, events = budgeted
+    policy = B5.intervention
+    departure = {b.id: WORLD.start + timedelta(hours=b.ride.departure) for b in sim.bookings}
+    asked = _asked(events)
+
+    assert 0 < len(asked) < len(_asked(intervened[1]))
+    assert len({e.payload["booking_id"] for e in asked}) == len(asked)
+    for event in asked:
+        assert event.payload["survival_probability"] < policy.survival_threshold
+        remaining = departure[event.payload["booking_id"]] - event.sim_time
+        assert remaining >= timedelta(hours=policy.min_hours_before_departure)
+
+
+def test_a_budget_keeps_every_invariant_and_faces_the_same_world(budgeted, baseline):
+    sim, events = budgeted
+    counts = _counts(events)
+
+    assert counts["trip_started"] == counts["trip_completed"] + counts["trip_failed"]
+    assert [e.sim_time for e in events] == sorted(e.sim_time for e in events)
+    assert all(0 <= ride.seats_available <= ride.seats for ride in sim.rides)
+    assert [(e.sim_time, e.payload) for e in events if e.event_type == "search_issued"] == \
+        [(e.sim_time, e.payload) for e in baseline[1] if e.event_type == "search_issued"]
+
+
+def test_a_budget_too_large_to_bind_is_the_threshold_policy_exactly(intervened):
+    unlimited = _budget(contacts_per_round=10_000, max_contacts_per_ride=10_000,
+                        max_seats_asked_per_departure_day=10_000)
+
+    def story(events):
+        return [(e.event_type, e.sim_time, e.payload) for e in events]
+
+    # Something never worth asking (survival of exactly 1) could differ; nothing below
+    # the threshold is.
+    assert story(_run(variant=dataclasses.replace(unlimited, name="B4"))[1]) == story(intervened[1])
+
+
+def test_the_same_seed_gives_the_same_plan_every_time(budgeted):
+    def story(events):
+        return [(e.event_type, e.sim_time, e.payload) for e in events]
+
+    assert story(_run(variant=B5)[1]) == story(budgeted[1])
+
+
+def test_the_scheduler_is_given_no_ground_truth():
+    import inspect
+
+    from intel.app.scheduler import plan as scheduler
+    from sim.simulator import Simulation
+
+    fields = set(scheduler.Candidate.__dataclass_fields__)
+    assert fields == {"booking_id", "ride_id", "departure_day", "seats", "survival_probability",
+                      "hours_to_departure"}
+    source = inspect.getsource(Simulation._within_budget)
+    for hidden in ("cancel_at", "kind", "release_draw", "annoyed_draw", "_passenger_of"):
+        assert hidden not in source

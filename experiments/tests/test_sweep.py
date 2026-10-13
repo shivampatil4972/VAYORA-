@@ -5,7 +5,7 @@ import pytest
 import yaml
 
 from experiments.sweep import (
-    CONFIGS, build_report, cell_label, cells, run_sweep, to_markdown, with_parameter)
+    CONFIGS, apply_cell, build_report, cell_label, cells, run_sweep, to_markdown, with_parameter)
 from sim.config import load_variant, load_world
 
 WORLD = load_world(CONFIGS / "world.yaml")
@@ -24,7 +24,8 @@ def test_a_dotted_path_replaces_one_value_and_leaves_the_original_alone():
 
 
 def test_an_unknown_parameter_is_an_error():
-    with pytest.raises(KeyError, match="no such world parameter"):
+    # The message names the part of the configuration the misspelt key was looked for in.
+    with pytest.raises(KeyError, match="no such interventionresponse parameter"):
         with_parameter(WORLD, "demand.intervention_response.early_relase_probability", 0.9)
     with pytest.raises(KeyError):
         with_parameter(WORLD, "weather.rain", 1)
@@ -69,10 +70,10 @@ def test_every_shipped_sweep_names_real_variants_and_real_parameters():
     for path in sweeps:
         config = yaml.safe_load(path.read_text(encoding="utf-8"))
         load_variant(CONFIGS / config["baseline"])
-        load_variant(CONFIGS / config["variant"])
+        variant = load_variant(CONFIGS / config["variant"])
         for parameter, values in config["parameters"].items():
             for value in values:
-                with_parameter(WORLD, parameter, value)
+                apply_cell(WORLD, variant, {parameter: value})
 
 
 def test_a_sweep_runs_each_cell_and_reports_it_against_the_baseline(pg_conn, sa_conn):
@@ -99,3 +100,39 @@ def test_a_sweep_runs_each_cell_and_reports_it_against_the_baseline(pg_conn, sa_
     markdown = to_markdown(report)
     assert "| early_release_probability | annoyed_cancel_probability | B3 | Mean |" in markdown
     assert "B3: " in markdown
+
+
+BUDGET = "variant.intervention.budget.contacts_per_round"
+
+
+def test_a_variant_parameter_changes_the_variant_and_not_the_world():
+    b5 = load_variant(CONFIGS / "variants" / "B5.yaml")
+
+    world, variant = apply_cell(WORLD, b5, {BUDGET: 7, RELEASE: 0.9})
+
+    assert variant.intervention.budget.contacts_per_round == 7
+    assert variant.intervention.survival_threshold == b5.intervention.survival_threshold
+    assert b5.intervention.budget.contacts_per_round != 7
+    assert world.demand.intervention_response.early_release_probability == 0.9
+    with pytest.raises(KeyError, match="no such contactbudget parameter"):
+        apply_cell(WORLD, b5, {"variant.intervention.budget.contacts_per_ruond": 7})
+    # B4 has no budget to change.
+    with pytest.raises(KeyError):
+        apply_cell(WORLD, load_variant(CONFIGS / "variants" / "B4.yaml"), {BUDGET: 7})
+
+
+def test_a_tighter_budget_sends_fewer_requests_against_one_shared_baseline(pg_conn, sa_conn):
+    run_id = uuid.uuid4()
+    config = {"name": "t", "baseline": "variants/B4.yaml", "variant": "variants/B5.yaml",
+              "parameters": {BUDGET: [1, 50]}}
+
+    labelled = run_sweep(pg_conn, config, WORLD, range(1, 3), run_id)
+    report = build_report(sa_conn, config, labelled, run_id)
+
+    tight, loose = report["cells"]
+    assert tight["variant"] == "B5[contacts_per_round=1]"
+    assert tight["measures"]["contact_rate"]["mean"] < loose["measures"]["contact_rate"]["mean"]
+    assert tight["measures"]["contact_rate"]["mean"] < report["baseline_means"]["contact_rate"]
+    variants = {row[0] for row in pg_conn.execute(
+        "SELECT DISTINCT variant FROM events WHERE run_id = %s", (run_id,)).fetchall()}
+    assert variants == {"B4", "B5[contacts_per_round=1]", "B5[contacts_per_round=50]"}

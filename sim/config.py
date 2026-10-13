@@ -89,6 +89,20 @@ class World:
 
 
 @dataclass(frozen=True)
+class ContactBudget:
+    """Limits on how many reconfirmation requests one scoring round may send."""
+
+    contacts_per_round: int
+    max_contacts_per_ride: int
+    # Seats asked about among rides leaving on the same day.
+    max_seats_asked_per_departure_day: int
+    # A release this long before departure, or longer, counts in full; later ones
+    # count for proportionally less. An assumption, not an estimate.
+    refill_horizon_hours: float
+    solver_time_limit_seconds: float
+
+
+@dataclass(frozen=True)
 class Intervention:
     """Ask a booking to reconfirm when its predicted survival falls below a threshold."""
 
@@ -97,6 +111,9 @@ class Intervention:
     # that has little chance of being refilled.
     min_hours_before_departure: float
     scoring_interval_hours: float
+    # None: everyone below the threshold is asked. Otherwise the scheduler chooses
+    # among them within these limits.
+    budget: ContactBudget | None = None
 
 
 @dataclass(frozen=True)
@@ -145,7 +162,19 @@ def load_variant(path: Path) -> Variant:
     _require_keys(raw, {"name", "ranking"}, path.name, optional={"hazard_model", "intervention"})
     intervention = raw.get("intervention")
     if intervention is not None:
-        intervention = _build(Intervention, intervention, f"{path.name}: intervention")
+        if not isinstance(intervention, Mapping):
+            raise ConfigError(f"{path.name}: intervention must be a mapping")
+        budget = intervention.get("budget")
+        intervention = _build(Intervention, {**intervention, "budget": None},
+                              f"{path.name}: intervention")
+        if budget is not None:
+            budget = _build(ContactBudget, budget, f"{path.name}: intervention.budget")
+            if min(budget.contacts_per_round, budget.max_contacts_per_ride,
+                   budget.max_seats_asked_per_departure_day) < 1:
+                raise ConfigError("intervention.budget limits must be at least 1")
+            if budget.refill_horizon_hours <= 0 or budget.solver_time_limit_seconds <= 0:
+                raise ConfigError("intervention.budget durations must be positive")
+            intervention = dataclasses.replace(intervention, budget=budget)
         if not 0 <= intervention.survival_threshold <= 1:
             raise ConfigError("intervention.survival_threshold must be between 0 and 1")
         if intervention.scoring_interval_hours <= 0 or intervention.min_hours_before_departure < 0:

@@ -72,3 +72,27 @@ def test_latent_types_cannot_be_added_or_removed(tmp_path):
 def test_nonsense_values_are_rejected(tmp_path, change):
     with pytest.raises(ConfigError):
         load_world(_world_with(tmp_path, change))
+
+
+B5_TEXT = (CONFIGS / "variants" / "B5.yaml").read_text(encoding="utf-8")
+
+
+def test_a_contact_budget_is_loaded_whole_or_not_at_all(tmp_path):
+    budget = load_variant(CONFIGS / "variants" / "B5.yaml").intervention.budget
+    assert (budget.contacts_per_round, budget.max_contacts_per_ride) == (2, 1)
+    assert load_variant(CONFIGS / "variants" / "B4.yaml").intervention.budget is None
+
+    path = tmp_path / "B5.yaml"
+    path.write_text(B5_TEXT.replace("contacts_per_round", "contacts_per_ruond"), encoding="utf-8")
+    with pytest.raises(ConfigError, match="contacts_per_ruond"):
+        load_variant(path)
+    path.write_text(B5_TEXT.replace("    refill_horizon_hours: 168\n", ""), encoding="utf-8")
+    with pytest.raises(ConfigError, match="refill_horizon_hours"):
+        load_variant(path)
+    path.write_text(B5_TEXT.replace("contacts_per_round: 2", "contacts_per_round: 0"), encoding="utf-8")
+    with pytest.raises(ConfigError, match="at least 1"):
+        load_variant(path)
+    path.write_text(B5_TEXT.replace("solver_time_limit_seconds: 5", "solver_time_limit_seconds: 0"),
+                    encoding="utf-8")
+    with pytest.raises(ConfigError, match="positive"):
+        load_variant(path)

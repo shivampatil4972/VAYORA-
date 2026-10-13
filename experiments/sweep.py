@@ -1,9 +1,10 @@
-"""Runs one variant across a grid of world parameters and compares each cell to a baseline.
+"""Runs one variant across a grid of parameters and compares each cell to a baseline.
 
     python -m experiments.sweep experiments/configs/sweeps/intervention_response.yaml
 
 Each cell is the variant on a world with those parameters replaced, stored under a
-variant name that spells the cell out. By default the baseline is run once on the
+variant name that spells the cell out. A parameter whose path starts with ``variant.``
+is replaced in the variant instead of the world, and never touches the baseline. By default the baseline is run once on the
 unmodified world, which is only right when the swept parameters cannot affect it. With
 ``baseline_per_cell: true`` in the config the baseline is run on every cell's world too
 and each cell is compared with its own. Everything is paired by
@@ -43,13 +44,26 @@ MEASURES = [("per_100", "Completed rides per 100 searches", 2),
             ("contact_rate", "Reconfirmation requests per accepted booking", 3)]
 
 
-def with_parameter(world: World, path: str, value: Any) -> World:
-    """A copy of `world` with the dotted `path` (e.g. ``demand.shock.rate_per_day``) set."""
+VARIANT_PREFIX = "variant."
+
+
+def with_parameter(target: Any, path: str, value: Any) -> Any:
+    """A copy of a world or a variant with the dotted `path` (e.g. ``demand.shock.rate_per_day``) set."""
     head, _, rest = path.partition(".")
-    if not hasattr(world, head):
-        raise KeyError(f"no such world parameter: {path}")
-    current = getattr(world, head)
-    return dataclasses.replace(world, **{head: with_parameter(current, rest, value) if rest else value})
+    if not dataclasses.is_dataclass(target) or not hasattr(target, head):
+        raise KeyError(f"no such {type(target).__name__.lower()} parameter: {path}")
+    current = getattr(target, head)
+    return dataclasses.replace(target, **{head: with_parameter(current, rest, value) if rest else value})
+
+
+def apply_cell(world: World, variant: Variant, cell: dict[str, Any]) -> tuple[World, Variant]:
+    """The world and the variant of one cell of the grid."""
+    for path, value in cell.items():
+        if path.startswith(VARIANT_PREFIX):
+            variant = with_parameter(variant, path.removeprefix(VARIANT_PREFIX), value)
+        else:
+            world = with_parameter(world, path, value)
+    return world, variant
 
 
 def cells(parameters: dict[str, list[Any]]) -> list[dict[str, Any]]:
@@ -80,14 +94,12 @@ def run_sweep(conn: psycopg.Connection, config: dict[str, Any], world: World, se
         run(conn, world, baseline, baseline.name, seeds, run_id)
     labelled = []
     for cell in cells(config["parameters"]):
-        changed = world
-        for path, value in cell.items():
-            changed = with_parameter(changed, path, value)
+        changed, varied = apply_cell(world, variant, cell)
         validate(changed)
         if per_cell:
             run(conn, changed, baseline, cell_label(baseline.name, cell), seeds, run_id)
         label = cell_label(variant.name, cell)
-        run(conn, changed, variant, label, seeds, run_id)
+        run(conn, changed, varied, label, seeds, run_id)
         labelled.append((label, cell))
     return labelled
 

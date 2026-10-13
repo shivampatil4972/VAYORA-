@@ -1,0 +1,13 @@
+# How much of what asking everyone achieves is kept when only a few can be asked?
+#
+# The baseline is B4, which asks every booking below the threshold. Each cell is B5 with
+# a different number of requests allowed per daily round, chosen by the scheduler. B4
+# sends a median of about 4 a round, so 8 should leave B5 nearly unconstrained and 1
+# should leave it sending roughly a quarter of what B4 does.
+#
+# The budget is a property of the variant, so one B4 baseline serves every cell.
+name: contact-budget
+baseline: variants/B4.yaml
+variant: variants/B5.yaml
+parameters:
+  variant.intervention.budget.contacts_per_round: [1, 2, 4, 8]

@@ -33,6 +33,7 @@ import simpy
 
 from intel.app.hazard.features import FeatureTracker
 from intel.app.hazard.model import MODEL_DIR, HazardModel
+from intel.app.scheduler.plan import Candidate, Limits, plan
 from journex_events import EventType
 from sim.config import PassengerType, Variant, World
 from sim.frozen import BOOKING_HORIZON_DAYS, DESTINATION, LATENT_TYPES, ORIGIN, SPAN_DAYS
@@ -440,10 +441,15 @@ class Simulation:
     # ---- interventions --------------------------------------------------------
 
     def _scoring_rounds(self):
-        """Re-scores every live booking at a fixed interval and contacts the risky ones."""
+        """Re-scores every live booking at a fixed interval and contacts the risky ones.
+
+        Without a budget every risky booking is asked. With one, the scheduler chooses
+        which of them to ask this round; the rest may be chosen in a later round.
+        """
         policy = self.variant.intervention
         while self.env.now < SPAN_DAYS * HOURS_PER_DAY:
             yield self.env.timeout(policy.scoring_interval_hours)
+            risky: list[tuple[Booking, float]] = []
             for booking in self.bookings:
                 ride = booking.ride
                 if booking.status != "confirmed" or ride.status != "open":
@@ -462,8 +468,29 @@ class Simulation:
                 }, "platform", None)
                 if (survival < policy.survival_threshold and not booking.contacted
                         and remaining >= policy.min_hours_before_departure):
-                    booking.contacted = True
-                    self.env.process(self._ask_to_reconfirm(booking, survival))
+                    risky.append((booking, survival))
+            for booking, survival in self._within_budget(risky):
+                booking.contacted = True
+                self.env.process(self._ask_to_reconfirm(booking, survival))
+
+    def _within_budget(self, risky: list[tuple[Booking, float]]) -> list[tuple[Booking, float]]:
+        """The risky bookings to ask this round. The scheduler sees what a platform would
+        know about each: its ride, its seats, its score and the time left."""
+        budget = self.variant.intervention.budget
+        if budget is None or not risky:
+            return risky
+        chosen = set(plan(
+            [Candidate(booking_id=booking.id, ride_id=booking.ride.id,
+                       departure_day=int(booking.ride.departure // HOURS_PER_DAY),
+                       seats=booking.seats, survival_probability=survival,
+                       hours_to_departure=booking.ride.departure - self.env.now)
+             for booking, survival in risky],
+            Limits(contacts=budget.contacts_per_round,
+                   contacts_per_ride=budget.max_contacts_per_ride,
+                   seats_per_departure_day=budget.max_seats_asked_per_departure_day,
+                   refill_horizon_hours=budget.refill_horizon_hours,
+                   time_limit_seconds=budget.solver_time_limit_seconds)).booking_ids)
+        return [(booking, survival) for booking, survival in risky if booking.id in chosen]
 
     def _ask_to_reconfirm(self, booking: Booking, survival: float):
         passenger = self._passenger_of[booking.id]
