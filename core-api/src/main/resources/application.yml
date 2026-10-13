@@ -8,6 +8,12 @@ spring:
   flyway:
     enabled: true
   data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      # A cache that is down must cost a moment, not a request.
+      timeout: 1s
+      connect-timeout: 1s
     mongodb:
       # The short server selection timeout keeps a MongoDB outage from stalling requests.
       uri: ${MONGO_URI:mongodb://localhost:27017/journex?serverSelectionTimeoutMS=2000}
@@ -45,6 +51,19 @@ journex:
         fare-share: 1.0
       - at-least-before: PT24H
         fare-share: 0.5
+  osrm:
+    # The routing service. Empty means none: routes are then straight lines between stops.
+    url: ${OSRM_URL:}
+    timeout: PT3S
+    cache-ttl: P7D
+    # Only used to guess a driving time when there is no road route.
+    fallback-speed-kmh: 50
+  search:
+    # How far, in a straight line, a passenger may be from a stop for a ride to match.
+    max-access-km: 5
+  pricing:
+    # Per seat. Only a suggestion offered to the driver, never applied automatically.
+    suggested-rupees-per-km: 2.0
   trip:
     # How long before the scheduled departure a driver may start the ride.
     early-start: PT1H
@@ -54,6 +73,9 @@ server:
 
 management:
   health:
+    redis:
+      # Only a cache: core-api is healthy without it.
+      enabled: false
     mongo:
       # Notifications are a courtesy; core-api is healthy without them.
       enabled: false

@@ -11,7 +11,9 @@ import com.dypcet.journex.payment.PaymentChoice;
 import com.dypcet.journex.ride.RideService;
 import com.dypcet.journex.ride.RideService.Candidate;
 import com.dypcet.journex.ride.RideService.PublishRide;
+import com.dypcet.journex.ride.RideService.Sort;
 import com.dypcet.journex.ride.RideService.StopInput;
+import com.dypcet.journex.routing.RouteService.Point;
 import com.dypcet.journex.vehicle.VehicleService;
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -38,6 +40,11 @@ import org.springframework.web.server.ResponseStatusException;
 class BookingFlowIntegrationTest extends PostgresIntegrationTest {
 
     private static final Instant DEPARTURE = Instant.now().plus(Duration.ofDays(3));
+
+    private static final Point KOLHAPUR = new Point(16.7050, 74.2433);
+    private static final Point KARAD = new Point(17.2890, 74.1818);
+    private static final Point SATARA = new Point(17.6805, 74.0183);
+    private static final Point PUNE = new Point(18.5204, 73.8567);
 
     // Kolhapur, Karad, Satara, Pune: stops 0..3, so legs 0..2.
     private static final List<StopInput> CORRIDOR = List.of(
@@ -230,7 +237,7 @@ class BookingFlowIntegrationTest extends PostgresIntegrationTest {
         LocalDate karadDay = DEPARTURE.plus(Duration.ofMinutes(75))
                 .atZone(ZoneId.of("Asia/Kolkata")).toLocalDate();
 
-        List<Candidate> found = mine(rides.search(passenger, "karad", "Pune", karadDay, 2), rideId);
+        List<Candidate> found = mine(rides.search(passenger, KARAD, PUNE, karadDay, 2, Sort.TIME), rideId);
         assertThat(found).hasSize(1);
         assertThat(found.get(0).fromSeq()).isEqualTo(1);
         assertThat(found.get(0).toSeq()).isEqualTo(3);
@@ -238,10 +245,10 @@ class BookingFlowIntegrationTest extends PostgresIntegrationTest {
         assertThat(found.get(0).seatsAvailable()).isEqualTo(2);
 
         // Wrong direction, and more seats than are left.
-        assertThat(mine(rides.search(passenger, "Pune", "Kolhapur", day, 1), rideId)).isEmpty();
+        assertThat(mine(rides.search(passenger, PUNE, KOLHAPUR, day, 1, Sort.TIME), rideId)).isEmpty();
         bookings.request(passenger, rideId, 2, 3, 1, PaymentChoice.card(), null);
-        assertThat(mine(rides.search(passenger, "Karad", "Pune", karadDay, 2), rideId)).isEmpty();
-        assertThat(mine(rides.search(passenger, "Kolhapur", "Satara", day, 2), rideId)).hasSize(1);
+        assertThat(mine(rides.search(passenger, KARAD, PUNE, karadDay, 2, Sort.TIME), rideId)).isEmpty();
+        assertThat(mine(rides.search(passenger, KOLHAPUR, SATARA, day, 2, Sort.TIME), rideId)).hasSize(1);
 
         assertThat(jdbc.queryForObject(
                 "SELECT COUNT(*) FROM events WHERE event_type = 'search_issued'", Integer.class))

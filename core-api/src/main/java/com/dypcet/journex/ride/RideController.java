@@ -4,7 +4,10 @@ import com.dypcet.journex.identity.CurrentUser;
 import com.dypcet.journex.ride.RideService.Candidate;
 import com.dypcet.journex.ride.RideService.PublishRide;
 import com.dypcet.journex.ride.RideService.Ride;
+import com.dypcet.journex.ride.RideService.RoutePreview;
+import com.dypcet.journex.ride.RideService.Sort;
 import com.dypcet.journex.ride.RideService.StopInput;
+import com.dypcet.journex.routing.RouteService.Point;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -54,6 +57,15 @@ public class RideController {
                     segmentPrices) {
     }
 
+    public record PointRequest(
+            @DecimalMin("-90") @DecimalMax("90") double lat,
+            @DecimalMin("-180") @DecimalMax("180") double lon) {
+    }
+
+    public record RoutePreviewRequest(
+            @NotNull @Size(min = 2, max = 10) List<@Valid @NotNull PointRequest> stops) {
+    }
+
     private final RideService rides;
 
     public RideController(RideService rides) {
@@ -73,13 +85,25 @@ public class RideController {
                 stops, request.segmentPrices()));
     }
 
+    /** The road route through some stops and a suggested price per leg, before publishing. */
+    @PostMapping("/route-preview")
+    @PreAuthorize("hasRole('DRIVER')")
+    public RoutePreview preview(@Valid @RequestBody RoutePreviewRequest request) {
+        return rides.preview(request.stops().stream()
+                .map(stop -> new Point(stop.lat(), stop.lon())).toList());
+    }
+
     @GetMapping("/search")
     public List<Candidate> search(@AuthenticationPrincipal Jwt jwt,
-            @RequestParam @NotBlank String origin,
-            @RequestParam @NotBlank String destination,
+            @RequestParam @DecimalMin("-90") @DecimalMax("90") double originLat,
+            @RequestParam @DecimalMin("-180") @DecimalMax("180") double originLon,
+            @RequestParam @DecimalMin("-90") @DecimalMax("90") double destLat,
+            @RequestParam @DecimalMin("-180") @DecimalMax("180") double destLon,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestParam(defaultValue = "1") @Min(1) @Max(8) int seats) {
-        return rides.search(CurrentUser.id(jwt), origin, destination, date, seats);
+            @RequestParam(defaultValue = "1") @Min(1) @Max(8) int seats,
+            @RequestParam(defaultValue = "TIME") Sort sort) {
+        return rides.search(CurrentUser.id(jwt), new Point(originLat, originLon),
+                new Point(destLat, destLon), date, seats, sort);
     }
 
     @GetMapping("/mine")

@@ -133,7 +133,8 @@ class ApiIntegrationTest extends PostgresIntegrationTest {
 
         String day = departure.atZone(ZoneId.of("Asia/Kolkata")).toLocalDate().toString();
         JsonNode results = body(as(passenger, get("/api/v1/rides/search")
-                .param("origin", "Kolhapur").param("destination", "Pune")
+                .param("originLat", "16.7050").param("originLon", "74.2433")
+                .param("destLat", "18.5204").param("destLon", "73.8567")
                 .param("date", day).param("seats", "2"))
                 .andExpect(status().isOk()));
         assertThat(results.findValuesAsText("rideId")).contains(Long.toString(rideId));
@@ -182,15 +183,17 @@ class ApiIntegrationTest extends PostgresIntegrationTest {
         String passenger = register(UUID.randomUUID() + "@example.test", "PASSENGER");
 
         for (String[] bad : new String[][] {
-                {"seats", "0"}, {"seats", "9"}, {"seats", "two"}, {"date", "next tuesday"}, {"origin", " "}}) {
+                {"seats", "0"}, {"seats", "9"}, {"seats", "two"}, {"date", "next tuesday"},
+                {"originLat", "91"}, {"destLon", "-181"}, {"originLon", "east"}, {"sort", "VIBES"}}) {
             Map<String, String> params = new java.util.HashMap<>(Map.of(
-                    "origin", "Kolhapur", "destination", "Pune", "date", "2026-11-02", "seats", "1"));
+                    "originLat", "16.7050", "originLon", "74.2433", "destLat", "18.5204",
+                    "destLon", "73.8567", "date", "2026-11-02", "seats", "1"));
             params.put(bad[0], bad[1]);
             MockHttpServletRequestBuilder search = get("/api/v1/rides/search");
             params.forEach(search::param);
             as(passenger, search).andExpect(status().isBadRequest());
         }
-        as(passenger, get("/api/v1/rides/search").param("origin", "Kolhapur"))
+        as(passenger, get("/api/v1/rides/search").param("originLat", "16.7050"))
                 .andExpect(status().isBadRequest());
     }
 

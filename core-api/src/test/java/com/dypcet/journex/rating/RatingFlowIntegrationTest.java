@@ -20,7 +20,9 @@ import com.dypcet.journex.rating.RatingService.Unrated;
 import com.dypcet.journex.ride.RideService;
 import com.dypcet.journex.ride.RideService.Candidate;
 import com.dypcet.journex.ride.RideService.PublishRide;
+import com.dypcet.journex.ride.RideService.Sort;
 import com.dypcet.journex.ride.RideService.StopInput;
+import com.dypcet.journex.routing.RouteService.Point;
 import com.dypcet.journex.vehicle.VehicleService;
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -169,8 +171,9 @@ class RatingFlowIntegrationTest extends PostgresIntegrationTest {
         long nextRide = ride(Duration.ofDays(2));
         Instant departure = rides.get(nextRide).departureTime();
 
-        Candidate candidate = rides.search(passengerId, "Kolhapur", "Pune",
-                        departure.atZone(ZoneId.of("Asia/Kolkata")).toLocalDate(), 1)
+        Candidate candidate = rides.search(passengerId, new Point(16.7050, 74.2433),
+                        new Point(18.5204, 73.8567),
+                        departure.atZone(ZoneId.of("Asia/Kolkata")).toLocalDate(), 1, Sort.TIME)
                 .stream().filter(c -> c.rideId() == nextRide).findFirst().orElseThrow();
 
         assertThat(candidate.driverId()).isEqualTo(driverId);
