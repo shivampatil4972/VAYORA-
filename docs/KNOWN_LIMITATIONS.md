@@ -57,6 +57,16 @@ mistake for more. Updated 2026-10-13.
 - A reporter is never told what was decided.
 - Ratings are visible at once; one side can see the other's rating before giving theirs.
 - Notifications are in-app only. No email, SMS or push, and no preferences.
+- **No message ever leaves the platform.** Confirmation codes and emergency messages go
+  to a mock sender. "Email confirmed" therefore means only that someone read a code out
+  of the administrator outbox; it proves nothing about the address.
+- **The SOS button contacts nobody.** It records an alert for administrators, who are
+  not an emergency service and are told only by an in-app notification and a queue
+  that refreshes every 15 seconds. Emergency contacts are stored but not messaged.
+- The simulated outbox is in memory: it is lost on restart and would not be shared
+  between two core-api instances.
+- Preferences and confirmation status are shown on profiles but are not search filters.
+- No identity document is checked, and there is no profile photo.
 - With MongoDB down, a booking still succeeds but its response waits about two seconds
   for the notification write to time out.
 - **Chat is one room per ride.** Every booked passenger sees every message; there is no
@@ -86,7 +96,10 @@ mistake for more. Updated 2026-10-13.
 
 - The access token lives in the browser's `sessionStorage`, readable by any script on
   the page. There is no refresh token; a session lasts 12 hours and cannot be revoked.
-- No rate limiting on any endpoint, including sign-in.
+- No rate limiting on any endpoint, including sign-in. Confirmation codes alone are
+  limited: one a minute, five guesses each.
+- An administrator can read every confirmation code in the simulated outbox. That is
+  the point of it, and it must not exist alongside a real sender.
 - Registration reveals whether an email is already registered.
 - No security headers beyond Spring Security's defaults have been reviewed.
 - Every signed-in request costs one extra database lookup, to check the account is not

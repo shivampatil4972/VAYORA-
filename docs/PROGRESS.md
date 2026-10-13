@@ -1,5 +1,36 @@
 # Progress
 
+## 2026-10-13 (evening) — profiles, confirmation codes, emergency contacts and SOS
+
+Committed on `stage-2-3-booking-core-and-simulator`.
+
+| Slice | What | Verified by |
+|---|---|---|
+| Profile | Phone, bio, year of birth, gender, smoking, pets, music, conversation; an account page | `AccountIntegrationTest`, `App.test.tsx` |
+| Confirmation | A 6-digit code proves an email address or a phone number | same, live run |
+| Emergency contacts | Up to three per member | same |
+| SOS | A button on every member's screen; an administrator queue with acknowledgement | same, live run |
+
+**Nothing in this slice leaves the platform.** The only message sender is a mock. It
+writes each message to the server log and keeps the newest 50 in memory, where an
+administrator can read them. That outbox is how a confirmation code is obtained in a
+demonstration. An SOS therefore tells an administrator queue and nobody else, and the
+answer, the screen and the queue all say that the contacts were not messaged.
+
+**Decisions made here**
+
+- Codes are stored only as BCrypt hashes, last ten minutes, work once, and are spent
+  after five wrong guesses. A new one can be asked for after a minute.
+- A code proves the address it was sent to. Changing the phone number undoes the proof.
+- "Confirmed" is the word used, never "verified": it says a code was received, not who
+  someone is. The profile states that no identity document has been checked.
+- The public profile shows an approximate age, never the birth year, and never the
+  phone number or gender.
+- The emergency panel puts calling 112 first, before the button that alerts JOURNEX.
+- Pressing SOS twice within a minute repeats nothing.
+- SOS writes no event-log row: the 22-event vocabulary is frozen and this is not a
+  research measurement.
+
 ## 2026-10-13 (later) — Hindi and Marathi, chat and live position
 
 Committed on `stage-2-3-booking-core-and-simulator`.

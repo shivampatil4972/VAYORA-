@@ -54,7 +54,12 @@ Open http://localhost:5173 and create an account as a passenger or as a driver.
 - **Passenger:** search by town or by exact points on a map, sort the results, see a
   ride's route and meeting point, book or request, chat with the driver, see where the
   driver is once the ride is under way, cancel, rate the driver afterwards.
-- **Administrator:** an overview, the reports queue (dismiss, warn or suspend), members,
+- **Every member:** an account page for profile, travel preferences, confirming an
+  email or phone by code, and emergency contacts; an emergency button. No email or SMS
+  is really sent: codes appear in the administrator's simulated outbox, and the
+  emergency button alerts administrators only. In danger, call 112.
+- **Administrator:** an overview, the reports queue (dismiss, warn or suspend), the
+  emergency queue and simulated outbox, members,
   the model's durability estimates, and the audit log. Administrators cannot sign up; set `ADMIN_EMAIL` and `ADMIN_PASSWORD` (12
   characters or more) in `.env` and restart core-api to create one.
 

@@ -24,14 +24,14 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 1 | Email/phone signup | TBD | TBD | Partial: email signup and sign-in, API and UI tested; no phone signup |
 | 2 | Google OAuth login | TBD | TBD | Not started |
 | 3 | Profile photo upload | TBD | TBD | Not started |
-| 4 | Bio, age, and gender | TBD | TBD | Not started |
-| 5 | Email verification | TBD | TBD | Not started |
-| 6 | Phone OTP verification | TBD | TBD | Not started |
+| 4 | Bio, age, and gender | TBD | TBD | Verified (API and UI tests): bio and an approximate age on the profile; gender is stored and shown to nobody |
+| 5 | Email verification | TBD | TBD | Verified (API and UI tests), simulated sender, nothing is sent: the code is read from an administrator-only outbox |
+| 6 | Phone OTP verification | TBD | TBD | Partial: API verified, simulated sender, nothing is sent: the code is read from an administrator-only outbox; the screen is the email one, tested for email only |
 | 7 | Government ID verification | TBD | TBD | Not started |
-| 8 | Verified-profile badge | TBD | TBD | Not started |
+| 8 | Verified-profile badge | TBD | TBD | Partial: "Email confirmed" and "Phone confirmed" on the profile, which also says no identity document was checked |
 | 9 | Experience levels from Newcomer to Ambassador | TBD | TBD | Not started |
-| 10 | Smoking, pets, music, and travel preferences | TBD | TBD | Not started |
-| 11 | Chattiness level | TBD | TBD | Not started |
+| 10 | Smoking, pets, music, and travel preferences | TBD | TBD | Verified (API and UI tests): shown on the profile; not yet used by search |
+| 11 | Chattiness level | TBD | TBD | Verified (API and UI tests): shown on the profile; not yet used by search |
 
 ## Vehicle management
 
@@ -102,7 +102,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 54 | Membership duration and completed rides | TBD | TBD | Verified (API and UI tests): member-since and completed trips on the profile |
 | 55 | Report a user | TBD | TBD | Verified (API and UI tests): only someone you shared a booking with; one open report per pair |
 | 56 | Admin moderation queue | TBD | TBD | Verified (API and UI tests): dismiss, warn or suspend; suspension is enforced on every request |
-| 57 | SOS and emergency-contact workflow | TBD | TBD | Not started |
+| 57 | SOS and emergency-contact workflow | TBD | TBD | Verified (API and UI tests), simulated: the alert reaches an administrator queue; **emergency contacts are not messaged** and the screen says so and points to 112 |
 | 58 | Insurance coverage badge | TBD | TBD | Not started |
 | 59 | Women-only ride option | TBD | TBD | Not started |
 

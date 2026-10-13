@@ -4,9 +4,9 @@ Counts are from the runs on 2026-10-13. Every suite passed with no failures.
 
 | Suite | Command, from the repository root | Tests |
 |---|---|---|
-| core-api | `docker compose --profile test run --rm core-api-tests` | 107 |
+| core-api | `docker compose --profile test run --rm core-api-tests` | 118 |
 | Python (events, simulator, model, experiments, intel API) | `docker compose --profile research run --rm research` | 108 |
-| web | `cd web && npm ci && npm test` | 95 |
+| web | `cd web && npm ci && npm test` | 108 |
 | gateway | `cd gateway && npm ci && npm test` | 25 |
 
 The first two need only Docker. The Python suite also needs PostgreSQL running:
@@ -26,6 +26,7 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 | `RatingFlowIntegrationTest` | 8 | One rating per side per completed trip, who may rate, averages, profiles expose no contact details |
 | `NotificationIntegrationTest` | 6 | Who is told what, **nothing is sent for a rolled-back booking**, per-member access, **a MongoDB outage does not fail the caller** |
 | `ModerationIntegrationTest` | 8 | Who may report whom, dismiss / warn / suspend, **a suspended member's existing token is refused**, reinstatement, **the audit log cannot be rewritten**, back office is administrators only |
+| `AccountIntegrationTest` | 11 | Profile replace and clear, **the public profile never shows phone, birth year or gender**, **a code is stored only as a hash, works once, expires, and is spent by wrong guesses**, a changed number undoes its proof, three contacts at most, **an SOS answer says nobody was really messaged**, repeat presses, acknowledgement audited, administrators only |
 | `RouteServiceTest` | 7 | OSRM request and response, caching, **an outage gives straight lines labelled as such**, great-circle distance |
 | `RoutingIntegrationTest` | 7 | Route stored on a ride, **the access distance is a hard limit**, direction, the four sort orders, coarse positions in the event log, route preview and price suggestion, the Redis cache |
 | `HazardScoringIntegrationTest` | 5 | Feature snapshot and history, one score per booking per day, which bookings are scored, **model outage changes nothing**, administrators only |
@@ -46,7 +47,7 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 
 | File | Tests | Covers |
 |---|---|---|
-| `App.test.tsx` | 36 | Route protection by role, sign-in, search and booking with fee and payment method, idempotency key reuse, refund terms, earnings, ratings and profiles, notifications, reporting and moderation, the back office, maps and location search, the route planner, failure and retry states |
+| `App.test.tsx` | 50 | The account page, confirmation by code, emergency contacts, **the emergency panel puts 112 first and says the contacts were not messaged**, the administrator emergency queue and simulated outbox, route protection by role, sign-in, search and booking with fee and payment method, idempotency key reuse, refund terms, earnings, ratings and profiles, notifications, reporting and moderation, the back office, maps and location search, the route planner, failure and retry states |
 | `lib/schemas.test.ts` | 16 | Form validation and the publish request mapping |
 | `components/RideChat.test.tsx` | 15 | Joining with the session token, history, sending, **a message shown once and only when relayed**, text rendered as text, refusal and outage states, rejoining after a dropped connection, position shown to passengers, sharing offered to the driver only while under way |
 | `lib/i18n.test.tsx` | 21 | **Every marked string has a Hindi and a Marathi entry with the same placeholders**, no unused entries, **no screen has text that bypasses translation**, fallback to English, switching and remembering the language, the same digits for money in every language |
@@ -65,7 +66,11 @@ because Leaflet needs a real browser to draw.
 
 ## Checked by hand against the running stack
 
-- Flyway migrations V1 to V9 applied to an existing database.
+- Flyway migrations V1 to V10 applied to an existing database.
+- **Account and SOS**: a profile saved, a second code refused within the minute, the
+  code read from the administrator outbox (refused to a member), a wrong then the right
+  code, an SOS with a position, a repeat press returning the same alert, the alert in
+  the queue, acknowledged once, and the public profile showing an age but no phone.
 - A token issued by core-api verified by the gateway's own `verifyToken`.
 - A full journey through the HTTP API with the browser's `Origin` header.
 - A real booking scored by the real intel service, then the scoring job with intel stopped.
@@ -93,6 +98,9 @@ Kept here because each is a class of mistake worth remembering.
 
 ## Not tested
 
+- Confirming a phone number through the screen. The API path is tested; the screen is
+  the same component as for email and is tested for email only.
+- The device position on a real device: the emergency panel is tested with a stand-in.
 - **No screen has been viewed in a browser**, and there is no browser end-to-end test.
   The real map has therefore never been seen to draw.
 - The vehicle and my-rides pages have no page-level test, so the driver's accept, start,
