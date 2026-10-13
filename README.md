@@ -52,10 +52,14 @@ Open http://localhost:5173 and create an account as a passenger or as a driver.
   the map, take suggested prices from the road route, accept or decline requests, start
   the ride, mark anyone who did not board, complete it, see earnings.
 - **Passenger:** search by town or by exact points on a map, sort the results, see a
-  ride's route and meeting point, book or request, cancel, rate the driver afterwards.
+  ride's route and meeting point, book or request, chat with the driver, see where the
+  driver is once the ride is under way, cancel, rate the driver afterwards.
 - **Administrator:** an overview, the reports queue (dismiss, warn or suspend), members,
   the model's durability estimates, and the audit log. Administrators cannot sign up; set `ADMIN_EMAIL` and `ADMIN_PASSWORD` (12
   characters or more) in `.env` and restart core-api to create one.
+
+The interface is in English, Hindi and Marathi; choose in the header. The Hindi and
+Marathi have not been reviewed by a native speaker.
 
 Payments are simulated: no money moves. What is missing
 is listed in [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).

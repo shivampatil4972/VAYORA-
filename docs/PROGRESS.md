@@ -1,5 +1,29 @@
 # Progress
 
+## 2026-10-13 (later) — Hindi and Marathi, chat and live position
+
+Committed on `stage-2-3-booking-core-and-simulator`.
+
+| Slice | What | Verified by |
+|---|---|---|
+| Languages | Every screen in English, Hindi and Marathi; dates and money localised; a switcher in the header | `lib/i18n.test.tsx` |
+| Chat | One room per ride through the gateway, stored in MongoDB; core-api decides membership | `gateway/test/realtime.test.js`, `RideChat.test.tsx`, live run |
+| Live position | The driver shares a position while the ride is under way; passengers see the latest point | same |
+
+**Decisions made here**
+
+- English text is the translation key. A missing entry shows English; tests fail the
+  build's test run if any marked string lacks an entry, so that should not happen.
+- Money and times use the same digits in every language, so a passenger and a driver
+  who chose different languages read the same fare.
+- The gateway writes chat and GPS points to MongoDB itself, and asks core-api, with the
+  user's own token, whether they are on a ride. It never reads PostgreSQL.
+- A message appears on screen when the gateway relays it, not when it is typed: what a
+  sender sees is what everyone received.
+- Position sharing is off until the driver turns it on, and only possible while the ride
+  is under way.
+- GPS points expire after 7 days.
+
 ## 2026-10-13 — repeat search, density sweep, moderation, routing and maps
 
 Committed on `stage-2-3-booking-core-and-simulator`.

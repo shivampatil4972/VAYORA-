@@ -59,7 +59,16 @@ mistake for more. Updated 2026-10-13.
 - Notifications are in-app only. No email, SMS or push, and no preferences.
 - With MongoDB down, a booking still succeeds but its response waits about two seconds
   for the notification write to time out.
-- No chat, live tracking, travel passes, referral, or recurring or return rides.
+- **Chat is one room per ride.** Every booked passenger sees every message; there is no
+  private conversation between one passenger and the driver.
+- A passenger who cancels can lose chat access up to 15 seconds late: membership is
+  re-checked on that interval, not pushed.
+- Live position is the latest point only. There is no trail, no estimated arrival, and
+  nothing tells passengers when the driver stops sharing.
+- Chat messages are kept indefinitely; only GPS points expire (after 7 days).
+- Trip state is not pushed. A passenger's screen does not change when the driver starts
+  the ride until they reload or reopen the chat.
+- No travel passes, referral, or recurring or return rides.
 - No email verification, phone OTP, Google sign-in, profile, photo upload or identity
   verification.
 
@@ -102,7 +111,13 @@ mistake for more. Updated 2026-10-13.
   demonstration and not for sustained use.
 - The vehicle, publish-ride and my-rides pages have no page-level test, so the driver's
   accept, start, no-show and complete buttons are untested in the UI.
-- English only. No Hindi or Marathi.
+- **The Hindi and Marathi translations have had no native review.** I wrote them. The
+  wording on refunds, payments and the emergency notice matters most and should be
+  checked first.
+- Text written by the server stays in English in every language: error explanations,
+  notification messages and audit entries.
+- Plurals use one form for one and another for the rest, which is right for these three
+  languages and would not be for others.
 - No end-to-end browser test.
 
 ## Environment

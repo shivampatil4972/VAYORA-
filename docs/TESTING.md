@@ -1,14 +1,13 @@
 # Testing
 
-Counts are from the runs on 2026-10-13. The core-api, Python and web suites passed with
-no failures. The gateway suite was last run on 2026-10-10 and has not changed since.
+Counts are from the runs on 2026-10-13. Every suite passed with no failures.
 
 | Suite | Command, from the repository root | Tests |
 |---|---|---|
 | core-api | `docker compose --profile test run --rm core-api-tests` | 107 |
 | Python (events, simulator, model, experiments, intel API) | `docker compose --profile research run --rm research` | 108 |
-| web | `cd web && npm ci && npm test` | 59 |
-| gateway | `cd gateway && npm ci && npm test` | 6 |
+| web | `cd web && npm ci && npm test` | 95 |
+| gateway | `cd gateway && npm ci && npm test` | 25 |
 
 The first two need only Docker. The Python suite also needs PostgreSQL running:
 `docker compose up -d --wait postgres core-api` (core-api's Flyway creates the tables).
@@ -49,7 +48,16 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 |---|---|---|
 | `App.test.tsx` | 36 | Route protection by role, sign-in, search and booking with fee and payment method, idempotency key reuse, refund terms, earnings, ratings and profiles, notifications, reporting and moderation, the back office, maps and location search, the route planner, failure and retry states |
 | `lib/schemas.test.ts` | 16 | Form validation and the publish request mapping |
+| `components/RideChat.test.tsx` | 15 | Joining with the session token, history, sending, **a message shown once and only when relayed**, text rendered as text, refusal and outage states, rejoining after a dropped connection, position shown to passengers, sharing offered to the driver only while under way |
+| `lib/i18n.test.tsx` | 21 | **Every marked string has a Hindi and a Marathi entry with the same placeholders**, no unused entries, **no screen has text that bypasses translation**, fallback to English, switching and remembering the language, the same digits for money in every language |
 | `lib/api.test.ts` | 7 | Token header, problem-document errors, unreachable server, sign-out on a rejected token, **no sign-out on a stale rejection** |
+
+### gateway (node:test, real Socket.IO server and clients)
+
+| File | Tests | Covers |
+|---|---|---|
+| `test/realtime.test.js` | 19 | Connection refused without a valid token, **a non-member cannot join and a missing ride looks the same**, **a message never reaches another ride**, the sender is named by the server, validation, rate limit, history on join, **someone who cancels stops receiving even if silent**, only the driver may send a position and only under way, rejoin after a dropped connection, a failing store, the membership call to core-api |
+| `test/auth.test.js` | 6 | Token verification |
 
 No web test can reach a real server: `fetch` is replaced before every test. The map
 library is replaced by a stand-in that renders what the map was given as plain elements,
@@ -65,6 +73,10 @@ because Leaflet needs a real browser to draw.
   late cancellation and a completed trip, with the ledger read back from the database.
 - A rating reaching the driver's profile, notifications reaching both sides, and a
   booking made with MongoDB stopped.
+- **Chat and position** (`node gateway/scripts/live-check.mjs`): over real sockets, a
+  stranger was refused, driver and passenger exchanged a message, a position was refused
+  before the ride started and from the passenger, then relayed once under way, and both
+  were found in MongoDB with the 7-day expiry on positions.
 - **OSRM**: the Kolhapur-Karad-Satara-Pune route came back as 235.9 km by road, was
   served from the Redis cache on the second request, and a location search found a ride
   from 2 km away and not from 12 km away.
@@ -86,5 +98,6 @@ Kept here because each is a class of mistake worth remembering.
 - The vehicle and my-rides pages have no page-level test, so the driver's accept, start,
   no-show and complete buttons are untested in the UI.
 - No load, security-scan or accessibility-audit tooling has been run.
-- Hold expiry, duplicate provider callbacks and Socket.IO restart: the features do not
-  exist.
+- Hold expiry and duplicate provider callbacks: the features do not exist.
+- A gateway restart with clients connected. Rejoining after a single dropped connection
+  is tested; the whole server going away and coming back is not.

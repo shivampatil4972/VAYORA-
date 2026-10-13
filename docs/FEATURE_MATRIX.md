@@ -110,7 +110,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
-| 60 | Socket.IO chat | TBD | TBD | Not started |
+| 60 | Socket.IO chat | TBD | TBD | Verified (gateway and UI tests, live run): one chat per ride for its driver and booked passengers, stored in MongoDB |
 | 61 | Masked calling | TBD | TBD | Not started |
 | 62 | Web push | TBD | TBD | Not started |
 | 63 | Email notifications | TBD | TBD | Not started |
@@ -123,7 +123,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 |---|---|---|---|---|
 | 66 | Booking reference and boarding code | TBD | TBD | Not started |
 | 67 | Meeting-point details and map | TBD | TBD | Verified: meeting point and route on a booking. UI tested with a stand-in map; the real map has not been seen in a browser |
-| 68 | Live GPS tracking | TBD | TBD | Not started |
+| 68 | Live GPS tracking | TBD | TBD | Partial: the driver shares their position while the ride is under way and passengers see the latest point on a map. Verified in gateway and UI tests and a live run; the browser's own location reading and the real map are unseen |
 | 69 | Two-sided completion confirmation | TBD | TBD | Partial: driver starts and completes, API verified; no passenger confirmation |
 | 70 | Post-trip rating prompt | TBD | TBD | Partial: a rating form appears on completed trips and a notification points to it; no reminder |
 
@@ -131,7 +131,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
-| 71 | English, Hindi, and Marathi | TBD | TBD | Not started |
+| 71 | English, Hindi, and Marathi | TBD | TBD | Partial: every screen is in English, Hindi and Marathi and tests enforce completeness. The translations have had no native review, and text the server writes (error explanations, notification messages) stays in English |
 | 72 | Referral programme | TBD | TBD | Not started |
 | 73 | Static/configured MSRTC alternatives | TBD | TBD | Not started |
 | 74 | Admin back office | TBD | TBD | Partial: overview, reports queue, members, booking durability and audit log, API and UI tested; no ride or booking browser, no experiment screens |
