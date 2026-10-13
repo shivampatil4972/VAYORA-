@@ -40,7 +40,7 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 |---|---|---|
 | `sim/tests` | 59 | **A contact budget is never exceeded and, when too large to bind, reproduces the threshold policy exactly**, **the scheduler is given no ground truth**, reproducibility by seed, frozen vocabulary, **no latent type in any payload**, legal booking paths, no overselling, paired environments, each variant's rules, repeat search, strict config, the hazard sampler |
 | `intel/tests` | 65 | Feature tracker, model maths, shipped models, scoring API and its validation; the contact scheduler: each limit, **the plan equals the best of every subset on 25 random instances**, ties, order-independence, a 400-booking round, its API |
-| `experiments/tests` | 27 | The refill-additionality metric against hand-computed values, Sweeps over a variant's parameters, metric queries against hand-computed values, the training set, **disjoint seeds**, exported Cox model against lifelines, paired comparison statistics, parameter sweeps |
+| `experiments/tests` | 27 | The refill-additionality metric against hand-computed values, sweeps over a variant's parameters, metric queries against hand-computed values, the training set, **disjoint seeds**, exported Cox model against lifelines, paired comparison statistics, parameter sweeps |
 | `journex_events/tests` | 11 | Event writer and vocabulary |
 
 ### web (Vitest, Testing Library)
