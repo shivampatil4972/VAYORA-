@@ -77,4 +77,19 @@ describe('api', () => {
     await expect(api('/me')).rejects.toBeInstanceOf(ApiError);
     expect(signOut).toHaveBeenCalledOnce();
   });
+
+  it('does not sign out the current session when a request from an earlier one is rejected late', async () => {
+    const signOut = vi.fn();
+    setUnauthorizedHandler(signOut);
+    let answer!: (response: Response) => void;
+    vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>((resolve) => (answer = resolve))));
+
+    setToken('old-session');
+    const pending = api('/me').catch((e: unknown) => e);
+    setToken('new-session'); // someone else signed in before the answer came back
+    answer(new Response(null, { status: 401 }));
+
+    expect(await pending).toBeInstanceOf(ApiError);
+    expect(signOut).not.toHaveBeenCalled();
+  });
 });

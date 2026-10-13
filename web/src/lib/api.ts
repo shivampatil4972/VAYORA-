@@ -31,7 +31,8 @@ export async function api<T>(
 ): Promise<T> {
   const headers: Record<string, string> = { ...options.headers };
   if (options.body !== undefined) headers['Content-Type'] = 'application/json';
-  if (token) headers.Authorization = `Bearer ${token}`;
+  const sentToken = token;
+  if (sentToken) headers.Authorization = `Bearer ${sentToken}`;
 
   let response: Response;
   try {
@@ -44,7 +45,9 @@ export async function api<T>(
     throw new ApiError(0, 'Cannot reach the server. Check your connection and try again.');
   }
 
-  if (response.status === 401 && token) onUnauthorized();
+  // Only if the rejected token is still the session's: a slow answer to a request made
+  // by an earlier session must not sign out the one that replaced it.
+  if (response.status === 401 && sentToken && sentToken === token) onUnauthorized();
   if (!response.ok) throw new ApiError(response.status, await problemDetail(response));
   return response.status === 204 ? (undefined as T) : ((await response.json()) as T);
 }
