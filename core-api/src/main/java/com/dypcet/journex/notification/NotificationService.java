@@ -41,7 +41,8 @@ public class NotificationService {
         BOOKING_CANCELLED,
         RIDE_CANCELLED,
         TRIP_COMPLETED,
-        MARKED_NO_SHOW
+        MARKED_NO_SHOW,
+        ACCOUNT_NOTICE
     }
 
     public record Notification(String id, Type type, String message, Long bookingId,

@@ -178,6 +178,23 @@ class ApiIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
+    void aBadSearchIsTheCallersMistakeNotAServerError() throws Exception {
+        String passenger = register(UUID.randomUUID() + "@example.test", "PASSENGER");
+
+        for (String[] bad : new String[][] {
+                {"seats", "0"}, {"seats", "9"}, {"seats", "two"}, {"date", "next tuesday"}, {"origin", " "}}) {
+            Map<String, String> params = new java.util.HashMap<>(Map.of(
+                    "origin", "Kolhapur", "destination", "Pune", "date", "2026-11-02", "seats", "1"));
+            params.put(bad[0], bad[1]);
+            MockHttpServletRequestBuilder search = get("/api/v1/rides/search");
+            params.forEach(search::param);
+            as(passenger, search).andExpect(status().isBadRequest());
+        }
+        as(passenger, get("/api/v1/rides/search").param("origin", "Kolhapur"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void onlyTheConfiguredBrowserOriginMayCallTheApi() throws Exception {
         mvc.perform(options("/api/v1/bookings")
                         .header("Origin", "http://localhost:5173")

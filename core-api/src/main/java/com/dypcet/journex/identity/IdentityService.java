@@ -15,8 +15,10 @@ public class IdentityService {
     public record User(long id, String email, String fullName, UserRole role) {
     }
 
-    private record Credentials(User user, String passwordHash) {
+    private record Credentials(User user, String passwordHash, String status) {
     }
+
+    static final String SUSPENDED = "This account is suspended";
 
     private final JdbcTemplate jdbc;
     private final PasswordEncoder passwordEncoder;
@@ -56,14 +58,19 @@ public class IdentityService {
     /** Fails with the same 401 whether the email is unknown or the password is wrong. */
     public User authenticate(String email, String password) {
         List<Credentials> found = jdbc.query("""
-                SELECT id, email, full_name, role, password_hash FROM users WHERE email = ?""",
+                SELECT id, email, full_name, role, password_hash, status
+                FROM users WHERE email = ?""",
                 (rs, n) -> new Credentials(
                         new User(rs.getLong("id"), rs.getString("email"),
                                 rs.getString("full_name"), UserRole.valueOf(rs.getString("role"))),
-                        rs.getString("password_hash")),
+                        rs.getString("password_hash"), rs.getString("status")),
                 normalise(email));
         if (found.isEmpty() || !passwordEncoder.matches(password, found.get(0).passwordHash())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password");
+        }
+        // Only said to someone who has proved they own the account.
+        if ("SUSPENDED".equals(found.get(0).status())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, SUSPENDED);
         }
         return found.get(0).user();
     }

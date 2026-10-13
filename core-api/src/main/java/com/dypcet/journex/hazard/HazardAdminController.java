@@ -1,9 +1,14 @@
 package com.dypcet.journex.hazard;
 
+import com.dypcet.journex.audit.AuditService;
 import com.dypcet.journex.hazard.HazardScoringService.LatestScore;
 import com.dypcet.journex.hazard.HazardScoringService.Summary;
+import com.dypcet.journex.identity.CurrentUser;
 import java.util.List;
+import java.util.Map;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,15 +24,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class HazardAdminController {
 
     private final HazardScoringService scoring;
+    private final AuditService audit;
 
-    public HazardAdminController(HazardScoringService scoring) {
+    public HazardAdminController(HazardScoringService scoring, AuditService audit) {
         this.scoring = scoring;
+        this.audit = audit;
     }
 
     /** Safe to repeat: a booking already scored today is skipped. */
     @PostMapping("/score")
-    public Summary scoreNow() {
-        return scoring.scoreActiveBookings();
+    public Summary scoreNow(@AuthenticationPrincipal Jwt jwt) {
+        Summary summary = scoring.scoreActiveBookings();
+        audit.record(CurrentUser.id(jwt), "HAZARD_SCORING_RUN", null, null,
+                Map.of("scored", summary.scored(), "failed", summary.failed()));
+        return summary;
     }
 
     @GetMapping("/scores")
