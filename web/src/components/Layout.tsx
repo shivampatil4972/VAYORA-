@@ -1,10 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom';
 
 import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { LANGUAGES, msg, useLanguage, useT, type Language } from '../lib/i18n';
 import type { Role } from '../lib/types';
+import { SosPanel } from './Sos';
 import { Button } from './ui';
 
 const links: Record<Role, { to: string; label: string }[]> = {
@@ -21,6 +23,7 @@ const links: Record<Role, { to: string; label: string }[]> = {
   ADMIN: [
     { to: '/admin', label: msg('Overview') },
     { to: '/admin/reports', label: msg('Reports') },
+    { to: '/admin/emergencies', label: msg('Emergencies') },
     { to: '/admin/users', label: msg('Members') },
     { to: '/admin/durability', label: msg('Booking durability') },
     { to: '/admin/audit', label: msg('Audit log') },
@@ -81,6 +84,8 @@ function LanguageSwitcher() {
 export function Layout() {
   const t = useT();
   const { user, logout } = useAuth();
+  const [emergency, setEmergency] = useState(false);
+  const member = user && user.role !== 'ADMIN';
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:rounded focus:bg-white focus:px-3 focus:py-2">
@@ -99,10 +104,18 @@ export function Layout() {
                 </NavLink>
               ))}
               <NotificationsLink />
+              <NavLink to="/account" className={navLink}>
+                {t('My account')}
+              </NavLink>
             </nav>
           )}
           <div className="ml-auto flex flex-wrap items-center gap-3 text-sm text-slate-600">
             <LanguageSwitcher />
+            {member && (
+              <Button tone="danger" aria-expanded={emergency} onClick={() => setEmergency(true)}>
+                {t('Emergency')}
+              </Button>
+            )}
             {user && (
               <>
                 <span>{user.fullName}</span>
@@ -114,6 +127,7 @@ export function Layout() {
           </div>
         </div>
       </header>
+      {member && emergency && <SosPanel onClose={() => setEmergency(false)} />}
       <main id="main" className="mx-auto max-w-4xl px-4 py-8">
         <Outlet />
       </main>

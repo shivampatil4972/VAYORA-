@@ -200,6 +200,74 @@ export interface Profile {
   averageStars: number | null;
   ratingCount: number;
   reviews: Review[];
+  /** Proved with a code. Says nothing about who the member is. */
+  emailVerified: boolean;
+  phoneVerified: boolean;
+  bio: string | null;
+  /** From a birth year, so a year out either way. */
+  age: number | null;
+  smoking: boolean | null;
+  pets: boolean | null;
+  music: boolean | null;
+  chattiness: Chattiness | null;
+}
+
+export type Chattiness = 'QUIET' | 'MODERATE' | 'TALKATIVE';
+
+export type Gender = 'FEMALE' | 'MALE' | 'OTHER';
+
+/** A member's own profile. Null means not said. */
+export interface MyProfile {
+  email: string;
+  emailVerified: boolean;
+  phone: string | null;
+  phoneVerified: boolean;
+  bio: string | null;
+  birthYear: number | null;
+  gender: Gender | null;
+  smoking: boolean | null;
+  pets: boolean | null;
+  music: boolean | null;
+  chattiness: Chattiness | null;
+}
+
+export interface EmergencyContact {
+  id: number;
+  name: string;
+  phone: string;
+  relation: string | null;
+}
+
+/** The answer to pressing the emergency button. */
+export interface SosRaised {
+  alertId: number;
+  contactsTold: number;
+  /** False while messages are simulated: nobody outside the platform was told. */
+  reallySent: boolean;
+  emergencyNumber: string;
+}
+
+export interface SosAlert {
+  id: number;
+  userId: number;
+  userName: string;
+  userPhone: string | null;
+  rideId: number | null;
+  lat: number | null;
+  lon: number | null;
+  contactsTold: number;
+  /** `MOCK` means the contacts were not really messaged. */
+  sender: string;
+  status: 'OPEN' | 'ACKNOWLEDGED';
+  createdAt: string;
+}
+
+/** A message the mock sender was asked to send and did not. */
+export interface MockMessage {
+  channel: 'EMAIL' | 'PHONE';
+  to: string;
+  text: string;
+  at: string;
 }
 
 export type PaymentMethod = 'CARD' | 'UPI' | 'WALLET';

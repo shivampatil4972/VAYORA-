@@ -417,4 +417,167 @@ export const mr: Record<string, string> = {
     'चॅट उघडा',
   'Close chat':
     'चॅट बंद करा',
+  // Account, verification and emergencies
+  'My account':
+    'माझे खाते',
+  'Emergency':
+    'आणीबाणी',
+  'Emergencies':
+    'आणीबाणीच्या घटना',
+  'If you are in danger, call 112 now.':
+    'तुम्ही धोक्यात असाल तर आत्ताच 112 वर कॉल करा.',
+  'Call 112':
+    '112 वर कॉल करा',
+  'You can also alert the JOURNEX administrators. They see it in a queue; they are not an emergency service.':
+    'तुम्ही JOURNEX च्या प्रशासकांनाही कळवू शकता. त्यांना ते एका यादीत दिसते; ते आपत्कालीन सेवा नाहीत.',
+  'Send an alert':
+    'सूचना पाठवा',
+  'Close':
+    'बंद करा',
+  'Your alert is recorded and the administrators can see it.':
+    'तुमची सूचना नोंदवली आहे आणि प्रशासक ती पाहू शकतात.',
+  'A message was sent to {n} of your emergency contacts.':
+    'तुमच्या {n} आपत्कालीन संपर्कांना संदेश पाठवला.',
+  'Text messages are simulated in this project: your emergency contacts were NOT messaged. Call them yourself, or call 112.':
+    'या प्रकल्पात SMS फक्त सिम्युलेटेड आहेत: तुमच्या आपत्कालीन संपर्कांना संदेश पाठवला गेला नाही. त्यांना स्वतः कॉल करा, किंवा 112 वर कॉल करा.',
+  'Prefers a quiet ride':
+    'शांत प्रवास आवडतो',
+  'Happy with some conversation':
+    'थोड्या गप्पा चालतील',
+  'Likes to talk':
+    'गप्पा मारायला आवडते',
+  'Fine with smoking':
+    'धूम्रपान चालेल',
+  'No smoking':
+    'धूम्रपान नको',
+  'Fine with pets':
+    'पाळीव प्राणी चालतील',
+  'No pets':
+    'पाळीव प्राणी नकोत',
+  'Likes music on the way':
+    'प्रवासात संगीत आवडते',
+  'Prefers no music':
+    'संगीत नको',
+  'About this member':
+    'या सदस्याविषयी',
+  'About {n} years old':
+    'सुमारे {n} वर्षे',
+  'Email confirmed':
+    'ईमेलची खात्री झाली',
+  'Phone confirmed':
+    'फोनची खात्री झाली',
+  'JOURNEX has not checked any identity documents.':
+    'JOURNEX ने कोणतीही ओळखपत्रे तपासलेली नाहीत.',
+  'Enter 10 to 15 digits, with or without a + in front':
+    '10 ते 15 अंक लिहा, सुरुवातीला + असो वा नसो',
+  'Not said':
+    'सांगितले नाही',
+  'Fine with me':
+    'मला चालेल',
+  'No, please':
+    'कृपया नको',
+  'Your profile is saved.':
+    'तुमची प्रोफाइल जतन झाली.',
+  'Phone number':
+    'फोन नंबर',
+  'Never shown to other members. Changing it means confirming it again.':
+    'इतर सदस्यांना कधीही दाखवला जात नाही. तो बदलल्यास पुन्हा खात्री करावी लागेल.',
+  'About you':
+    'तुमच्याविषयी',
+  'Year of birth':
+    'जन्म वर्ष',
+  'Other members see only your approximate age.':
+    'इतर सदस्यांना फक्त तुमचे अंदाजे वय दिसते.',
+  'Gender':
+    'लिंग',
+  'Not shown on your profile.':
+    'तुमच्या प्रोफाइलवर दाखवले जात नाही.',
+  'Woman':
+    'स्त्री',
+  'Man':
+    'पुरुष',
+  'Other':
+    'इतर',
+  'Smoking in the car':
+    'गाडीत धूम्रपान',
+  'Pets in the car':
+    'गाडीत पाळीव प्राणी',
+  'Music on the way':
+    'प्रवासात संगीत',
+  'Conversation':
+    'गप्पा',
+  'I prefer a quiet ride':
+    'मला शांत प्रवास आवडतो',
+  'Some conversation is nice':
+    'थोड्या गप्पा बऱ्या वाटतात',
+  'I like to talk':
+    'मला गप्पा मारायला आवडते',
+  'Saving…':
+    'जतन होत आहे…',
+  'Save profile':
+    'प्रोफाइल जतन करा',
+  'None given':
+    'दिलेला नाही',
+  'Not confirmed':
+    'खात्री झालेली नाही',
+  'Send me a code':
+    'मला कोड पाठवा',
+  '6-digit code':
+    '6 अंकी कोड',
+  'Confirm':
+    'खात्री करा',
+  'This project sends no real email or SMS. The code was only written to the simulated outbox, which an administrator can read.':
+    'हा प्रकल्प खरा ईमेल किंवा SMS पाठवत नाही. कोड फक्त सिम्युलेटेड आउटबॉक्समध्ये लिहिला आहे, जो प्रशासक वाचू शकतो.',
+  'The people the emergency button is meant to tell. Text messages are simulated in this project, so today they would NOT be messaged.':
+    'आणीबाणीच्या बटणाने ज्यांना कळवायचे ते लोक. या प्रकल्पात SMS सिम्युलेटेड आहेत, त्यामुळे आज त्यांना संदेश जाणार नाही.',
+  'You have no emergency contacts yet.':
+    'तुमचे अजून कोणतेही आपत्कालीन संपर्क नाहीत.',
+  'Remove {name}':
+    '{name} यांना काढा',
+  'Yes, remove':
+    'होय, काढा',
+  'You can have at most {n} emergency contacts.':
+    'तुम्ही जास्तीत जास्त {n} आपत्कालीन संपर्क ठेवू शकता.',
+  'Their name':
+    'त्यांचे नाव',
+  'Their phone number':
+    'त्यांचा फोन नंबर',
+  'Who they are to you (optional)':
+    'तुमच्याशी त्यांचे नाते (ऐच्छिक)',
+  'Add contact':
+    'संपर्क जोडा',
+  'Profile':
+    'प्रोफाइल',
+  'Email and phone':
+    'ईमेल आणि फोन',
+  'Phone':
+    'फोन',
+  'Emergency contacts':
+    'आपत्कालीन संपर्क',
+  'Simulated outbox':
+    'सिम्युलेटेड आउटबॉक्स',
+  'None of these was sent to anyone. The newest 50 are kept in memory and are lost when the server restarts.':
+    'यांपैकी काहीही कोणालाही पाठवले गेले नाही. सर्वात नवीन 50 मेमरीत ठेवले जातात आणि सर्व्हर पुन्हा सुरू झाल्यावर नष्ट होतात.',
+  'Nothing has been handed to the simulated sender.':
+    'सिम्युलेटेड प्रेषकाकडे अजून काहीही दिलेले नाही.',
+  'Members who pressed the emergency button, oldest first. Acknowledging one records that you have seen it and are acting on it.':
+    'आणीबाणीचे बटण दाबलेले सदस्य, सर्वात जुने आधी. दखल घेतल्यास नोंद होते की तुम्ही ते पाहिले आहे आणि त्यावर कृती करत आहात.',
+  'No emergency is waiting.':
+    'कोणतीही आणीबाणी प्रलंबित नाही.',
+  'Phone: {phone}':
+    'फोन: {phone}',
+  'No phone number on the account.':
+    'खात्यावर फोन नंबर नाही.',
+  'Position given: {lat}, {lon}':
+    'दिलेले ठिकाण: {lat}, {lon}',
+  'No position was given.':
+    'ठिकाण दिलेले नाही.',
+  'On ride {id}':
+    'प्रवास {id} मध्ये',
+  '{n} emergency contacts on file. They were NOT messaged: the sender is simulated.':
+    '{n} आपत्कालीन संपर्क नोंदलेले आहेत. त्यांना संदेश पाठवला गेला नाही: प्रेषक सिम्युलेटेड आहे.',
+  'A message was sent to {n} emergency contacts.':
+    '{n} आपत्कालीन संपर्कांना संदेश पाठवला.',
+  'Acknowledge':
+    'दखल घ्या',
 };

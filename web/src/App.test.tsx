@@ -800,3 +800,331 @@ describe('earnings (driver)', () => {
     expect(await screen.findByText(/Nothing has been paid out yet/)).toBeInTheDocument();
   });
 });
+
+describe('my account', () => {
+  const mine = {
+    email: 'user@example.test',
+    emailVerified: false,
+    phone: null,
+    phoneVerified: false,
+    bio: null,
+    birthYear: null,
+    gender: null,
+    smoking: null,
+    pets: null,
+    music: null,
+    chattiness: null,
+  };
+  const bodyOf = (fetchMock: ReturnType<typeof serve>, method: string, path: string) => {
+    const call = fetchMock.mock.calls.find(([url, init]) => init?.method === method && String(url).endsWith(path));
+    return JSON.parse(String(call?.[1]?.body ?? 'null'));
+  };
+
+  it('saves the whole profile, sending what was not said as nothing', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({
+      'GET /me/profile': () => json(mine),
+      'GET /me/emergency-contacts': () => json([]),
+      'PUT /me/profile': () => json({ ...mine, phone: '+919800000001', smoking: false, chattiness: 'QUIET' }),
+    });
+    open('/account');
+
+    await userEvent.type(await screen.findByLabelText('Phone number'), '+919800000001');
+    await userEvent.selectOptions(screen.getByLabelText('Smoking in the car'), 'No, please');
+    await userEvent.selectOptions(screen.getByLabelText('Conversation'), 'I prefer a quiet ride');
+    await userEvent.click(screen.getByRole('button', { name: 'Save profile' }));
+
+    expect(await screen.findByText('Your profile is saved.')).toBeInTheDocument();
+    expect(bodyOf(fetchMock, 'PUT', '/me/profile')).toEqual({
+      phone: '+919800000001',
+      bio: '',
+      birthYear: null,
+      gender: null,
+      smoking: false,
+      pets: null,
+      music: null,
+      chattiness: 'QUIET',
+    });
+    // The saved number can now be confirmed.
+    expect(within(screen.getByRole('region', { name: 'Email and phone' })).getByText('+919800000001')).toBeInTheDocument();
+  });
+
+  it('refuses a phone number that is not one without asking the server', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({ 'GET /me/profile': () => json(mine), 'GET /me/emergency-contacts': () => json([]) });
+    open('/account');
+
+    await userEvent.type(await screen.findByLabelText('Phone number'), '12345');
+    await userEvent.click(screen.getByRole('button', { name: 'Save profile' }));
+
+    expect(await screen.findByText('Enter 10 to 15 digits, with or without a + in front')).toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'PUT')).toBe(false);
+  });
+
+  it('confirms an email with a code and says plainly that no real email was sent', async () => {
+    signIn('PASSENGER');
+    let confirmed = false;
+    const fetchMock = serve({
+      'GET /me/profile': () => json({ ...mine, emailVerified: confirmed }),
+      'GET /me/emergency-contacts': () => json([]),
+      'POST /me/verification/email/request': () => new Response(null, { status: 204 }),
+      'POST /me/verification/email/confirm': () => {
+        confirmed = true;
+        return new Response(null, { status: 204 });
+      },
+    });
+    open('/account');
+
+    const section = within(await screen.findByRole('region', { name: 'Email and phone' }));
+    expect(section.getByText('Not confirmed')).toBeInTheDocument();
+    expect(section.getByText('None given')).toBeInTheDocument(); // no phone: nothing to confirm
+    await userEvent.click(section.getByRole('button', { name: 'Send me a code' }));
+
+    expect(await section.findByText(/sends no real email or SMS/)).toBeInTheDocument();
+    const confirm = section.getByRole('button', { name: 'Confirm' });
+    await userEvent.type(section.getByLabelText('6-digit code'), '12a3');
+    expect(confirm).toBeDisabled(); // letters are dropped and three digits are not a code
+    await userEvent.type(section.getByLabelText('6-digit code'), '456');
+    await userEvent.click(confirm);
+
+    expect(await section.findByText('Confirmed')).toBeInTheDocument();
+    expect(bodyOf(fetchMock, 'POST', '/me/verification/email/confirm')).toEqual({ code: '123456' });
+  });
+
+  it("shows the server's reason when a code is wrong", async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /me/profile': () => json(mine),
+      'GET /me/emergency-contacts': () => json([]),
+      'POST /me/verification/email/request': () => new Response(null, { status: 204 }),
+      'POST /me/verification/email/confirm': () => json({ detail: 'That code is not right' }, 400),
+    });
+    open('/account');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Send me a code' }));
+    await userEvent.type(await screen.findByLabelText('6-digit code'), '000000');
+    await userEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('That code is not right');
+  });
+
+  it('adds and removes emergency contacts, and stops offering more at three', async () => {
+    signIn('DRIVER');
+    let contacts: { id: number; name: string; phone: string; relation: string | null }[] = [
+      { id: 1, name: 'Meera Patil', phone: '+919800000001', relation: 'Mother' },
+      { id: 2, name: 'Sunil Patil', phone: '+919800000002', relation: null },
+    ];
+    const fetchMock = serve({
+      'GET /me/profile': () => json(mine),
+      'GET /me/emergency-contacts': () => json(contacts),
+      'POST /me/emergency-contacts': () => {
+        contacts = [...contacts, { id: 3, name: 'Neha', phone: '9800000003', relation: null }];
+        return json(contacts[2], 201);
+      },
+      'DELETE /me/emergency-contacts/1': () => {
+        contacts = contacts.filter((contact) => contact.id !== 1);
+        return new Response(null, { status: 204 });
+      },
+    });
+    open('/account');
+
+    const section = within(await screen.findByRole('region', { name: 'Emergency contacts' }));
+    expect(section.getByText(/they would NOT be messaged/)).toBeInTheDocument();
+    await userEvent.type(await section.findByLabelText('Their name'), 'Neha');
+    await userEvent.type(section.getByLabelText('Their phone number'), '98');
+    await userEvent.click(section.getByRole('button', { name: 'Add contact' }));
+    expect(await section.findByText('Enter 10 to 15 digits, with or without a + in front')).toBeInTheDocument();
+    await userEvent.type(section.getByLabelText('Their phone number'), '00000003');
+    await userEvent.click(section.getByRole('button', { name: 'Add contact' }));
+
+    expect(await section.findByText('You can have at most 3 emergency contacts.')).toBeInTheDocument();
+    expect(section.queryByLabelText('Their name')).not.toBeInTheDocument();
+    expect(bodyOf(fetchMock, 'POST', '/me/emergency-contacts')).toEqual({ name: 'Neha', phone: '9800000003', relation: '' });
+
+    await userEvent.click(section.getByRole('button', { name: 'Remove Meera Patil' }));
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'DELETE')).toBe(false); // asks first
+    await userEvent.click(section.getByRole('button', { name: 'Yes, remove' }));
+    expect(await section.findByLabelText('Their name')).toBeInTheDocument();
+    expect(section.queryByText('Meera Patil')).not.toBeInTheDocument();
+  });
+
+  it('offers an administrator no emergency contacts and no emergency button', async () => {
+    signIn('ADMIN');
+    serve({ 'GET /me/profile': () => json(mine) });
+    open('/account');
+
+    expect(await screen.findByRole('region', { name: 'Profile' })).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Emergency contacts' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Emergency' })).not.toBeInTheDocument();
+  });
+});
+
+describe('the emergency button', () => {
+  const raised = { alertId: 5, contactsTold: 2, reallySent: false, emergencyNumber: '112' };
+
+  it('puts calling 112 first and says that the contacts were not messaged', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({ 'GET /bookings': () => json([]), 'POST /sos': () => json(raised, 201) });
+    open('/bookings');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Emergency' }));
+    const panel = within(screen.getByRole('region', { name: 'Emergency' }));
+    expect(panel.getByText('If you are in danger, call 112 now.')).toBeInTheDocument();
+    expect(panel.getByRole('link', { name: 'Call 112' })).toHaveAttribute('href', 'tel:112');
+    expect(panel.getByText(/they are not an emergency service/)).toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false); // opening sends nothing
+
+    await userEvent.click(panel.getByRole('button', { name: 'Send an alert' }));
+
+    expect(await panel.findByText(/your emergency contacts were NOT messaged/)).toBeInTheDocument();
+    expect(panel.getByText('Your alert is recorded and the administrators can see it.')).toBeInTheDocument();
+    expect(panel.getByRole('link', { name: 'Call 112' })).toBeInTheDocument(); // still there afterwards
+    expect(panel.queryByRole('button', { name: 'Send an alert' })).not.toBeInTheDocument();
+    await userEvent.click(panel.getByRole('button', { name: 'Close' }));
+    expect(screen.queryByRole('region', { name: 'Emergency' })).not.toBeInTheDocument();
+  });
+
+  it('sends the position when the device gives one, and still sends when it refuses', async () => {
+    signIn('DRIVER');
+    const fetchMock = serve({ 'GET /rides/mine': () => json([]), 'POST /sos': () => json(raised, 201) });
+    let allow = true;
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: {
+        getCurrentPosition: (ok: (found: unknown) => void, refused: () => void) =>
+          allow ? ok({ coords: { latitude: 16.705, longitude: 74.2433 } }) : refused(),
+      },
+    });
+    try {
+      open('/rides');
+      await userEvent.click(await screen.findByRole('button', { name: 'Emergency' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Send an alert' }));
+      await screen.findByText(/were NOT messaged/);
+      await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+
+      allow = false;
+      await userEvent.click(screen.getByRole('button', { name: 'Emergency' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Send an alert' }));
+      await screen.findByText(/were NOT messaged/);
+
+      const bodies = fetchMock.mock.calls.filter(([, init]) => init?.method === 'POST').map(([, init]) => JSON.parse(String(init?.body)));
+      expect(bodies).toEqual([{ lat: 16.705, lon: 74.2433 }, {}]);
+    } finally {
+      Reflect.deleteProperty(navigator, 'geolocation');
+    }
+  });
+
+  it("shows the server's reason if the alert could not be recorded, with 112 still on screen", async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /bookings': () => json([]), 'POST /sos': () => json({ detail: 'Service unavailable' }, 503) });
+    open('/bookings');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Emergency' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Send an alert' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Service unavailable');
+    expect(screen.getByRole('link', { name: 'Call 112' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Send an alert' })).toBeEnabled();
+  });
+});
+
+describe('emergencies (administrator)', () => {
+  const alert = {
+    id: 5,
+    userId: 7,
+    userName: 'Asha Patil',
+    userPhone: '+919800000009',
+    rideId: null,
+    lat: 16.705,
+    lon: 74.2433,
+    contactsTold: 2,
+    sender: 'MOCK',
+    status: 'OPEN',
+    createdAt: '2026-11-02T06:00:00Z',
+  };
+
+  it('shows who, where and that nobody was messaged, and takes an alert off the queue', async () => {
+    signIn('ADMIN');
+    let waiting = [alert];
+    serve({
+      'GET /admin/sos': () => json(waiting),
+      'POST /admin/sos/5/acknowledge': () => {
+        waiting = [];
+        return new Response(null, { status: 204 });
+      },
+      'GET /admin/mock-outbox': () =>
+        json([{ channel: 'EMAIL', to: 'user@example.test', text: 'Your JOURNEX verification code is 123456.', at: '2026-11-02T06:00:00Z' }]),
+    });
+    open('/admin/emergencies');
+
+    expect(await screen.findByRole('link', { name: 'Asha Patil' })).toHaveAttribute('href', '/users/7');
+    expect(screen.getByText('Phone: +919800000009')).toBeInTheDocument();
+    expect(screen.getByText('Position given: 16.70500, 74.24330')).toBeInTheDocument();
+    expect(screen.getByText('2 emergency contacts on file. They were NOT messaged: the sender is simulated.')).toBeInTheDocument();
+    const outbox = within(screen.getByRole('region', { name: 'Simulated outbox' }));
+    expect(await outbox.findByText('Your JOURNEX verification code is 123456.')).toBeInTheDocument();
+    expect(outbox.getByText(/None of these was sent to anyone/)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Acknowledge' }));
+
+    expect(await screen.findByText('No emergency is waiting.')).toBeInTheDocument();
+  });
+
+  it('is closed to members', async () => {
+    signIn('PASSENGER');
+    serve({});
+    open('/admin/emergencies');
+
+    expect(await screen.findByRole('heading', { name: 'Find a ride' })).toBeInTheDocument();
+  });
+});
+
+describe('what a profile says about a member', () => {
+  const profile = {
+    id: 7,
+    fullName: 'Ravi Jadhav',
+    role: 'DRIVER',
+    memberSince: '2026-01-05T00:00:00Z',
+    completedTrips: 4,
+    averageStars: null,
+    ratingCount: 0,
+    reviews: [],
+    emailVerified: true,
+    phoneVerified: false,
+    bio: 'Drive to Pune every Friday.',
+    age: 34,
+    smoking: false,
+    pets: null,
+    music: true,
+    chattiness: 'TALKATIVE',
+  };
+
+  it('shows only what they said, and never claims an identity check', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /users/7/profile': () => json(profile) });
+    open('/users/7');
+
+    const about = within(await screen.findByRole('list', { name: 'About this member' }));
+    expect(about.getAllByRole('listitem').map((item) => item.textContent)).toEqual([
+      'About 34 years old',
+      'Email confirmed',
+      'No smoking',
+      'Likes music on the way',
+      'Likes to talk',
+    ]);
+    expect(screen.getByText('Drive to Pune every Friday.')).toBeInTheDocument();
+    expect(screen.getByText('JOURNEX has not checked any identity documents.')).toBeInTheDocument();
+  });
+
+  it('treats what the server left out as not said', async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /users/7/profile': () =>
+        json({ id: 7, fullName: 'Ravi Jadhav', role: 'DRIVER', memberSince: '2026-01-05T00:00:00Z', completedTrips: 4, averageStars: null, ratingCount: 0, reviews: [] }),
+    });
+    open('/users/7');
+
+    await screen.findByText('JOURNEX has not checked any identity documents.');
+    expect(within(screen.getByRole('list', { name: 'About this member' })).queryAllByRole('listitem')).toEqual([]);
+  });
+});

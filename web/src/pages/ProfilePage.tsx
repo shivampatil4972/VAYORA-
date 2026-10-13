@@ -7,8 +7,25 @@ import { Card, Page, QueryState } from '../components/ui';
 import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { formatDate, formatMonthYear } from '../lib/format';
-import { useT } from '../lib/i18n';
+import { msg, useT } from '../lib/i18n';
 import type { Profile } from '../lib/types';
+
+const chattinessLabels = {
+  QUIET: msg('Prefers a quiet ride'),
+  MODERATE: msg('Happy with some conversation'),
+  TALKATIVE: msg('Likes to talk'),
+};
+
+/** What the member said about travelling, as short phrases. Nothing for what they did not say. */
+// `!= null` throughout: a field the server left out is not said, never "no".
+function preferences(member: Profile): string[] {
+  const said: string[] = [];
+  if (member.smoking != null) said.push(member.smoking ? msg('Fine with smoking') : msg('No smoking'));
+  if (member.pets != null) said.push(member.pets ? msg('Fine with pets') : msg('No pets'));
+  if (member.music != null) said.push(member.music ? msg('Likes music on the way') : msg('Prefers no music'));
+  if (member.chattiness) said.push(chattinessLabels[member.chattiness]);
+  return said;
+}
 
 export function ProfilePage() {
   const t = useT();
@@ -39,6 +56,19 @@ export function ProfilePage() {
                 </dd>
               </div>
             </dl>
+            {/* Rendered as text: a bio is whatever someone typed. */}
+            {member.bio && <p className="mt-4 whitespace-pre-wrap text-sm text-slate-700">{member.bio}</p>}
+            <ul aria-label={t('About this member')} className="mt-4 flex flex-wrap gap-2 text-xs">
+              {member.age != null && <li className="rounded-full bg-slate-100 px-2.5 py-0.5">{t('About {n} years old', { n: member.age })}</li>}
+              {member.emailVerified && <li className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-emerald-900">{t('Email confirmed')}</li>}
+              {member.phoneVerified && <li className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-emerald-900">{t('Phone confirmed')}</li>}
+              {preferences(member).map((phrase) => (
+                <li key={phrase} className="rounded-full bg-slate-100 px-2.5 py-0.5">
+                  {t(phrase)}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-xs text-slate-500">{t('JOURNEX has not checked any identity documents.')}</p>
           </Card>
           <section aria-label={t('Reviews')} className="space-y-3">
             <h2 className="text-lg font-semibold">{t('Reviews')}</h2>

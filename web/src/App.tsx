@@ -7,12 +7,14 @@ import { Notice, Page } from './components/ui';
 import { AuthProvider, useAuth } from './lib/auth';
 import { LanguageProvider, useT } from './lib/i18n';
 import { DurabilityPage } from './pages/AdminPages';
+import { AccountPage } from './pages/AccountPage';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
 import { AuditPage, MembersPage, OverviewPage, ReportsPage } from './pages/BackOfficePages';
 import { EarningsPage, PublishRidePage, RidesPage, VehiclesPage } from './pages/DriverPages';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { BookingsPage, SearchPage } from './pages/PassengerPages';
 import { ProfilePage } from './pages/ProfilePage';
+import { EmergenciesPage } from './pages/SafetyAdminPages';
 
 function Home() {
   const { user } = useAuth();
@@ -48,10 +50,12 @@ export function AppRoutes() {
         <Route element={<RequireRole />}>
           <Route path="users/:id" element={<ProfilePage />} />
           <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="account" element={<AccountPage />} />
         </Route>
         <Route element={<RequireRole role="ADMIN" />}>
           <Route path="admin" element={<OverviewPage />} />
           <Route path="admin/reports" element={<ReportsPage />} />
+          <Route path="admin/emergencies" element={<EmergenciesPage />} />
           <Route path="admin/users" element={<MembersPage />} />
           <Route path="admin/durability" element={<DurabilityPage />} />
           <Route path="admin/audit" element={<AuditPage />} />
