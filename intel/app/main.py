@@ -3,9 +3,11 @@
 from fastapi import FastAPI
 
 from .hazard.api import router as hazard_router
+from .scheduler.api import router as scheduler_router
 
 app = FastAPI(title="journex-intel")
 app.include_router(hazard_router)
+app.include_router(scheduler_router)
 
 
 @app.get("/health")

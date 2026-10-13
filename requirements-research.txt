@@ -13,6 +13,8 @@ scipy==1.17.1
 scikit-learn==1.9.1
 lifelines==0.30.3
 scikit-survival==0.28.0
+# CP-SAT, the integer solver behind the contact scheduler (intel/app/scheduler).
+ortools==9.14.6206
 # Lets the research suite test intel's HTTP API in-process.
 fastapi==0.143.0
 httpx==0.28.1
