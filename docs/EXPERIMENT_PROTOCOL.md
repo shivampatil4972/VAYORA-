@@ -161,3 +161,69 @@ These are hypotheses, not findings:
 - B4 with the no-feature model (`h1-km`), to separate the value of the features from
   the value of knowing time-to-departure.
 - Component-removal: B4's intervention with B0's ranking.
+
+## 7. Two more worlds: repeat search, and supply density
+
+After section 6 the world was changed so that a passenger left without a seat may search
+again (`demand.retry` in `world.yaml`: probability 0.6, up to two further attempts). The
+model was retrained on that world as `h2` (`experiments/reports/hazard-h2.json`:
+concordance 0.595, departure Brier 0.1018 against 0.1037 for the no-feature curve).
+Sections 5 and 6 used the earlier world and model `h1`; their numbers are not comparable
+with the ones below.
+
+### Ladder with repeat search
+
+Run `7a1c0de0-0000-4000-8000-000000000002`, 30 seeds per variant. Synthetic data.
+
+| Measure | B0 | B3 | B4 |
+|---|---|---|---|
+| Completed rides per 100 searches | 30.77 | 31.11 | 31.10 |
+| difference vs B0 (95% CI) | | +0.34 (+0.25 to +0.42) | +0.33 (+0.24 to +0.42) |
+| Late share of cancellations | 0.373 | 0.376 | 0.321 |
+
+### Supply density
+
+Run `5eeb0000-0000-4000-8000-000000000002`, 30 seeds per cell, B4 against B3 **on the same
+world** (`experiments/configs/sweeps/supply_density.yaml`). Synthetic data.
+
+| Rides per day | B3, completed per 100 | B4 minus B3 (95% CI) | Change in late share |
+|---|---|---|---|
+| 6 | 17.79 | +0.00 (-0.03 to +0.03) | -0.058 |
+| 12 | 31.11 | -0.01 (-0.04 to +0.03) | -0.056 |
+| 20 | 40.94 | -0.04 (-0.07 to -0.01) | -0.054 |
+
+The model was trained at 12 rides a day, so at 6 and 20 it is used outside the world it
+learnt from.
+
+### What this shows
+
+Three things were varied that could each have explained the null result: how passengers
+respond when asked (section 6), whether unserved passengers come back, and how scarce
+seats are. In every case the answer is the same:
+
+- **Survival-aware ranking gives a small, reliable gain**, about 1% of the baseline.
+- **Asking bookings to reconfirm adds nothing to completed rides**, and is slightly
+  harmful where seats are plentiful.
+- **It reliably makes cancellations earlier**, by about 0.055 of the late share, on all
+  30 seeds in every world tried.
+
+The project's central idea, that an early cancellation is a success because the seat is
+refilled and the journey completes, is **not supported by this simulator** as far as
+completed rides are concerned. Earlier release happens; the extra completed rides do not
+follow.
+
+### What this does not show
+
+- That the idea is wrong in reality. This is one synthetic corridor whose every parameter
+  is an assumption. A world could be built in which it works; none of the three most
+  obvious candidates did.
+- Anything about value the primary metric does not measure, such as a driver knowing a
+  seat is free a day earlier. Whether to measure that is the team's decision, and it
+  should be made on its merits, not because the primary metric disappointed.
+
+### Still to run
+
+- Why refills do not convert: how many released seats are refilled at all, and whether
+  the bookings that refill them would have found another ride anyway.
+- A sweep of the survival threshold, and B4 with the no-feature model (`h1-km`).
+- Component-removal: B4's intervention with B0's ranking.

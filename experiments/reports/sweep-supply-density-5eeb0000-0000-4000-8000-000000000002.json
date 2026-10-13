@@ -1,0 +1,167 @@
+{
+  "name": "supply-density",
+  "run_id": "5eeb0000-0000-4000-8000-000000000002",
+  "data": "synthetic (simulator)",
+  "baseline": "B3",
+  "baseline_per_cell": true,
+  "parameters": {
+    "supply.rides_per_day": [
+      6,
+      12,
+      20
+    ]
+  },
+  "baseline_means": {},
+  "cells": [
+    {
+      "variant": "B4[rides_per_day=6]",
+      "parameters": {
+        "supply.rides_per_day": 6
+      },
+      "measures": {
+        "per_100": {
+          "mean": 17.79104545897363,
+          "baseline_mean": 17.789785052861937,
+          "vs_baseline": {
+            "seeds": 30,
+            "mean_difference": 0.0012604061116915587,
+            "ci_low": -0.030897776193736334,
+            "ci_high": 0.03341858841711945,
+            "confidence": 0.95,
+            "wilcoxon_p": 0.8853820274047068,
+            "seeds_improved": 13,
+            "seeds_worsened": 14
+          }
+        },
+        "late_share": {
+          "mean": 0.29738414848359357,
+          "baseline_mean": 0.35547133392381247,
+          "vs_baseline": {
+            "seeds": 30,
+            "mean_difference": -0.05808718544021885,
+            "ci_low": -0.06607345166048258,
+            "ci_high": -0.05010091921995511,
+            "confidence": 0.95,
+            "wilcoxon_p": 1.862645149230957e-09,
+            "seeds_improved": 0,
+            "seeds_worsened": 30
+          }
+        },
+        "contact_rate": {
+          "mean": 0.23493726878415008,
+          "baseline_mean": 0.0,
+          "vs_baseline": {
+            "seeds": 30,
+            "mean_difference": 0.23493726878415008,
+            "ci_low": 0.22891122870171196,
+            "ci_high": 0.2409633088665882,
+            "confidence": 0.95,
+            "wilcoxon_p": 1.862645149230957e-09,
+            "seeds_improved": 30,
+            "seeds_worsened": 0
+          }
+        }
+      }
+    },
+    {
+      "variant": "B4[rides_per_day=12]",
+      "parameters": {
+        "supply.rides_per_day": 12
+      },
+      "measures": {
+        "per_100": {
+          "mean": 31.101924416886785,
+          "baseline_mean": 31.109453724497357,
+          "vs_baseline": {
+            "seeds": 30,
+            "mean_difference": -0.007529307610568499,
+            "ci_low": -0.04463203596486211,
+            "ci_high": 0.029573420743725112,
+            "confidence": 0.95,
+            "wilcoxon_p": 0.6384532010547104,
+            "seeds_improved": 12,
+            "seeds_worsened": 14
+          }
+        },
+        "late_share": {
+          "mean": 0.32060033400423743,
+          "baseline_mean": 0.37632867214122734,
+          "vs_baseline": {
+            "seeds": 30,
+            "mean_difference": -0.05572833813698993,
+            "ci_low": -0.060487334848094335,
+            "ci_high": -0.05096934142588552,
+            "confidence": 0.95,
+            "wilcoxon_p": 1.862645149230957e-09,
+            "seeds_improved": 0,
+            "seeds_worsened": 30
+          }
+        },
+        "contact_rate": {
+          "mean": 0.20702611566584353,
+          "baseline_mean": 0.0,
+          "vs_baseline": {
+            "seeds": 30,
+            "mean_difference": 0.20702611566584353,
+            "ci_low": 0.202731288199198,
+            "ci_high": 0.21132094313248906,
+            "confidence": 0.95,
+            "wilcoxon_p": 1.862645149230957e-09,
+            "seeds_improved": 30,
+            "seeds_worsened": 0
+          }
+        }
+      }
+    },
+    {
+      "variant": "B4[rides_per_day=20]",
+      "parameters": {
+        "supply.rides_per_day": 20
+      },
+      "measures": {
+        "per_100": {
+          "mean": 40.90174785772857,
+          "baseline_mean": 40.941589776591215,
+          "vs_baseline": {
+            "seeds": 30,
+            "mean_difference": -0.0398419188626408,
+            "ci_low": -0.06899501798017166,
+            "ci_high": -0.010688819745109948,
+            "confidence": 0.95,
+            "wilcoxon_p": 0.009940428679872356,
+            "seeds_improved": 8,
+            "seeds_worsened": 18
+          }
+        },
+        "late_share": {
+          "mean": 0.3170628242985698,
+          "baseline_mean": 0.37061119145648674,
+          "vs_baseline": {
+            "seeds": 30,
+            "mean_difference": -0.053548367157916964,
+            "ci_low": -0.0589060822698988,
+            "ci_high": -0.048190652045935124,
+            "confidence": 0.95,
+            "wilcoxon_p": 1.862645149230957e-09,
+            "seeds_improved": 0,
+            "seeds_worsened": 30
+          }
+        },
+        "contact_rate": {
+          "mean": 0.19232105597126964,
+          "baseline_mean": 0.0,
+          "vs_baseline": {
+            "seeds": 30,
+            "mean_difference": 0.19232105597126964,
+            "ci_low": 0.18956095777063703,
+            "ci_high": 0.19508115417190225,
+            "confidence": 0.95,
+            "wilcoxon_p": 1.862645149230957e-09,
+            "seeds_improved": 30,
+            "seeds_worsened": 0
+          }
+        }
+      }
+    }
+  ]
+}
