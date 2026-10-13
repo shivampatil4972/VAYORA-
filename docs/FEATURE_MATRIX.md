@@ -53,13 +53,13 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 20 | Price suggestion engine | TBD | TBD | Verified (API and UI tests), simplified: road distance times a flat rate, offered to the driver, never applied |
 | 21 | Date and departure time | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
 | 22 | Offered seats | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
-| 23 | Maximum-two-in-the-back preference | TBD | TBD | Not started |
+| 23 | Maximum-two-in-the-back preference | TBD | TBD | Verified (API and UI tests): a promise the driver makes on a ride and passengers see. Nothing enforces it |
 | 24 | Instant booking versus approval | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
-| 25 | Return trip publishing | TBD | TBD | Not started |
-| 26 | Recurring weekly rides | TBD | TBD | Not started |
+| 25 | Return trip publishing | TBD | TBD | Verified (API tests, form validation and mapping tested): the same stops reversed, published with the ride out; must leave after it arrives |
+| 26 | Recurring weekly rides | TBD | TBD | Partial: up to 8 further weeks published at once as separate rides, API tested. No open-ended schedule, and a series cannot be changed or withdrawn as a whole |
 | 27 | Map-based pickup/drop-off selection | TBD | TBD | Verified: a driver moves each meeting point on a map. UI tested with a stand-in map; the real map has not been seen in a browser |
 | 28 | Detour tolerance | TBD | TBD | Not started. Passengers board at a ride's stops, so a driver never detours; there is nothing to tolerate yet |
-| 29 | Journey description and notes | TBD | TBD | Not started |
+| 29 | Journey description and notes | TBD | TBD | Verified (API and UI tests): up to 500 characters, shown with the route as plain text |
 
 ## Passenger search and booking
 
@@ -71,7 +71,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 33 | Price-range filter | TBD | TBD | Partial: a maximum price per seat, API and UI tested; no minimum |
 | 34 | Instant-booking filter | TBD | TBD | Verified (API and UI tests): only rides that confirm at once |
 | 35 | Verified-profile filter | TBD | TBD | Partial: only drivers with a confirmed email or phone, API and UI tested. Confirmation is by simulated code; no identity is checked |
-| 36 | Maximum-two-in-the-back filter | TBD | TBD | Not started |
+| 36 | Maximum-two-in-the-back filter | TBD | TBD | Verified (API and UI tests) |
 | 37 | Amenity filters | TBD | TBD | Partial: no-smoking and pets-welcome, from what the driver said about themselves, API and UI tested. Nothing about the vehicle |
 | 38 | Sorting by price, time, rating, and pickup proximity | TBD | TBD | Verified (API and UI tests): by time, price, driver rating or pickup distance |
 | 39 | Pickup-point map | TBD | TBD | Verified: a result's route with the boarding stop marked. UI tested with a stand-in map; the real map has not been seen in a browser |

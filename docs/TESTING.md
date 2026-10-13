@@ -4,9 +4,9 @@ Counts are from the runs on 2026-10-13. Every suite passed with no failures.
 
 | Suite | Command, from the repository root | Tests |
 |---|---|---|
-| core-api | `docker compose --profile test run --rm core-api-tests` | 120 |
+| core-api | `docker compose --profile test run --rm core-api-tests` | 123 |
 | Python (events, simulator, model, scheduler, experiments, intel API) | `docker compose --profile research run --rm research` | 162 |
-| web | `cd web && npm ci && npm test` | 111 |
+| web | `cd web && npm ci && npm test` | 118 |
 | gateway | `cd gateway && npm ci && npm test` | 25 |
 
 The first two need only Docker. The Python suite also needs PostgreSQL running:
@@ -28,7 +28,7 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 | `ModerationIntegrationTest` | 8 | Who may report whom, dismiss / warn / suspend, **a suspended member's existing token is refused**, reinstatement, **the audit log cannot be rewritten**, back office is administrators only |
 | `AccountIntegrationTest` | 11 | Profile replace and clear, **the public profile never shows phone, birth year or gender**, **a code is stored only as a hash, works once, expires, and is spent by wrong guesses**, a changed number undoes its proof, three contacts at most, **an SOS answer says nobody was really messaged**, repeat presses, acknowledgement audited, administrators only |
 | `RouteServiceTest` | 7 | OSRM request and response, caching, **an outage gives straight lines labelled as such**, great-circle distance |
-| `RoutingIntegrationTest` | 9 | **Each search filter narrows and none widens; a driver who has not said is not assumed smoke-free**, impossible filters are a 400, route stored on a ride, **the access distance is a hard limit**, direction, the four sort orders, coarse positions in the event log, route preview and price suggestion, the Redis cache |
+| `RoutingIntegrationTest` | 12 | **A ride, its return and their weekly repeats are published together or not at all**, the return reverses stops, intervals and prices, the back-seat promise and its filter, **Each search filter narrows and none widens; a driver who has not said is not assumed smoke-free**, impossible filters are a 400, route stored on a ride, **the access distance is a hard limit**, direction, the four sort orders, coarse positions in the event log, route preview and price suggestion, the Redis cache |
 | `HazardScoringIntegrationTest` | 5 | Feature snapshot and history, one score per booking per day, which bookings are scored, **model outage changes nothing**, administrators only |
 | `IntelHazardScorerTest` | 4 | Request contract with intel; outage, wrong feature version and invalid probability all yield no score |
 | `ApiIntegrationTest` | 7 | 401 without a token, hashed passwords, bad credentials, role checks, another user's booking is invisible, **a bad query is a 400, not a 500**, full journey over HTTP, CORS |
@@ -47,8 +47,8 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 
 | File | Tests | Covers |
 |---|---|---|
-| `App.test.tsx` | 53 | Search filters sent only when set and only on Search, the account page, confirmation by code, emergency contacts, **the emergency panel puts 112 first and says the contacts were not messaged**, the administrator emergency queue and simulated outbox, route protection by role, sign-in, search and booking with fee and payment method, idempotency key reuse, refund terms, earnings, ratings and profiles, notifications, reporting and moderation, the back office, maps and location search, the route planner, failure and retry states |
-| `lib/schemas.test.ts` | 16 | Form validation and the publish request mapping |
+| `App.test.tsx` | 55 | How many rides a form will publish, driver notes shown as text, Search filters sent only when set and only on Search, the account page, confirmation by code, emergency contacts, **the emergency panel puts 112 first and says the contacts were not messaged**, the administrator emergency queue and simulated outbox, route protection by role, sign-in, search and booking with fee and payment method, idempotency key reuse, refund terms, earnings, ratings and profiles, notifications, reporting and moderation, the back office, maps and location search, the route planner, failure and retry states |
+| `lib/schemas.test.ts` | 20 | A return that leaves before arrival is refused, repeat and notes limits, Form validation and the publish request mapping |
 | `components/RideChat.test.tsx` | 15 | Joining with the session token, history, sending, **a message shown once and only when relayed**, text rendered as text, refusal and outage states, rejoining after a dropped connection, position shown to passengers, sharing offered to the driver only while under way |
 | `lib/i18n.test.tsx` | 21 | **Every marked string has a Hindi and a Marathi entry with the same placeholders**, no unused entries, **no screen has text that bypasses translation**, fallback to English, switching and remembering the language, the same digits for money in every language |
 | `lib/api.test.ts` | 7 | Token header, problem-document errors, unreachable server, sign-out on a rejected token, **no sign-out on a stale rejection** |
@@ -66,7 +66,10 @@ because Leaflet needs a real browser to draw.
 
 ## Checked by hand against the running stack
 
-- Flyway migrations V1 to V10 applied to an existing database.
+- Flyway migrations V1 to V11 applied to an existing database.
+- **A series**: one request published a ride, its return and next week's pair; the
+  return was found by a search in the other direction with the back-seat filter; a
+  return leaving before arrival was refused with a reason.
 - **Account and SOS**: a profile saved, a second code refused within the minute, the
   code read from the administrator outbox (refused to a member), a wrong then the right
   code, an SOS with a position, a repeat press returning the same alert, the alert in

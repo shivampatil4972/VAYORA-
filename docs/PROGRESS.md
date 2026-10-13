@@ -1,5 +1,23 @@
 # Progress
 
+## 2026-10-13 (after midnight) — notes, the back-seat promise, return and weekly rides
+
+Committed on `stage-2-3-booking-core-and-simulator`.
+
+| Slice | What | Verified by |
+|---|---|---|
+| Notes | Up to 500 characters from the driver, shown with the route | `RoutingIntegrationTest`, `App.test.tsx` |
+| Back-seat promise | "At most two in the back" on a ride, on results, and as a search filter | same |
+| Return ride | The same stops reversed, published with the ride out | same, `schemas.test.ts`, live run |
+| Weekly repeats | Up to 8 further weeks, each a ride of its own | same |
+
+- Everything a publish request asks for is written in one transaction. A return that
+  cannot be driven publishes nothing.
+- The return keeps each stretch's price and each interval between stops.
+- Rides published together share a `series_id`, used so far only to say how many there
+  were. Nothing acts on a series as a whole.
+- A weekly repeat keeps the time of day on the corridor's clock.
+
 ## 2026-10-13 (late night) — search filters
 
 Committed on `stage-2-3-booking-core-and-simulator`.

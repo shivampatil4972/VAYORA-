@@ -89,7 +89,14 @@ mistake for more. Updated 2026-10-13.
 - Chat messages are kept indefinitely; only GPS points expire (after 7 days).
 - Trip state is not pushed. A passenger's screen does not change when the driver starts
   the ride until they reload or reopen the chat.
-- No travel passes, referral, or recurring or return rides.
+- No travel passes or referral.
+- **A repeated ride is a batch, not a schedule.** Up to 8 further weeks are published at
+  once as separate rides. There is no open-ended repeat, a series cannot be edited or
+  withdrawn as a whole, and nothing checks that a vehicle is not on two rides at once.
+- Rides can be published weeks ahead although the booking horizon is 7 days; the
+  horizon is still not enforced.
+- "At most two in the back" is the driver's word. Seats offered are not checked
+  against it.
 - No email verification, phone OTP, Google sign-in, profile, photo upload or identity
   verification.
 
