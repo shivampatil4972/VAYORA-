@@ -1,5 +1,19 @@
 # Progress
 
+## 2026-10-13 (late night) — search filters
+
+Committed on `stage-2-3-booking-core-and-simulator`.
+
+A passenger can narrow a search by time of day, maximum price per seat, instant booking,
+a driver with a confirmed email or phone, and a driver who said no smoking or pets
+welcome. Verified by `RoutingIntegrationTest`, `App.test.tsx` and a live call.
+
+- A filter can only narrow. A driver who has not said is left out by the smoking and
+  pets filters: silence is not a promise.
+- Filters apply when Search is pressed, not as each box is ticked.
+- The `search_issued` event is unchanged. Filters are a product convenience, and adding
+  them to the research payload was not asked for.
+
 ## 2026-10-13 (night) — the contact scheduler, variant B5, and why refills add nothing
 
 Committed on `stage-2-3-booking-core-and-simulator`.

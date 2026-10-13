@@ -30,7 +30,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 7 | Government ID verification | TBD | TBD | Not started |
 | 8 | Verified-profile badge | TBD | TBD | Partial: "Email confirmed" and "Phone confirmed" on the profile, which also says no identity document was checked |
 | 9 | Experience levels from Newcomer to Ambassador | TBD | TBD | Not started |
-| 10 | Smoking, pets, music, and travel preferences | TBD | TBD | Verified (API and UI tests): shown on the profile; not yet used by search |
+| 10 | Smoking, pets, music, and travel preferences | TBD | TBD | Verified (API and UI tests): shown on the profile; smoking and pets can filter a search |
 | 11 | Chattiness level | TBD | TBD | Verified (API and UI tests): shown on the profile; not yet used by search |
 
 ## Vehicle management
@@ -67,12 +67,12 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 |---|---|---|---|---|
 | 30 | Search by origin, destination, date, and seats | TBD | TBD | Verified (API and UI tests): by location, date and seats. A stop must be within 5 km of each end |
 | 31 | Segment booking at stopovers | TBD | TBD | Verified (API and UI tests) |
-| 32 | Departure-time filter | TBD | TBD | Not started |
-| 33 | Price-range filter | TBD | TBD | Not started |
-| 34 | Instant-booking filter | TBD | TBD | Not started |
-| 35 | Verified-profile filter | TBD | TBD | Not started |
+| 32 | Departure-time filter | TBD | TBD | Verified (API and UI tests): by hour in the API; the screen offers morning, afternoon and evening |
+| 33 | Price-range filter | TBD | TBD | Partial: a maximum price per seat, API and UI tested; no minimum |
+| 34 | Instant-booking filter | TBD | TBD | Verified (API and UI tests): only rides that confirm at once |
+| 35 | Verified-profile filter | TBD | TBD | Partial: only drivers with a confirmed email or phone, API and UI tested. Confirmation is by simulated code; no identity is checked |
 | 36 | Maximum-two-in-the-back filter | TBD | TBD | Not started |
-| 37 | Amenity filters | TBD | TBD | Not started |
+| 37 | Amenity filters | TBD | TBD | Partial: no-smoking and pets-welcome, from what the driver said about themselves, API and UI tested. Nothing about the vehicle |
 | 38 | Sorting by price, time, rating, and pickup proximity | TBD | TBD | Verified (API and UI tests): by time, price, driver rating or pickup distance |
 | 39 | Pickup-point map | TBD | TBD | Verified: a result's route with the boarding stop marked. UI tested with a stand-in map; the real map has not been seen in a browser |
 | 40 | Booking request and driver approval | TBD | TBD | Partial: request and cancel verified in API and UI tests; driver accept and decline verified in API, screen untested |

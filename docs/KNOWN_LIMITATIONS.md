@@ -74,7 +74,9 @@ mistake for more. Updated 2026-10-13.
   that refreshes every 15 seconds. Emergency contacts are stored but not messaged.
 - The simulated outbox is in memory: it is lost on restart and would not be shared
   between two core-api instances.
-- Preferences and confirmation status are shown on profiles but are not search filters.
+- Search filters for smoking and pets leave out every driver who has not said either
+  way, which today is nearly all of them. There is no minimum price, no music or
+  conversation filter, and filters are not recorded in the event log.
 - No identity document is checked, and there is no profile photo.
 - With MongoDB down, a booking still succeeds but its response waits about two seconds
   for the notification write to time out.
