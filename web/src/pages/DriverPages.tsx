@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { SimulatedPaymentNotice } from '../components/payment';
 import { RateForm } from '../components/rating';
+import { RideChat } from '../components/RideChat';
 import { RouteMap } from '../components/RouteMap';
 import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, StatusBadge, TextField } from '../components/ui';
 import { api } from '../lib/api';
@@ -430,6 +431,8 @@ function RideBookings({ ride }: { ride: Ride }) {
   const t = useT();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const live = ride.status === 'SCHEDULED' || ride.status === 'IN_PROGRESS';
   const bookings = useQuery({
     queryKey: ['rides', ride.id, 'bookings'],
     queryFn: () => api<Booking[]>(`/rides/${ride.id}/bookings`),
@@ -444,9 +447,17 @@ function RideBookings({ ride }: { ride: Ride }) {
 
   return (
     <div className="mt-4 border-t border-slate-200 pt-3">
-      <Button tone="secondary" aria-expanded={open} onClick={() => setOpen(!open)}>
-        {open ? t('Hide passengers') : t('Show passengers')}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button tone="secondary" aria-expanded={open} onClick={() => setOpen(!open)}>
+          {open ? t('Hide passengers') : t('Show passengers')}
+        </Button>
+        {live && (
+          <Button tone="secondary" aria-expanded={chatOpen} onClick={() => setChatOpen(!chatOpen)}>
+            {chatOpen ? t('Close chat') : t('Open chat')}
+          </Button>
+        )}
+      </div>
+      {live && chatOpen && <RideChat rideId={ride.id} />}
       {open && (
         <div className="mt-3 space-y-2">
           {decide.error && <Notice tone="error">{decide.error.message}</Notice>}

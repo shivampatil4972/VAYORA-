@@ -20,6 +20,11 @@ export function setToken(value: string | null): void {
   token = value;
 }
 
+/** The session token, for the one other thing that needs it: the live connection. */
+export function getToken(): string | null {
+  return token;
+}
+
 /** Called when the server rejects the session token, so the app can sign the user out. */
 export function setUnauthorizedHandler(handler: () => void): void {
   onUnauthorized = handler;

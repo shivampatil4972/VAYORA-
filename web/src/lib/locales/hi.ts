@@ -365,4 +365,56 @@ export const hi: Record<string, string> = {
   Reviews: 'समीक्षाएँ',
   'Nobody has written a review yet.': 'अभी तक किसी ने समीक्षा नहीं लिखी है।',
   '{stars} out of 5 · {reviewer} · {date}': '5 में से {stars} · {reviewer} · {date}',
+
+  // Chat and live position
+  'That message cannot be sent. Check it is not empty or too long.':
+    'यह संदेश नहीं भेजा जा सकता। जाँचें कि यह खाली या बहुत लंबा न हो।',
+  'The connection was lost. Close the chat and open it again.':
+    'संपर्क टूट गया। चैट बंद करके फिर से खोलें।',
+  'You are no longer on this ride.':
+    'अब आप इस सवारी में शामिल नहीं हैं।',
+  'You are sending messages too quickly. Wait a moment.':
+    'आप बहुत तेज़ी से संदेश भेज रहे हैं। थोड़ी देर रुकें।',
+  'Only the driver can share a position.':
+    'केवल चालक ही अपना स्थान साझा कर सकता है।',
+  'A position can only be shared while the ride is under way.':
+    'स्थान केवल तभी साझा किया जा सकता है जब सवारी चल रही हो।',
+  'That could not be sent. Try again.':
+    'यह नहीं भेजा जा सका। फिर से कोशिश करें।',
+  'The chat service cannot be reached. Try again.':
+    'चैट सेवा से संपर्क नहीं हो पा रहा है। फिर से कोशिश करें।',
+  'This device cannot report its position.':
+    'यह डिवाइस अपना स्थान नहीं बता सकता।',
+  'Your position is not available. Check that location access is allowed.':
+    'आपका स्थान उपलब्ध नहीं है। जाँचें कि स्थान की अनुमति दी गई है।',
+  'Stop sharing my position':
+    'मेरा स्थान साझा करना बंद करें',
+  'Share my position with passengers':
+    'यात्रियों के साथ मेरा स्थान साझा करें',
+  'Passengers on this ride can see where you are until you stop or the ride ends.':
+    'जब तक आप बंद नहीं करते या सवारी समाप्त नहीं होती, इस सवारी के यात्री देख सकते हैं कि आप कहाँ हैं।',
+  'Connecting…':
+    'जुड़ रहा है…',
+  'The chat is only for the driver and passengers booked on this ride.':
+    'चैट केवल चालक और इस सवारी में बुकिंग वाले यात्रियों के लिए है।',
+  "The driver's position at {time}":
+    '{time} पर चालक का स्थान',
+  'The driver':
+    'चालक',
+  "Map showing the driver's last known position":
+    'चालक का अंतिम ज्ञात स्थान दिखाने वाला नक्शा',
+  'Messages':
+    'संदेश',
+  'No messages yet.':
+    'अभी कोई संदेश नहीं है।',
+  'You':
+    'आप',
+  'Message everyone on this ride':
+    'इस सवारी के सभी लोगों को संदेश भेजें',
+  'Send':
+    'भेजें',
+  'Open chat':
+    'चैट खोलें',
+  'Close chat':
+    'चैट बंद करें',
 };

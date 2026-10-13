@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 
 import { RefundTerms, SimulatedPaymentNotice } from '../components/payment';
 import { RateForm, RatingSummary } from '../components/rating';
+import { RideChat } from '../components/RideChat';
 import { RouteMap, type MapPoint } from '../components/RouteMap';
 import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, StatusBadge, TextField } from '../components/ui';
 import { api } from '../lib/api';
@@ -355,6 +356,7 @@ export function BookingsPage() {
   const queryClient = useQueryClient();
   const bookings = useQuery({ queryKey: ['bookings'], queryFn: () => api<Booking[]>('/bookings') });
   const [meetingShown, setMeetingShown] = useState<number | null>(null);
+  const [chatShown, setChatShown] = useState<number | null>(null);
   const cancel = useMutation({
     mutationFn: (id: number) => api<Booking>(`/bookings/${id}/cancel`, { method: 'POST' }),
     onSettled: () => void queryClient.invalidateQueries({ queryKey: ['bookings'] }),
@@ -409,6 +411,13 @@ export function BookingsPage() {
                   >
                     {meetingShown === booking.id ? t('Hide meeting point') : t('Show meeting point')}
                   </Button>
+                  <Button
+                    tone="secondary"
+                    aria-expanded={chatShown === booking.id}
+                    onClick={() => setChatShown(chatShown === booking.id ? null : booking.id)}
+                  >
+                    {chatShown === booking.id ? t('Close chat') : t('Open chat')}
+                  </Button>
                   <ConfirmButton
                     label={t('Cancel booking')}
                     confirmLabel={t('Yes, cancel it')}
@@ -420,6 +429,7 @@ export function BookingsPage() {
             </div>
           </div>
           {meetingShown === booking.id && <RideRoute rideId={booking.rideId} fromSeq={booking.fromSeq} toSeq={booking.toSeq} />}
+          {chatShown === booking.id && cancellable(booking) && <RideChat rideId={booking.rideId} />}
           {booking.status === 'COMPLETED' && !booking.passengerRated && <RateForm bookingId={booking.id} legend={t('Rate your driver')} />}
         </Card>
       ))}
