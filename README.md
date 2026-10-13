@@ -48,14 +48,16 @@ set -a; . ./.env; set +a; sh infra/check-health.sh
 
 Open http://localhost:5173 and create an account as a passenger or as a driver.
 
-- **Driver:** add a vehicle, publish a ride with its stops and a price per leg, accept
-  or decline requests, start the ride, mark anyone who did not board, complete it.
-- **Passenger:** search by origin, destination, date and seats, book or request, cancel.
-- **Administrator:** see and refresh the model's durability estimate for each confirmed
-  booking. Administrators cannot sign up; set `ADMIN_EMAIL` and `ADMIN_PASSWORD` (12
+- **Driver:** add a vehicle, publish a ride with its stops, move each meeting point on
+  the map, take suggested prices from the road route, accept or decline requests, start
+  the ride, mark anyone who did not board, complete it, see earnings.
+- **Passenger:** search by town or by exact points on a map, sort the results, see a
+  ride's route and meeting point, book or request, cancel, rate the driver afterwards.
+- **Administrator:** an overview, the reports queue (dismiss, warn or suspend), members,
+  the model's durability estimates, and the audit log. Administrators cannot sign up; set `ADMIN_EMAIL` and `ADMIN_PASSWORD` (12
   characters or more) in `.env` and restart core-api to create one.
 
-There are no payments: a booking has a price and nobody is charged. What else is missing
+Payments are simulated: no money moves. What is missing
 is listed in [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
 
 ## Tests

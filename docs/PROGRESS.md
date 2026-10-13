@@ -1,5 +1,32 @@
 # Progress
 
+## 2026-10-13 — repeat search, density sweep, moderation, routing and maps
+
+Committed on `stage-2-3-booking-core-and-simulator`.
+
+| Slice | What | Verified by |
+|---|---|---|
+| Repeat search | Unserved passengers may search again, logged as `recovery_search`; model retrained as `h2` | `sim/tests`, `experiments/reports/hazard-h2.json` |
+| Ladder and density sweep | B0, B3, B4 in the new world; B4 against B3 at 6, 12 and 20 rides a day | `experiments/reports/ladder-7a1c0de0-*-000000000002.md`, `sweep-supply-density-*.md` |
+| Moderation | Reports, dismiss / warn / suspend, reinstatement, admin overview, members, audit log | `ModerationIntegrationTest`, web tests |
+| Routing | OSRM road routes cached in Redis, stored in PostGIS; search by location with a hard access limit; four sort orders; price suggestion | `RouteServiceTest`, `RoutingIntegrationTest`, live run against OSRM |
+| Maps | Route and stops, exact search points, meeting points, a route planner for drivers | web tests with a stand-in map |
+
+**Research, synthetic data:** the result did not change. With repeat search, ranking gains
++0.34 completed rides per 100 searches and the intervention adds nothing; across supply
+densities the intervention's effect is 0.00, -0.01 and -0.04. Late cancellations fall by
+about 0.055 everywhere. EXPERIMENT_PROTOCOL.md section 7.
+
+**Decisions made here**
+
+- Search is by location, not by stop name. Town names in the UI are presets for
+  coordinates. This replaced the name search outright.
+- The access distance is a hard limit: a ride outside it is not returned at all.
+- Search positions are rounded to about 100 m before they go in the event log.
+- A report needs a shared booking. Strangers cannot file against each other.
+- Suspension is checked on every request, because a token cannot be recalled.
+- An invalid query parameter is now a 400. It was a 500.
+
 ## 2026-10-10 (later) — sweep, payments, ratings, notifications
 
 Committed on `stage-2-3-booking-core-and-simulator`.

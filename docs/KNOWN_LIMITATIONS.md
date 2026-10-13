@@ -1,7 +1,7 @@
 # Known limitations
 
 What the project does not do, does only in part, or does in a way a reader could
-mistake for more. Updated 2026-10-10.
+mistake for more. Updated 2026-10-13.
 
 ## Nothing here is evidence about real people
 
@@ -17,8 +17,10 @@ mistake for more. Updated 2026-10-10.
   cancellations earlier but adds at most +0.06 completed rides per 100 searches, even
   when every passenger destined to cancel releases the moment they are asked. See
   EXPERIMENT_PROTOCOL.md sections 5 and 6.
-- This holds for one simulated world. Supply and demand density, the survival threshold
-  and repeat search by unserved passengers have not been varied.
+- It held when passengers' responses were varied, when unserved passengers were allowed
+  to search again, and across supply densities of 6, 12 and 20 rides a day. The survival
+  threshold has not been varied, and why refills do not convert has not been explained.
+- It is one synthetic corridor. It is not evidence that the idea fails in reality.
 - Variants B1, B2 and B5 to B11 are not built. No component-removal or robustness
   experiment has been run.
 - The model discriminates weakly (concordance 0.59) and violates the
@@ -36,21 +38,28 @@ mistake for more. Updated 2026-10-10.
   dispute window or bank detail.
 - **No seat holds with expiry and no Redis use.** A pending request holds its seats
   until the driver answers or the ride starts.
-- **Search matches stop names exactly.** No distance, detour or route check. OSRM is
-  configured but has never been started in this environment, and nothing calls it.
+- **Search measures access in a straight line**, not by road or on foot, and uses one
+  fixed limit of 5 km for everyone.
+- **Passengers board only at a ride's stops.** There is no door pickup, so no detour is
+  ever computed and the detour-tolerance feature does not exist.
+- A ride's stored route is OSRM's simplified line (19 points for the whole corridor). It
+  is right for distance and for an overview map, and too coarse to follow turn by turn.
+- If OSRM is down when a ride is published, the ride keeps a straight-line route for
+  good; nothing recomputes it later.
 - **One role per account.** A person cannot be both passenger and driver.
 - **The 7-day booking horizon is not enforced** when publishing or booking.
 - **Completion is the driver's word alone.** No boarding code, no passenger
   confirmation.
 - **A driver withdrawing a ride triggers nothing** for the passengers: no notification,
   no recovery search, no alternative.
-- Reviews are not moderated and cannot be reported, edited or removed.
+- Reviews cannot be edited or removed, and a report is about a member, not a review.
+- A suspended member's future rides and bookings are left as they are; nobody is told.
+- A reporter is never told what was decided.
 - Ratings are visible at once; one side can see the other's rating before giving theirs.
 - Notifications are in-app only. No email, SMS or push, and no preferences.
 - With MongoDB down, a booking still succeeds but its response waits about two seconds
   for the notification write to time out.
-- No reports, moderation, chat, live tracking, travel passes, referral, recurring or
-  return rides, or price suggestion.
+- No chat, live tracking, travel passes, referral, or recurring or return rides.
 - No email verification, phone OTP, Google sign-in, profile, photo upload or identity
   verification.
 
@@ -71,7 +80,8 @@ mistake for more. Updated 2026-10-10.
 - No rate limiting on any endpoint, including sign-in.
 - Registration reveals whether an email is already registered.
 - No security headers beyond Spring Security's defaults have been reviewed.
-- No audit log of administrative actions.
+- Every signed-in request costs one extra database lookup, to check the account is not
+  suspended.
 - The development defaults in `docker-compose.yml` (database password, JWT secret) are
   public. They must be replaced for any deployment.
 
@@ -86,11 +96,13 @@ mistake for more. Updated 2026-10-10.
 ## Interface
 
 - **No screen has been viewed in a browser.** The UI is checked by component tests and
-  a production build only.
+  a production build only. The map in particular is tested through a stand-in, so
+  whether tiles load and pins land where intended is unverified.
+- Map tiles come from OpenStreetMap's public servers, which is acceptable for a
+  demonstration and not for sustained use.
 - The vehicle, publish-ride and my-rides pages have no page-level test, so the driver's
   accept, start, no-show and complete buttons are untested in the UI.
 - English only. No Hindi or Marathi.
-- No map anywhere.
 - No end-to-end browser test.
 
 ## Environment

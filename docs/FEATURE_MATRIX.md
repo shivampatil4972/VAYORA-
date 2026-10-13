@@ -15,7 +15,7 @@ behaviour is exercised by an automated test that passes; a row says which layers
 screen has been looked at in a browser: UI claims rest on component tests and a clean
 production build.
 
-Last updated: 2026-10-10. Test suites and how to run them are in [TESTING.md](TESTING.md).
+Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TESTING.md).
 
 ## Identity and profile
 
@@ -50,22 +50,22 @@ Last updated: 2026-10-10. Test suites and how to run them are in [TESTING.md](TE
 | 17 | Origin-to-destination ride publishing | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
 | 18 | Intermediate stopovers | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
 | 19 | Per-segment pricing | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
-| 20 | Price suggestion engine | TBD | TBD | Not started |
+| 20 | Price suggestion engine | TBD | TBD | Verified (API and UI tests), simplified: road distance times a flat rate, offered to the driver, never applied |
 | 21 | Date and departure time | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
 | 22 | Offered seats | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
 | 23 | Maximum-two-in-the-back preference | TBD | TBD | Not started |
 | 24 | Instant booking versus approval | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
 | 25 | Return trip publishing | TBD | TBD | Not started |
 | 26 | Recurring weekly rides | TBD | TBD | Not started |
-| 27 | Map-based pickup/drop-off selection | TBD | TBD | Not started |
-| 28 | Detour tolerance | TBD | TBD | Not started |
+| 27 | Map-based pickup/drop-off selection | TBD | TBD | Verified: a driver moves each meeting point on a map. UI tested with a stand-in map; the real map has not been seen in a browser |
+| 28 | Detour tolerance | TBD | TBD | Not started. Passengers board at a ride's stops, so a driver never detours; there is nothing to tolerate yet |
 | 29 | Journey description and notes | TBD | TBD | Not started |
 
 ## Passenger search and booking
 
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
-| 30 | Search by origin, destination, date, and seats | TBD | TBD | Verified (API and UI tests), simplified: stops match by name, no distance search |
+| 30 | Search by origin, destination, date, and seats | TBD | TBD | Verified (API and UI tests): by location, date and seats. A stop must be within 5 km of each end |
 | 31 | Segment booking at stopovers | TBD | TBD | Verified (API and UI tests) |
 | 32 | Departure-time filter | TBD | TBD | Not started |
 | 33 | Price-range filter | TBD | TBD | Not started |
@@ -73,8 +73,8 @@ Last updated: 2026-10-10. Test suites and how to run them are in [TESTING.md](TE
 | 35 | Verified-profile filter | TBD | TBD | Not started |
 | 36 | Maximum-two-in-the-back filter | TBD | TBD | Not started |
 | 37 | Amenity filters | TBD | TBD | Not started |
-| 38 | Sorting by price, time, rating, and pickup proximity | TBD | TBD | Not started |
-| 39 | Pickup-point map | TBD | TBD | Not started |
+| 38 | Sorting by price, time, rating, and pickup proximity | TBD | TBD | Verified (API and UI tests): by time, price, driver rating or pickup distance |
+| 39 | Pickup-point map | TBD | TBD | Verified: a result's route with the boarding stop marked. UI tested with a stand-in map; the real map has not been seen in a browser |
 | 40 | Booking request and driver approval | TBD | TBD | Partial: request and cancel verified in API and UI tests; driver accept and decline verified in API, screen untested |
 | 41 | Redis temporary seat holds with TTL | TBD | TBD | Not started |
 
@@ -100,8 +100,8 @@ Last updated: 2026-10-10. Test suites and how to run them are in [TESTING.md](TE
 | 52 | Written reviews | TBD | TBD | Verified (API and UI tests): optional comment, shown on the profile as plain text; no moderation |
 | 53 | Driver response rate and time | TBD | TBD | Not started |
 | 54 | Membership duration and completed rides | TBD | TBD | Verified (API and UI tests): member-since and completed trips on the profile |
-| 55 | Report a user | TBD | TBD | Not started |
-| 56 | Admin moderation queue | TBD | TBD | Not started |
+| 55 | Report a user | TBD | TBD | Verified (API and UI tests): only someone you shared a booking with; one open report per pair |
+| 56 | Admin moderation queue | TBD | TBD | Verified (API and UI tests): dismiss, warn or suspend; suspension is enforced on every request |
 | 57 | SOS and emergency-contact workflow | TBD | TBD | Not started |
 | 58 | Insurance coverage badge | TBD | TBD | Not started |
 | 59 | Women-only ride option | TBD | TBD | Not started |
@@ -122,7 +122,7 @@ Last updated: 2026-10-10. Test suites and how to run them are in [TESTING.md](TE
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
 | 66 | Booking reference and boarding code | TBD | TBD | Not started |
-| 67 | Meeting-point details and map | TBD | TBD | Not started |
+| 67 | Meeting-point details and map | TBD | TBD | Verified: meeting point and route on a booking. UI tested with a stand-in map; the real map has not been seen in a browser |
 | 68 | Live GPS tracking | TBD | TBD | Not started |
 | 69 | Two-sided completion confirmation | TBD | TBD | Partial: driver starts and completes, API verified; no passenger confirmation |
 | 70 | Post-trip rating prompt | TBD | TBD | Partial: a rating form appears on completed trips and a notification points to it; no reminder |
@@ -134,13 +134,13 @@ Last updated: 2026-10-10. Test suites and how to run them are in [TESTING.md](TE
 | 71 | English, Hindi, and Marathi | TBD | TBD | Not started |
 | 72 | Referral programme | TBD | TBD | Not started |
 | 73 | Static/configured MSRTC alternatives | TBD | TBD | Not started |
-| 74 | Admin back office | TBD | TBD | Partial: one screen (booking durability), API and UI tested; nothing else |
+| 74 | Admin back office | TBD | TBD | Partial: overview, reports queue, members, booking durability and audit log, API and UI tested; no ride or booking browser, no experiment screens |
 
 ## Research modules
 
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
-| 75 | PostGIS/OSRM feasibility filter | TBD | TBD | Not started (OSRM container and corridor prep exist; no filter) |
+| 75 | PostGIS/OSRM feasibility filter | TBD | TBD | Partial: the access distance is a hard limit enforced in PostGIS, and rides carry an OSRM road route; no detour or EV energy check |
 | 76 | Two-sided match scoring | TBD | TBD | Not started |
 | 77 | CommitmentDecay survival modelling | TBD | TBD | Partial: model trained, evaluated, served and scored in the app, on synthetic data only; see AI_ML_METHODOLOGY.md |
 | 78 | Reliability indicator in search results | TBD | TBD | Not started |
@@ -175,7 +175,8 @@ Last updated: 2026-10-10. Test suites and how to run them are in [TESTING.md](TE
 | Java `EventLogService` and Python `journex_events` writer | Verified 2026-10-10: Java 11/11, Python 17/17 (shared run) |
 | Metric queries (`experiments/analysis/metrics.sql`) | Verified 2026-10-10: included in the 17 Python tests |
 | Service skeletons: core-api, intel, gateway, web | Verified 2026-10-10: all four health endpoints UP; gateway tests 6/6 |
-| OSRM routing | Not verified: container not started (220 MB download skipped) |
+| OSRM routing | Verified against the running container: 235.9 km for the four-town route; cached in Redis |
+| Audit log of administrative actions | Verified (API and UI tests); append-only by trigger |
 | B0, B3, B4 simulator variants and paired comparison | Verified: 30-seed run, see EXPERIMENT_PROTOCOL.md |
 | Parameter sweeps over the simulated world | Verified: intervention-response sweep, see EXPERIMENT_PROTOCOL.md |
 | In-app notifications (MongoDB) | Verified (API and UI tests). Not one of the 95: features 62-64 are push, email and SMS, none of which exist |
