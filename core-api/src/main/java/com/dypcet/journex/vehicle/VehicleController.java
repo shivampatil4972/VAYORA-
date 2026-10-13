@@ -1,8 +1,15 @@
 package com.dypcet.journex.vehicle;
 
 import com.dypcet.journex.identity.CurrentUser;
+import com.dypcet.journex.vehicle.VehicleService.Comfort;
+import com.dypcet.journex.vehicle.VehicleService.Details;
+import com.dypcet.journex.vehicle.VehicleService.Luggage;
 import com.dypcet.journex.vehicle.VehicleService.Vehicle;
 import jakarta.validation.Valid;
+import java.math.BigDecimal;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -29,7 +36,13 @@ public class VehicleController {
             @NotBlank @Size(max = 50) String model,
             @Min(1980) @Max(2100) Integer year,
             @Size(max = 30) String colour,
-            @Min(2) @Max(9) int seats) {
+            @Min(2) @Max(9) int seats,
+            Comfort comfort,
+            Luggage luggage,
+            boolean electric,
+            @DecimalMin("1") @DecimalMax("300") @Digits(integer = 3, fraction = 1) BigDecimal batteryKwh,
+            @DecimalMin("5") @DecimalMax("60") @Digits(integer = 2, fraction = 1)
+            BigDecimal consumptionKwhPer100Km) {
     }
 
     private final VehicleService vehicles;
@@ -43,7 +56,9 @@ public class VehicleController {
     public Vehicle create(@AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody CreateVehicleRequest request) {
         return vehicles.create(CurrentUser.id(jwt), request.make(), request.model(),
-                request.year(), request.colour(), request.seats());
+                request.year(), request.colour(), request.seats(),
+                new Details(request.comfort(), request.luggage(), request.electric(),
+                        request.batteryKwh(), request.consumptionKwhPer100Km()));
     }
 
     @GetMapping

@@ -109,13 +109,17 @@ public class RideService {
      *                          passenger is going
      * @param driverConfirmed   the driver has confirmed an email address or a phone number;
      *                          not an identity check
+     * @param vehicle           make and model, as the driver entered them
+     * @param comfort           the driver's own description of the car; null, like luggage,
+     *                          if not said
      */
     public record Candidate(long rideId, String driverName, boolean instantBooking,
             int fromSeq, int toSeq, String fromStop, String toStop, Instant boardingTime,
             Instant arrivalTime, BigDecimal pricePerSeat, int seatsAvailable, BigDecimal fare,
             BigDecimal serviceFee, BigDecimal total, long driverId, Double driverRating,
             int driverRatingCount, long pickupDistanceM, long dropoffDistanceM,
-            boolean driverConfirmed, boolean maxTwoInBack) {
+            boolean driverConfirmed, boolean maxTwoInBack, String vehicle, String comfort,
+            String luggage, boolean electric) {
     }
 
     /**
@@ -485,6 +489,7 @@ public class RideService {
                 SELECT * FROM (
                     SELECT DISTINCT ON (r.id)
                            r.id, u.full_name, r.instant_booking, r.driver_id, r.max_two_in_back,
+                           v.make || ' ' || v.model AS vehicle, v.comfort, v.luggage, v.electric,
                            (SELECT AVG(stars)::float8 FROM ratings WHERE ratee_id = r.driver_id)
                                AS driver_rating,
                            (SELECT COUNT(*) FROM ratings WHERE ratee_id = r.driver_id)
@@ -502,6 +507,7 @@ public class RideService {
                     JOIN ride_stops o ON ST_DWithin(o.location, want.origin, :radius)
                     JOIN rides r ON r.id = o.ride_id
                     JOIN users u ON u.id = r.driver_id
+                    JOIN vehicles v ON v.id = r.vehicle_id
                     LEFT JOIN profiles p ON p.user_id = r.driver_id
                     JOIN ride_stops d ON d.ride_id = r.id AND d.seq > o.seq
                                      AND ST_DWithin(d.location, want.destination, :radius)
@@ -534,7 +540,9 @@ public class RideService {
                             rs.getLong("driver_id"), (Double) rs.getObject("driver_rating"),
                             rs.getInt("driver_rating_count"),
                             Math.round(rs.getDouble("pickup_m")), Math.round(rs.getDouble("dropoff_m")),
-                            rs.getBoolean("driver_confirmed"), rs.getBoolean("max_two_in_back"));
+                            rs.getBoolean("driver_confirmed"), rs.getBoolean("max_two_in_back"),
+                            rs.getString("vehicle"), rs.getString("comfort"),
+                            rs.getString("luggage"), rs.getBoolean("electric"));
                 });
 
         events.write(EventType.CANDIDATES_RETURNED, new CandidatesReturned(passengerId,
