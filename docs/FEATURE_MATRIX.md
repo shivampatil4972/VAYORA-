@@ -145,7 +145,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 77 | CommitmentDecay survival modelling | TBD | TBD | Partial: model trained, evaluated, served and scored in the app, on synthetic data only; see AI_ML_METHODOLOGY.md |
 | 78 | Reliability indicator in search results | TBD | TBD | Not started |
 | 79 | Anticipatory interventions | TBD | TBD | Partial: in the simulator only (variant B4); the platform sends no interventions |
-| 80 | CP-SAT contact-budget scheduler | TBD | TBD | Not started |
+| 80 | CP-SAT contact-budget scheduler | TBD | TBD | Partial: built and tested in intel (`POST /v1/scheduler/plan`) and used by simulator variant B5; the platform does not call it, because the platform sends no interventions |
 | 81 | Hazard-informed passenger flexibility tiers | TBD | TBD | Not started |
 | 84 | Mid-route vacant-seat allocation | TBD | TBD | Not started |
 | 86 | Per-booking SHAP explanations | TBD | TBD | Not started |
@@ -173,11 +173,11 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 |---|---|
 | `events` table and 22-event vocabulary (core-api V2 migration) | Verified 2026-10-10: migration applies, core-api tests 11/11 |
 | Java `EventLogService` and Python `journex_events` writer | Verified 2026-10-10: Java 11/11, Python 17/17 (shared run) |
-| Metric queries (`experiments/analysis/metrics.sql`) | Verified 2026-10-10: included in the 17 Python tests |
+| Metric queries (`experiments/analysis/metrics.sql`) | Verified: five named queries, each tested against hand-computed values |
 | Service skeletons: core-api, intel, gateway, web | Verified 2026-10-10: all four health endpoints UP; gateway tests 6/6 |
 | OSRM routing | Verified against the running container: 235.9 km for the four-town route; cached in Redis |
 | Audit log of administrative actions | Verified (API and UI tests); append-only by trigger |
-| B0, B3, B4 simulator variants and paired comparison | Verified: 30-seed run, see EXPERIMENT_PROTOCOL.md |
-| Parameter sweeps over the simulated world | Verified: intervention-response sweep, see EXPERIMENT_PROTOCOL.md |
+| B0, B3, B4, B5 simulator variants and paired comparison | Verified: 30-seed run, see EXPERIMENT_PROTOCOL.md |
+| Parameter sweeps over the simulated world or a variant | Verified: intervention-response, supply-density and contact-budget sweeps, see EXPERIMENT_PROTOCOL.md |
 | In-app notifications (MongoDB) | Verified (API and UI tests). Not one of the 95: features 62-64 are push, email and SMS, none of which exist |
 | Idempotent booking requests | Verified (API and UI tests) |

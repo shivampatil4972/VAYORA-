@@ -20,8 +20,17 @@ mistake for more. Updated 2026-10-13.
 - It held when passengers' responses were varied, when unserved passengers were allowed
   to search again, and across supply densities of 6, 12 and 20 rides a day. The survival
   threshold has not been varied, and why refills do not convert has not been explained.
+- A contact budget (B5) reduces the effect on the late share roughly in proportion to
+  the requests withheld. The scheduler's choice of whom to ask concentrates nothing,
+  and it has not been compared with choosing at random. Its worth formula is an
+  assumption with no evidence behind it. See EXPERIMENT_PROTOCOL.md section 8.
+- The likeliest reason refills add no rides: the extra seats B4 frees are all taken by
+  passengers who were offered another ride as well. That is an upper-bound argument
+  from means, not a paired test.
+- Over half of all searches are offered no ride, and the event log cannot say whether
+  for want of a ride at that time or want of seats on it.
 - It is one synthetic corridor. It is not evidence that the idea fails in reality.
-- Variants B1, B2 and B5 to B11 are not built. No component-removal or robustness
+- Variants B1, B2 and B6 to B11 are not built. No component-removal or robustness
   experiment has been run.
 - The model discriminates weakly (concordance 0.59) and violates the
   proportional-hazards assumption for lead time.

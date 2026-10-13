@@ -27,9 +27,10 @@ This is a hypothesis under test. Section 5 reports what the first full run found
 | B0 | Closest to the preferred departure time | none | none | Run |
 | B1 | Feasibility filter | | | Not built: the simulated corridor has one origin and one destination, so there is no geography to filter |
 | B2 | Two-sided ranking | | | Not built |
-| B3 | Predicted survival to departure | `h1-cox` | none | Run |
-| B4 | As B3 | `h1-cox` | Reconfirmation request when estimated survival is below 0.8, at most once per booking, never within 24 h of departure, scored every 24 h | Run |
-| B5-B11 | | | | Not built |
+| B3 | Predicted survival to departure | `h2-cox` (`h1-cox` in section 5) | none | Run |
+| B4 | As B3 | `h2-cox` (`h1-cox` in section 5) | Reconfirmation request when estimated survival is below 0.8, at most once per booking, never within 24 h of departure, scored every 24 h | Run |
+| B5 | As B3 | `h2-cox` | As B4, but at most 2 requests per daily round, 1 per ride, and 4 seats asked about per departure day, chosen by the contact scheduler | Run (section 8) |
+| B6-B11 | | | | Not built |
 
 The platform never cancels a booking. An intervention only asks; the passenger decides.
 
@@ -41,7 +42,7 @@ The platform never cancels a booking. An intervention only asks; the passenger d
 - **Per-seed differences** against the baseline, with a 95% t interval on the mean
   difference and a Wilcoxon signed-rank test (`experiments/analysis/compare.py`).
 - **Every figure is a SQL aggregate over the `events` table** through `metrics.sql`.
-- No correction for multiple comparisons is applied. With two variants and five
+- No correction for multiple comparisons is applied. With three variants and seven
   measures, treat any single p-value near 0.05 as unremarkable.
 
 ## 4. Reproducing a run
@@ -49,12 +50,12 @@ The platform never cancels a booking. An intervention only asks; the passenger d
 ```sh
 docker compose up -d --wait postgres core-api
 RUN=$(python -c "import uuid; print(uuid.uuid4())")
-for v in B0 B3 B4; do
+for v in B0 B3 B4 B5; do
   docker compose --profile research run --rm research \
     python -m sim.run --variant experiments/configs/variants/$v.yaml --run-id $RUN
 done
 docker compose --profile research run --rm research \
-  python -m experiments.analysis.compare --run-id $RUN --baseline B0 B3 B4
+  python -m experiments.analysis.compare --run-id $RUN --baseline B0 B3 B4 B5
 ```
 
 The simulator is deterministic given a seed, so a rerun reproduces the same events and
@@ -227,3 +228,95 @@ follow.
   the bookings that refill them would have found another ride anyway.
 - A sweep of the survival threshold, and B4 with the no-feature model (`h1-km`).
 - Component-removal: B4's intervention with B0's ranking.
+
+## 8. A contact budget, and why refills do not add rides
+
+Run on 2026-10-13. Synthetic data; 30 seeds per variant; model `h2-cox`; the world of
+section 7 (repeat search on, 12 rides a day).
+
+- Ladder: `experiments/reports/ladder-7a1c0de0-0000-4000-8000-000000000003.md`
+- Sweep: `experiments/reports/sweep-contact-budget-5eeb0000-0000-4000-8000-000000000003.md`
+
+B0, B3 and B4 reproduce section 7's ladder to every printed digit, which is the check
+that adding the budget changed nothing for variants without one.
+
+### B5 in the ladder (differences against B0)
+
+| | B3 | B4 | B5 |
+|---|---|---|---|
+| Completed rides per 100 searches | 31.11 (+0.34) | 31.10 (+0.33) | 31.10 (+0.33) |
+| Late share of cancellations | 0.376 | 0.321 | 0.357 |
+| Requests per accepted booking | 0 | 0.207 | 0.083 |
+| Released seats refilled | 186.2 | 197.4 | 191.5 |
+
+### The budget swept (differences against B4, which asks everyone eligible)
+
+| Requests allowed per round | Requests per accepted booking | Share of B4's requests | Late share | Share of B4's late-share reduction |
+|---|---|---|---|---|
+| 1 | 0.042 | 20% | 0.367 | 16% |
+| 2 | 0.083 | 40% | 0.357 | 35% |
+| 4 | 0.149 | 72% | 0.338 | 69% |
+| 8 | 0.183 | 88% | 0.327 | 89% |
+| no limit (B4) | 0.207 | 100% | 0.321 | 100% |
+
+The last column is `(0.376 - late share) / (0.376 - 0.321)`, B3 being the same ranking
+with no requests. It is arithmetic on the two reports' means, not a paired statistic.
+
+Completed rides per 100 searches does not move with the budget: every cell is within
+0.01 of B4 and every interval includes zero.
+
+### What this shows
+
+- **The budget buys what it pays for and no more.** The effect on the late share is
+  close to proportional to the number of requests sent, and slightly below proportional
+  when the budget is tight. The scheduler's choice of whom to ask does not concentrate
+  the effect on fewer requests.
+- That is a finding about the worth formula and the model, not about the solver. The
+  formula favours bookings far from departure with many seats; the model that scores
+  them discriminates weakly (concordance 0.59). Neither points reliably at the bookings
+  whose release would otherwise have come late.
+- **A random choice of the same number of requests was not run.** Without it, "no better
+  than proportional" cannot be sharpened to "no better than chance".
+- The primary metric is as indifferent to how many are asked as it was to whether
+  anyone is.
+
+### Why refills do not add completed rides
+
+A new measure, `refill_additionality` in `metrics.sql`, asks of every booking that took
+a released seat: was the passenger's search offered any other ride? A passenger offered
+another ride would have asked for one anyway, so only a refill by a passenger offered
+nothing else can be a booking that would not otherwise exist.
+
+| | B0 | B3 | B4 | B5 |
+|---|---|---|---|---|
+| Released seats refilled, per seed | 183.0 | 186.2 | 197.4 | 191.5 |
+| of which by a passenger offered no other ride | 77.7 | 76.4 | 76.4 | 76.1 |
+| Searches offered no ride at all | 0.550 | 0.545 | 0.542 | 0.544 |
+
+- **B4 refills 11 more seats per seed than B3, and none of the extra go to a passenger
+  who had no alternative.** The count of only-option refills is the same to one decimal
+  with and without the intervention. The seats released early are taken by passengers
+  who would have booked a different ride.
+- This is an explanation that fits, not a proof. Only-option refills are an upper bound
+  on added bookings, not a count of them; the B3-to-B4 comparison is of means, and no
+  paired test of that difference was run.
+- **More than half of all searches are offered nothing.** Demand for seats is not what
+  is missing. A search is offered nothing when no ride within the passenger's time
+  tolerance has enough seats, and the event log does not say which of the two it was.
+  If it is mostly timing, a seat released on Tuesday's 06:00 ride cannot help someone
+  who needs Thursday evening, however early it is released.
+
+That last point is the most useful thing the project has learnt about its own idea:
+in this simulator an early release fails to add rides not because nobody wants a seat,
+but because the people who want one mostly want a different departure.
+
+### Still to run
+
+- Split "offered no ride" into no ride in the time window and no seats on the rides in
+  it. This needs the simulator to say which, and so a payload change that needs
+  approval under the frozen vocabulary.
+- B5 with requests chosen at random within the same limits.
+- The time-tolerance sweep the finding above points to: if passengers accept a wider
+  window, do early releases start to convert?
+- Still open from section 7: a sweep of the survival threshold, B4 with `h1-km`, and
+  B4's intervention with B0's ranking.

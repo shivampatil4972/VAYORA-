@@ -1,5 +1,37 @@
 # Progress
 
+## 2026-10-13 (night) — the contact scheduler, variant B5, and why refills add nothing
+
+Committed on `stage-2-3-booking-core-and-simulator`.
+
+| Slice | What | Verified by |
+|---|---|---|
+| Scheduler | `intel/app/scheduler`: whom to ask under limits per round, per ride and per departure day; CP-SAT; `POST /v1/scheduler/plan` | `intel/tests/test_scheduler.py`, live call |
+| B5 | B4 under a contact budget, in the simulator | `sim/tests`, 30-seed ladder |
+| Sweeps over a variant | A sweep can vary a variant's parameters, not only the world's | `experiments/tests/test_sweep.py`, 30-seed budget sweep |
+| Refill metric | `refill_additionality` in `metrics.sql` | `experiments/tests/test_metrics.py` |
+
+**Results** (EXPERIMENT_PROTOCOL.md section 8). The budget cuts the late-share effect
+about in proportion to the requests withheld; completed rides do not move. The extra
+seats B4 frees all go to passengers who had another ride on offer, which is the first
+explanation the project has for why early release adds no completed rides.
+
+**Decisions made here**
+
+- OR-Tools is the one new dependency: the seat limit per departure day makes the choice
+  an integer programme, which sorting cannot solve.
+- B5 keeps B4's threshold, so the two differ only in the budget.
+- The platform does not call the scheduler. It sends no interventions, and wiring one
+  in would be a product decision, not a research one.
+- The first version of the refill query joined on keys inside the JSON payload and did
+  not finish in ten minutes on the full log. It now groups instead and takes seconds.
+
+**For the team to decide**
+
+- Whether the simulator may say why a search was offered nothing (no ride at that time,
+  or no seats). It needs a new payload key on `candidates_returned`.
+- Whether every number under `budget` in `B5.yaml` is acceptable as an assumption.
+
 ## 2026-10-13 (evening) — profiles, confirmation codes, emergency contacts and SOS
 
 Committed on `stage-2-3-booking-core-and-simulator`.

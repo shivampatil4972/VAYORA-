@@ -138,7 +138,42 @@ caller supplies the features.
 The exported model holds the baseline cumulative hazard as a step function. lifelines
 interpolates between event times; the difference is about 0.001 in probability.
 
-## 7. Known limitations
+## 7. The contact scheduler
+
+`intel/app/scheduler` chooses which bookings to ask to reconfirm when not all of them
+can be asked. It is an optimiser, not a learned model, and it holds no state.
+
+**Input.** For each booking that could be asked: its ride, the day the ride leaves, its
+seats, the model's survival estimate and the hours left. It is given nothing else, and
+in the simulator a test checks that it is given no ground truth.
+
+**Objective.** Maximise the summed worth of the bookings asked, where
+
+    worth = (1 - survival) x seats x min(1, hours_to_departure / refill_horizon_hours)
+
+That is: the seats expected to be lost, discounted as departure approaches because a
+seat released late is unlikely to be refilled. **This formula is an assumption.** It is
+not fitted to anything, and the linear discount in particular has no evidence behind it.
+
+**Constraints.** At most `contacts_per_round` requests; at most `max_contacts_per_ride`
+on one ride; at most `max_seats_asked_per_departure_day` seats asked about among rides
+leaving on the same day.
+
+**Why a solver.** With only the first two limits every request costs one, and sorting by
+worth while skipping full rides is optimal. The third counts seats, so a party of three
+and three parties of one use it differently, and the choice becomes an integer programme.
+It is solved with CP-SAT (OR-Tools) on one worker with a fixed seed, and exact ties go
+to the lower booking ids, so the same input always gives the same plan.
+
+**How it was checked.** On 25 random instances small enough to try every subset, the
+plan's worth equals the best subset's. A 400-booking round solves to optimality well
+inside the time limit.
+
+**What it is not.** At this corridor's scale the seat limit rarely binds, so on most
+rounds the plan is what sorting would have given. The solver is correct; it is not what
+drives any result in EXPERIMENT_PROTOCOL.md. It never recommends cancelling anything.
+
+## 8. Known limitations
 
 - Synthetic data only. Nothing here is evidence about real cancellation behaviour.
 - The public hotel-reservation dataset named in the synopsis has not been examined. A
