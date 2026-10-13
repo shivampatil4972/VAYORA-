@@ -1,6 +1,8 @@
 package com.dypcet.journex.routing;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -15,6 +17,7 @@ import com.dypcet.journex.payment.PaymentChoice;
 import com.dypcet.journex.rating.RatingService;
 import com.dypcet.journex.ride.RideService;
 import com.dypcet.journex.ride.RideService.Candidate;
+import com.dypcet.journex.ride.RideService.Filters;
 import com.dypcet.journex.ride.RideService.PublishRide;
 import com.dypcet.journex.ride.RideService.Ride;
 import com.dypcet.journex.ride.RideService.Sort;
@@ -33,8 +36,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Routes on rides and search by location. No routing service runs here, so every route is
@@ -192,6 +197,76 @@ class RoutingIntegrationTest extends PostgresIntegrationTest {
         cache.put(key, "{\"distanceMetres\": 1}");
 
         assertThat(cache.get(key)).contains("{\"distanceMetres\": 1}");
+    }
+
+    @Test
+    void filtersNarrowASearchAndNeverWidenIt() {
+        long plain = user(UserRole.DRIVER);
+        long careful = user(UserRole.DRIVER);
+        long early = ride(plain, day.atTime(8, 0).atZone(ZONE).toInstant(), "500.00", KOLHAPUR, PUNE);
+        long midday = ride(careful, day.atTime(14, 0).atZone(ZONE).toInstant(), "300.00", KOLHAPUR, PUNE);
+        long evening = ride(plain, day.atTime(20, 0).atZone(ZONE).toInstant(), "700.00", KOLHAPUR, PUNE);
+        jdbc.update("UPDATE rides SET instant_booking = (id = ?) WHERE id IN (?, ?, ?)",
+                midday, early, midday, evening);
+        jdbc.update("UPDATE users SET phone_verified_at = now() WHERE id = ?", careful);
+        jdbc.update("INSERT INTO profiles (user_id, smoking, pets) VALUES (?, FALSE, TRUE)", careful);
+        // Said something, but not about smoking or pets.
+        jdbc.update("INSERT INTO profiles (user_id, bio) VALUES (?, 'Hello')", plain);
+
+        assertThat(found(Filters.NONE)).containsExactly(early, midday, evening);
+        assertThat(found(hours(12, 18))).containsExactly(midday);
+        assertThat(found(hours(9, null))).containsExactly(midday, evening);
+        assertThat(found(hours(null, 9))).containsExactly(early);
+        // The hour a ride leaves in is inside "from that hour" and outside "before that hour".
+        assertThat(found(hours(14, null))).containsExactly(midday, evening);
+        assertThat(found(hours(null, 14))).containsExactly(early);
+        assertThat(found(new Filters(null, null, new BigDecimal("500.00"), false, false, false, false)))
+                .containsExactly(early, midday);
+        assertThat(found(new Filters(null, null, null, true, false, false, false))).containsExactly(midday);
+        assertThat(found(new Filters(null, null, null, false, true, false, false))).containsExactly(midday);
+        // A driver who has not said is not assumed to keep a smoke-free car or welcome pets.
+        assertThat(found(new Filters(null, null, null, false, false, true, false))).containsExactly(midday);
+        assertThat(found(new Filters(null, null, null, false, false, false, true))).containsExactly(midday);
+        assertThat(found(new Filters(15, null, new BigDecimal("400"), false, false, false, false))).isEmpty();
+
+        assertThat(rides.search(passengerId, KOLHAPUR, PUNE, day, 1, Sort.TIME))
+                .extracting(Candidate::driverConfirmed).containsExactly(false, true, false);
+        assertThatThrownBy(() -> hours(10, 10))
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST));
+    }
+
+    @Test
+    void theSearchEndpointTakesFiltersAndRefusesImpossibleOnes() throws Exception {
+        long rideId = ride(user(UserRole.DRIVER), day.atTime(14, 0).atZone(ZONE).toInstant(), "300.00",
+                KOLHAPUR, PUNE);
+        String passenger = "Bearer " + tokens.issue(passengerId, UserRole.PASSENGER);
+        String base = "/api/v1/rides/search?originLat=16.7050&originLon=74.2433&destLat=18.5204"
+                + "&destLon=73.8567&date=" + day;
+
+        mvc.perform(get(base + "&earliestHour=12&latestHour=18&maxPrice=300").header("Authorization", passenger))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].rideId").value(rideId))
+                .andExpect(jsonPath("$[0].driverConfirmed").value(false));
+        mvc.perform(get(base + "&maxPrice=299.99").header("Authorization", passenger))
+                .andExpect(jsonPath("$.length()").value(0));
+        mvc.perform(get(base + "&confirmedDriver=true").header("Authorization", passenger))
+                .andExpect(jsonPath("$.length()").value(0));
+        for (String bad : List.of("&earliestHour=24", "&latestHour=0", "&maxPrice=-1",
+                "&earliestHour=18&latestHour=12", "&instantOnly=perhaps")) {
+            mvc.perform(get(base + bad).header("Authorization", passenger))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    private List<Long> found(Filters filters) {
+        return rides.search(passengerId, KOLHAPUR, PUNE, day, 1, Sort.TIME, filters).stream()
+                .map(Candidate::rideId).toList();
+    }
+
+    private static Filters hours(Integer earliest, Integer latest) {
+        return new Filters(earliest, latest, null, false, false, false, false);
     }
 
     private List<Long> order(Sort sort) {

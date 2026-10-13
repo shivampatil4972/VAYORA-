@@ -2,6 +2,7 @@ package com.dypcet.journex.ride;
 
 import com.dypcet.journex.identity.CurrentUser;
 import com.dypcet.journex.ride.RideService.Candidate;
+import com.dypcet.journex.ride.RideService.Filters;
 import com.dypcet.journex.ride.RideService.Membership;
 import com.dypcet.journex.ride.RideService.PublishRide;
 import com.dypcet.journex.ride.RideService.Ride;
@@ -102,9 +103,18 @@ public class RideController {
             @RequestParam @DecimalMin("-180") @DecimalMax("180") double destLon,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam(defaultValue = "1") @Min(1) @Max(8) int seats,
-            @RequestParam(defaultValue = "TIME") Sort sort) {
+            @RequestParam(defaultValue = "TIME") Sort sort,
+            @RequestParam(required = false) @Min(0) @Max(23) Integer earliestHour,
+            @RequestParam(required = false) @Min(1) @Max(24) Integer latestHour,
+            @RequestParam(required = false) @DecimalMin("0") BigDecimal maxPrice,
+            @RequestParam(defaultValue = "false") boolean instantOnly,
+            @RequestParam(defaultValue = "false") boolean confirmedDriver,
+            @RequestParam(defaultValue = "false") boolean smokeFree,
+            @RequestParam(defaultValue = "false") boolean petsWelcome) {
         return rides.search(CurrentUser.id(jwt), new Point(originLat, originLon),
-                new Point(destLat, destLon), date, seats, sort);
+                new Point(destLat, destLon), date, seats, sort,
+                new Filters(earliestHour, latestHour, maxPrice, instantOnly, confirmedDriver,
+                        smokeFree, petsWelcome));
     }
 
     @GetMapping("/mine")

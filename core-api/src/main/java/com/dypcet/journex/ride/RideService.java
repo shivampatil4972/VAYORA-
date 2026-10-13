@@ -39,6 +39,9 @@ public class RideService {
 
     /** The corridor is Kolhapur to Pune; a search date is a calendar day there. */
     private static final ZoneId CORRIDOR_ZONE = ZoneId.of("Asia/Kolkata");
+    private static final String BOARDING = "r.departure_time + make_interval(mins => o.offset_minutes)";
+    private static final String DRIVER_CONFIRMED =
+            "(u.email_verified_at IS NOT NULL OR u.phone_verified_at IS NOT NULL)";
 
     /** @param offsetMinutes minutes after the ride's departure at which it leaves this stop */
     public record StopInput(String name, double lat, double lon, int offsetMinutes) {
@@ -81,12 +84,15 @@ public class RideService {
      *                          boarding stop
      * @param dropoffDistanceM  straight-line metres from the alighting stop to where the
      *                          passenger is going
+     * @param driverConfirmed   the driver has confirmed an email address or a phone number;
+     *                          not an identity check
      */
     public record Candidate(long rideId, String driverName, boolean instantBooking,
             int fromSeq, int toSeq, String fromStop, String toStop, Instant boardingTime,
             Instant arrivalTime, BigDecimal pricePerSeat, int seatsAvailable, BigDecimal fare,
             BigDecimal serviceFee, BigDecimal total, long driverId, Double driverRating,
-            int driverRatingCount, long pickupDistanceM, long dropoffDistanceM) {
+            int driverRatingCount, long pickupDistanceM, long dropoffDistanceM,
+            boolean driverConfirmed) {
     }
 
     /**
@@ -108,6 +114,30 @@ public class RideService {
 
         Sort(String orderBy) {
             this.orderBy = orderBy;
+        }
+    }
+
+    /**
+     * What a passenger may narrow a search by. Null or false means "do not narrow".
+     *
+     * <p>The last three look at what the driver has said or proved. A driver who has not
+     * said is left out by them: silence is not a promise of a smoke-free car.
+     *
+     * @param earliestHour    boarding at or after this hour of the corridor's day, 0 to 23
+     * @param latestHour      boarding before this hour, 1 to 24
+     * @param maxPricePerSeat for the stretch the passenger would travel
+     * @param confirmedDriver the driver has confirmed an email address or a phone number
+     */
+    public record Filters(Integer earliestHour, Integer latestHour, BigDecimal maxPricePerSeat,
+            boolean instantOnly, boolean confirmedDriver, boolean smokeFree, boolean petsWelcome) {
+
+        public static final Filters NONE = new Filters(null, null, null, false, false, false, false);
+
+        public Filters {
+            if (earliestHour != null && latestHour != null && earliestHour >= latestHour) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "The earliest hour must be before the latest");
+            }
         }
     }
 
@@ -326,6 +356,12 @@ public class RideService {
      */
     public List<Candidate> search(long passengerId, Point origin, Point destination,
             LocalDate date, int seats, Sort sort) {
+        return search(passengerId, origin, destination, date, seats, sort, Filters.NONE);
+    }
+
+    /** As above, narrowed by the filters. A filter never widens what the search returns. */
+    public List<Candidate> search(long passengerId, Point origin, Point destination,
+            LocalDate date, int seats, Sort sort, Filters filters) {
         // Three decimals is about a hundred metres: enough for the research log, without
         // recording anyone's doorstep.
         events.write(EventType.SEARCH_ISSUED, new SearchIssued(passengerId,
@@ -339,7 +375,20 @@ public class RideService {
                 .addValue("dayStart", utc(date.atStartOfDay(CORRIDOR_ZONE).toInstant()))
                 .addValue("dayEnd", utc(date.plusDays(1).atStartOfDay(CORRIDOR_ZONE).toInstant()))
                 .addValue("now", utc(clock.instant()))
-                .addValue("seats", seats);
+                .addValue("seats", seats)
+                .addValue("zone", CORRIDOR_ZONE.getId())
+                .addValue("earliestHour", filters.earliestHour())
+                .addValue("latestHour", filters.latestHour())
+                .addValue("maxPrice", filters.maxPricePerSeat());
+        // Each fragment is a constant chosen by a flag; caller values are bound, never spliced.
+        String boardingHour = "EXTRACT(HOUR FROM (" + BOARDING + ") AT TIME ZONE :zone)";
+        String narrowed = (filters.earliestHour() == null ? "" : " AND " + boardingHour + " >= :earliestHour")
+                + (filters.latestHour() == null ? "" : " AND " + boardingHour + " < :latestHour")
+                + (filters.maxPricePerSeat() == null ? "" : " AND legs.price <= :maxPrice")
+                + (filters.instantOnly() ? " AND r.instant_booking" : "")
+                + (filters.confirmedDriver() ? " AND " + DRIVER_CONFIRMED : "")
+                + (filters.smokeFree() ? " AND p.smoking IS FALSE" : "")
+                + (filters.petsWelcome() ? " AND p.pets IS TRUE" : "");
         // sort.orderBy is one of four constants above, never caller text.
         List<Candidate> candidates = named.query("""
                 WITH want AS (
@@ -359,11 +408,14 @@ public class RideService {
                            r.departure_time + make_interval(mins => d.offset_minutes) AS arrival,
                            ST_Distance(o.location, want.origin) AS pickup_m,
                            ST_Distance(d.location, want.destination) AS dropoff_m,
-                           legs.price, legs.seats
+                           legs.price, legs.seats,
+                           """ + DRIVER_CONFIRMED + """
+                                AS driver_confirmed
                     FROM want
                     JOIN ride_stops o ON ST_DWithin(o.location, want.origin, :radius)
                     JOIN rides r ON r.id = o.ride_id
                     JOIN users u ON u.id = r.driver_id
+                    LEFT JOIN profiles p ON p.user_id = r.driver_id
                     JOIN ride_stops d ON d.ride_id = r.id AND d.seq > o.seq
                                      AND ST_DWithin(d.location, want.destination, :radius)
                     CROSS JOIN LATERAL (
@@ -376,6 +428,7 @@ public class RideService {
                       AND r.departure_time + make_interval(mins => o.offset_minutes) < :dayEnd
                       AND r.departure_time + make_interval(mins => o.offset_minutes) > :now
                       AND legs.seats >= :seats
+                    """ + narrowed + """
                     ORDER BY r.id,
                              ST_Distance(o.location, want.origin)
                                  + ST_Distance(d.location, want.destination)
@@ -393,7 +446,8 @@ public class RideService {
                             rs.getBigDecimal("price"), rs.getInt("seats"), fare, fee, fare.add(fee),
                             rs.getLong("driver_id"), (Double) rs.getObject("driver_rating"),
                             rs.getInt("driver_rating_count"),
-                            Math.round(rs.getDouble("pickup_m")), Math.round(rs.getDouble("dropoff_m")));
+                            Math.round(rs.getDouble("pickup_m")), Math.round(rs.getDouble("dropoff_m")),
+                            rs.getBoolean("driver_confirmed"));
                 });
 
         events.write(EventType.CANDIDATES_RETURNED, new CandidatesReturned(passengerId,
