@@ -260,6 +260,120 @@ class RoutingIntegrationTest extends PostgresIntegrationTest {
         }
     }
 
+    @Test
+    void aRideItsReturnAndTheirWeeklyRepeatsArePublishedTogether() {
+        long driverId = user(UserRole.DRIVER);
+        Instant back = day.atTime(18, 0).atZone(ZONE).toInstant();
+
+        Ride first = rides.publish(driverId, series(driverId, morning, "  Two small bags each, please.  ",
+                true, back, 2));
+
+        assertThat(first.seriesSize()).isEqualTo(6);
+        assertThat(first.notes()).isEqualTo("Two small bags each, please.");
+        assertThat(first.maxTwoInBack()).isTrue();
+        List<Ride> all = jdbc.queryForList(
+                        "SELECT id FROM rides WHERE driver_id = ? ORDER BY departure_time", Long.class, driverId)
+                .stream().map(rides::get).toList();
+        assertThat(all).extracting(Ride::departureTime).containsExactly(
+                morning, back,
+                morning.plus(Duration.ofDays(7)), back.plus(Duration.ofDays(7)),
+                morning.plus(Duration.ofDays(14)), back.plus(Duration.ofDays(14)));
+        assertThat(all).allSatisfy(ride -> {
+            assertThat(ride.seriesSize()).isEqualTo(6);
+            assertThat(ride.status()).isEqualTo("SCHEDULED");
+            assertThat(ride.maxTwoInBack()).isTrue();
+        });
+
+        // The way out is as given. The way back is the same stops in reverse, each
+        // interval and each price belonging to the same stretch of road.
+        Ride out = all.get(0);
+        Ride home = all.get(1);
+        assertThat(out.stops()).extracting(s -> s.name()).containsExactly("Stop 1", "Stop 2", "Stop 3");
+        assertThat(out.segments()).extracting(s -> s.price().intValue()).containsExactly(200, 300);
+        assertThat(home.stops()).extracting(s -> s.name()).containsExactly("Stop 3", "Stop 2", "Stop 1");
+        assertThat(home.stops()).extracting(s -> s.departureTime()).containsExactly(
+                back, back.plus(Duration.ofMinutes(150)), back.plus(Duration.ofMinutes(240)));
+        assertThat(home.segments()).extracting(s -> s.price().intValue()).containsExactly(300, 200);
+        assertThat(home.stops().get(0).lat()).isEqualTo(PUNE.lat());
+
+        // Each is a ride of its own: withdrawing one leaves the others.
+        long passenger = user(UserRole.PASSENGER);
+        assertThat(rides.search(passenger, PUNE, KOLHAPUR, day, 1, Sort.TIME))
+                .extracting(Candidate::rideId).containsExactly(home.id());
+        assertThat(rides.search(passenger, KOLHAPUR, PUNE, day.plusDays(7), 1, Sort.TIME)).hasSize(1);
+    }
+
+    @Test
+    void aSeriesThatCannotBeDrivenPublishesNothing() {
+        long driverId = user(UserRole.DRIVER);
+        // 240 minutes out: a return at 11:59 leaves before the car has arrived.
+        Instant tooSoon = morning.plus(Duration.ofMinutes(239));
+
+        assertThatThrownBy(() -> rides.publish(driverId, series(driverId, morning, null, false, tooSoon, 0)))
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST));
+        assertThatThrownBy(() -> rides.publish(driverId, series(driverId, morning, null, false, null, 9)))
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST));
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM rides WHERE driver_id = ?", Integer.class,
+                driverId)).isZero();
+
+        // Alone, a ride belongs to no series and says nothing about itself.
+        Ride alone = rides.publish(driverId, series(driverId, morning, " ", false, null, 0));
+        assertThat(alone.seriesSize()).isEqualTo(1);
+        assertThat(alone.notes()).isNull();
+        assertThat(alone.maxTwoInBack()).isFalse();
+    }
+
+    @Test
+    void theBackSeatPromiseIsShownAndCanBeSearchedFor() throws Exception {
+        long driverId = user(UserRole.DRIVER);
+        long roomy = rides.publish(driverId, series(driverId, morning, null, true, null, 0)).id();
+        long full = ride(user(UserRole.DRIVER), morning.plus(Duration.ofHours(1)), "250.00", KOLHAPUR, PUNE);
+
+        assertThat(found(Filters.NONE)).containsExactly(roomy, full);
+        assertThat(found(new Filters(null, null, null, false, false, false, false, true)))
+                .containsExactly(roomy);
+        assertThat(rides.search(passengerId, KOLHAPUR, PUNE, day, 1, Sort.TIME))
+                .extracting(Candidate::maxTwoInBack).containsExactly(true, false);
+
+        String driver = "Bearer " + tokens.issue(driverId, UserRole.DRIVER);
+        long vehicleId = vehicles.create(driverId, "Maruti", "Ertiga", 2022, "Silver", 7).id();
+        String body = "{\"vehicleId\": " + vehicleId + ", \"departureTime\": \"" + morning.plus(Duration.ofDays(1))
+                + "\", \"seatsOffered\": 3, \"instantBooking\": true, \"segmentPrices\": [400],"
+                + " \"stops\": [{\"name\": \"Kolhapur\", \"lat\": 16.705, \"lon\": 74.2433, \"offsetMinutes\": 0},"
+                + " {\"name\": \"Pune\", \"lat\": 18.5204, \"lon\": 73.8567, \"offsetMinutes\": 270}]%s}";
+        mvc.perform(post("/api/v1/rides").header("Authorization", driver).contentType("application/json")
+                        .content(String.format(body, ", \"repeatWeeks\": 1, \"notes\": \"No luggage on the roof.\"")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.seriesSize").value(2))
+                .andExpect(jsonPath("$.notes").value("No luggage on the roof."))
+                .andExpect(jsonPath("$.maxTwoInBack").value(false));
+        for (String bad : List.of(", \"repeatWeeks\": 9", ", \"repeatWeeks\": -1",
+                ", \"notes\": \"" + "x".repeat(501) + "\"")) {
+            mvc.perform(post("/api/v1/rides").header("Authorization", driver).contentType("application/json")
+                            .content(String.format(body, bad)))
+                    .andExpect(status().isBadRequest());
+        }
+        mvc.perform(get("/api/v1/rides/search?originLat=16.7050&originLon=74.2433&destLat=18.5204"
+                        + "&destLon=73.8567&date=" + day + "&maxTwoInBack=true")
+                        .header("Authorization", "Bearer " + tokens.issue(passengerId, UserRole.PASSENGER)))
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].maxTwoInBack").value(true));
+    }
+
+    /** Kolhapur, Karad, Pune at 0, 90 and 240 minutes, for 200 and then 300 a seat. */
+    private PublishRide series(long driverId, Instant departure, String notes, boolean maxTwoInBack,
+            Instant returnDeparture, int repeatWeeks) {
+        long vehicleId = vehicles.create(driverId, "Maruti", "Ertiga", 2022, "Silver", 7).id();
+        return new PublishRide(vehicleId, departure, 3, true,
+                List.of(new StopInput("Stop 1", KOLHAPUR.lat(), KOLHAPUR.lon(), 0),
+                        new StopInput("Stop 2", KARAD.lat(), KARAD.lon(), 90),
+                        new StopInput("Stop 3", PUNE.lat(), PUNE.lon(), 240)),
+                List.of(new BigDecimal("200.00"), new BigDecimal("300.00")),
+                notes, maxTwoInBack, returnDeparture, repeatWeeks);
+    }
+
     private List<Long> found(Filters filters) {
         return rides.search(passengerId, KOLHAPUR, PUNE, day, 1, Sort.TIME, filters).stream()
                 .map(Candidate::rideId).toList();

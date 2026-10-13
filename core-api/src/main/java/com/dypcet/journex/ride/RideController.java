@@ -56,7 +56,11 @@ public class RideController {
             @NotNull @Size(min = 2, max = 10) List<@Valid @NotNull StopRequest> stops,
             @NotNull @Size(min = 1, max = 9)
             List<@NotNull @DecimalMin("0") @Digits(integer = 6, fraction = 2) BigDecimal>
-                    segmentPrices) {
+                    segmentPrices,
+            @Size(max = 500) String notes,
+            boolean maxTwoInBack,
+            Instant returnDepartureTime,
+            @Min(0) @Max(8) int repeatWeeks) {
     }
 
     public record PointRequest(
@@ -84,7 +88,8 @@ public class RideController {
                 .toList();
         return rides.publish(CurrentUser.id(jwt), new PublishRide(request.vehicleId(),
                 request.departureTime(), request.seatsOffered(), request.instantBooking(),
-                stops, request.segmentPrices()));
+                stops, request.segmentPrices(), request.notes(), request.maxTwoInBack(),
+                request.returnDepartureTime(), request.repeatWeeks()));
     }
 
     /** The road route through some stops and a suggested price per leg, before publishing. */
@@ -110,11 +115,12 @@ public class RideController {
             @RequestParam(defaultValue = "false") boolean instantOnly,
             @RequestParam(defaultValue = "false") boolean confirmedDriver,
             @RequestParam(defaultValue = "false") boolean smokeFree,
-            @RequestParam(defaultValue = "false") boolean petsWelcome) {
+            @RequestParam(defaultValue = "false") boolean petsWelcome,
+            @RequestParam(defaultValue = "false") boolean maxTwoInBack) {
         return rides.search(CurrentUser.id(jwt), new Point(originLat, originLon),
                 new Point(destLat, destLon), date, seats, sort,
                 new Filters(earliestHour, latestHour, maxPrice, instantOnly, confirmedDriver,
-                        smokeFree, petsWelcome));
+                        smokeFree, petsWelcome, maxTwoInBack));
     }
 
     @GetMapping("/mine")

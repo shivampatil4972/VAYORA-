@@ -16,12 +16,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.UUID;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -40,6 +43,7 @@ public class RideService {
     /** The corridor is Kolhapur to Pune; a search date is a calendar day there. */
     private static final ZoneId CORRIDOR_ZONE = ZoneId.of("Asia/Kolkata");
     private static final String BOARDING = "r.departure_time + make_interval(mins => o.offset_minutes)";
+    private static final int MAX_REPEAT_WEEKS = 8;
     private static final String DRIVER_CONFIRMED =
             "(u.email_verified_at IS NOT NULL OR u.phone_verified_at IS NOT NULL)";
 
@@ -47,9 +51,25 @@ public class RideService {
     public record StopInput(String name, double lat, double lon, int offsetMinutes) {
     }
 
-    /** @param segmentPrices price per seat of each leg; one fewer than the stops */
+    /**
+     * @param segmentPrices       price per seat of each leg; one fewer than the stops
+     * @param notes               anything the driver wants passengers to know; may be null
+     * @param maxTwoInBack        the driver promises at most two passengers on the back seat
+     * @param returnDepartureTime when the same stops are driven in reverse, with the same
+     *                            prices and intervals; null for no return ride
+     * @param repeatWeeks         how many further weeks the ride, and its return, are
+     *                            published for at the same time of day
+     */
     public record PublishRide(long vehicleId, Instant departureTime, int seatsOffered,
-            boolean instantBooking, List<StopInput> stops, List<BigDecimal> segmentPrices) {
+            boolean instantBooking, List<StopInput> stops, List<BigDecimal> segmentPrices,
+            String notes, boolean maxTwoInBack, Instant returnDepartureTime, int repeatWeeks) {
+
+        /** One ride, once, with nothing said about it. */
+        public PublishRide(long vehicleId, Instant departureTime, int seatsOffered,
+                boolean instantBooking, List<StopInput> stops, List<BigDecimal> segmentPrices) {
+            this(vehicleId, departureTime, seatsOffered, instantBooking, stops, segmentPrices,
+                    null, false, null, 0);
+        }
     }
 
     public record Stop(int seq, String name, double lat, double lon, Instant departureTime) {
@@ -65,11 +85,14 @@ public class RideService {
      * @param routeSource     {@code OSRM} for a road route, {@code STRAIGHT_LINE} when the
      *                        stops were only joined up; null as above
      * @param path            the route to draw, as [lat, lon] pairs; empty as above
+     * @param seriesSize      how many rides were published together with this one,
+     *                        itself included; 1 for a ride published alone
      */
     public record Ride(long id, long driverId, String driverName, long vehicleId,
             Instant departureTime, int seatsOffered, boolean instantBooking, String status,
             List<Stop> stops, List<Segment> segments, Double distanceKm, Integer durationMinutes,
-            String routeSource, List<double[]> path) {
+            String routeSource, List<double[]> path, String notes, boolean maxTwoInBack,
+            int seriesSize) {
     }
 
     /**
@@ -92,7 +115,7 @@ public class RideService {
             Instant arrivalTime, BigDecimal pricePerSeat, int seatsAvailable, BigDecimal fare,
             BigDecimal serviceFee, BigDecimal total, long driverId, Double driverRating,
             int driverRatingCount, long pickupDistanceM, long dropoffDistanceM,
-            boolean driverConfirmed) {
+            boolean driverConfirmed, boolean maxTwoInBack) {
     }
 
     /**
@@ -129,9 +152,17 @@ public class RideService {
      * @param confirmedDriver the driver has confirmed an email address or a phone number
      */
     public record Filters(Integer earliestHour, Integer latestHour, BigDecimal maxPricePerSeat,
-            boolean instantOnly, boolean confirmedDriver, boolean smokeFree, boolean petsWelcome) {
+            boolean instantOnly, boolean confirmedDriver, boolean smokeFree, boolean petsWelcome,
+            boolean maxTwoInBack) {
 
         public static final Filters NONE = new Filters(null, null, null, false, false, false, false);
+
+        public Filters(Integer earliestHour, Integer latestHour, BigDecimal maxPricePerSeat,
+                boolean instantOnly, boolean confirmedDriver, boolean smokeFree,
+                boolean petsWelcome) {
+            this(earliestHour, latestHour, maxPricePerSeat, instantOnly, confirmedDriver,
+                    smokeFree, petsWelcome, false);
+        }
 
         public Filters {
             if (earliestHour != null && latestHour != null && earliestHour >= latestHour) {
@@ -207,31 +238,70 @@ public class RideService {
         validate(driverId, ride);
         // Asked before anything is written: a slow routing service must not hold locks.
         Route route = routes.through(points(ride.stops()));
+        List<StopInput> stopsBack = ride.returnDepartureTime() == null ? null : reversed(ride.stops());
+        Route routeBack = stopsBack == null ? null : routes.through(points(stopsBack));
+        List<BigDecimal> pricesBack = new ArrayList<>(ride.segmentPrices());
+        Collections.reverse(pricesBack);
 
+        // Published together or not at all: a driver is never left with half a series.
+        UUID seriesId = stopsBack != null || ride.repeatWeeks() > 0 ? UUID.randomUUID() : null;
+        Long first = null;
+        for (int week = 0; week <= ride.repeatWeeks(); week++) {
+            long rideId = insert(driverId, ride, ride.stops(), ride.segmentPrices(),
+                    weeksLater(ride.departureTime(), week), route, seriesId);
+            first = first == null ? rideId : first;
+            if (stopsBack != null) {
+                insert(driverId, ride, stopsBack, pricesBack,
+                        weeksLater(ride.returnDepartureTime(), week), routeBack, seriesId);
+            }
+        }
+        return get(first);
+    }
+
+    private long insert(long driverId, PublishRide ride, List<StopInput> stops,
+            List<BigDecimal> prices, Instant departure, Route route, UUID seriesId) {
+        String notes = ride.notes() == null || ride.notes().isBlank() ? null : ride.notes().strip();
         Long rideId = jdbc.queryForObject("""
                 INSERT INTO rides (driver_id, vehicle_id, departure_time, seats_offered,
                                    instant_booking, status, route, distance_m, duration_s,
-                                   route_source)
-                VALUES (?, ?, ?, ?, ?, 'SCHEDULED', ST_GeogFromText(?), ?, ?, ?) RETURNING id""",
-                Long.class, driverId, ride.vehicleId(), utc(ride.departureTime()),
+                                   route_source, notes, max_two_in_back, series_id)
+                VALUES (?, ?, ?, ?, ?, 'SCHEDULED', ST_GeogFromText(?), ?, ?, ?, ?, ?, ?)
+                RETURNING id""",
+                Long.class, driverId, ride.vehicleId(), utc(departure),
                 ride.seatsOffered(), ride.instantBooking(), lineString(route.path()),
-                route.distanceMetres(), route.durationSeconds(), route.source());
+                route.distanceMetres(), route.durationSeconds(), route.source(), notes,
+                ride.maxTwoInBack(), seriesId);
 
-        for (int seq = 0; seq < ride.stops().size(); seq++) {
-            StopInput stop = ride.stops().get(seq);
+        for (int seq = 0; seq < stops.size(); seq++) {
+            StopInput stop = stops.get(seq);
             jdbc.update("""
                     INSERT INTO ride_stops (ride_id, seq, name, location, offset_minutes)
                     VALUES (?, ?, ?, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)""",
                     rideId, seq, stop.name().strip(), stop.lon(), stop.lat(), stop.offsetMinutes());
         }
-        for (int seq = 0; seq < ride.segmentPrices().size(); seq++) {
+        for (int seq = 0; seq < prices.size(); seq++) {
             jdbc.update("""
                     INSERT INTO ride_segments (ride_id, seq, price, seats_total, seats_available)
                     VALUES (?, ?, ?, ?, ?)""",
-                    rideId, seq, ride.segmentPrices().get(seq), ride.seatsOffered(),
-                    ride.seatsOffered());
+                    rideId, seq, prices.get(seq), ride.seatsOffered(), ride.seatsOffered());
         }
-        return get(rideId);
+        return rideId;
+    }
+
+    /** The same stops driven the other way, each interval between stops kept as it was. */
+    private static List<StopInput> reversed(List<StopInput> stops) {
+        int total = stops.get(stops.size() - 1).offsetMinutes();
+        List<StopInput> back = new ArrayList<>();
+        for (int i = stops.size() - 1; i >= 0; i--) {
+            StopInput stop = stops.get(i);
+            back.add(new StopInput(stop.name(), stop.lat(), stop.lon(), total - stop.offsetMinutes()));
+        }
+        return back;
+    }
+
+    /** The same time of day on the corridor's clock, so many weeks on. */
+    private static Instant weeksLater(Instant time, int weeks) {
+        return time.atZone(CORRIDOR_ZONE).plusWeeks(weeks).toInstant();
     }
 
     /** The route through these stops, with a suggested price for each leg. */
@@ -273,6 +343,16 @@ public class RideService {
                 throw badRequest("Stops must be in travel order with increasing offsetMinutes");
             }
         }
+        if (ride.repeatWeeks() < 0 || ride.repeatWeeks() > MAX_REPEAT_WEEKS) {
+            throw badRequest("A ride can repeat for at most " + MAX_REPEAT_WEEKS + " further weeks");
+        }
+        if (ride.returnDepartureTime() != null) {
+            int lastOffset = ride.stops().get(ride.stops().size() - 1).offsetMinutes();
+            Instant arrival = ride.departureTime().plus(Duration.ofMinutes(lastOffset));
+            if (!ride.returnDepartureTime().isAfter(arrival)) {
+                throw badRequest("The return must leave after the ride out has arrived");
+            }
+        }
     }
 
     public Ride get(long rideId) {
@@ -295,7 +375,11 @@ public class RideService {
         List<Ride> found = jdbc.query("""
                 SELECT r.id, r.driver_id, r.vehicle_id, r.departure_time, r.seats_offered,
                        r.instant_booking, r.status, r.distance_m, r.duration_s, r.route_source,
-                       ST_AsGeoJSON(r.route::geometry) AS route_json, u.full_name
+                       ST_AsGeoJSON(r.route::geometry) AS route_json, u.full_name,
+                       r.notes, r.max_two_in_back,
+                       CASE WHEN r.series_id IS NULL THEN 1
+                            ELSE (SELECT COUNT(*) FROM rides s WHERE s.series_id = r.series_id)
+                       END AS series_size
                 FROM rides r JOIN users u ON u.id = r.driver_id
                 WHERE r.id = ?""",
                 (rs, n) -> new Ride(rs.getLong("id"), rs.getLong("driver_id"),
@@ -305,7 +389,9 @@ public class RideService {
                         rs.getString("status"), stops, segments,
                         rs.getObject("distance_m") == null ? null : km(rs.getDouble("distance_m")),
                         rs.getObject("duration_s") == null ? null : minutes(rs.getDouble("duration_s")),
-                        rs.getString("route_source"), path(rs.getString("route_json"))),
+                        rs.getString("route_source"), path(rs.getString("route_json")),
+                        rs.getString("notes"), rs.getBoolean("max_two_in_back"),
+                        rs.getInt("series_size")),
                 rideId);
         if (found.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ride not found");
@@ -388,7 +474,8 @@ public class RideService {
                 + (filters.instantOnly() ? " AND r.instant_booking" : "")
                 + (filters.confirmedDriver() ? " AND " + DRIVER_CONFIRMED : "")
                 + (filters.smokeFree() ? " AND p.smoking IS FALSE" : "")
-                + (filters.petsWelcome() ? " AND p.pets IS TRUE" : "");
+                + (filters.petsWelcome() ? " AND p.pets IS TRUE" : "")
+                + (filters.maxTwoInBack() ? " AND r.max_two_in_back" : "");
         // sort.orderBy is one of four constants above, never caller text.
         List<Candidate> candidates = named.query("""
                 WITH want AS (
@@ -397,7 +484,7 @@ public class RideService {
                 )
                 SELECT * FROM (
                     SELECT DISTINCT ON (r.id)
-                           r.id, u.full_name, r.instant_booking, r.driver_id,
+                           r.id, u.full_name, r.instant_booking, r.driver_id, r.max_two_in_back,
                            (SELECT AVG(stars)::float8 FROM ratings WHERE ratee_id = r.driver_id)
                                AS driver_rating,
                            (SELECT COUNT(*) FROM ratings WHERE ratee_id = r.driver_id)
@@ -447,7 +534,7 @@ public class RideService {
                             rs.getLong("driver_id"), (Double) rs.getObject("driver_rating"),
                             rs.getInt("driver_rating_count"),
                             Math.round(rs.getDouble("pickup_m")), Math.round(rs.getDouble("dropoff_m")),
-                            rs.getBoolean("driver_confirmed"));
+                            rs.getBoolean("driver_confirmed"), rs.getBoolean("max_two_in_back"));
                 });
 
         events.write(EventType.CANDIDATES_RETURNED, new CandidatesReturned(passengerId,
