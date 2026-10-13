@@ -31,6 +31,9 @@ MEASURES = [
     ("funnel_rates", "booking_rate", "Booking requests per search", 3),
     ("intervention_volume", "contact_rate", "Reconfirmation requests per accepted booking", 3),
     ("intervention_volume", "refilled", "Released seats refilled", 1),
+    ("refill_additionality", "refills_only_option",
+     "Refills by a passenger offered no other ride", 1),
+    ("refill_additionality", "empty_share", "Searches offered no ride", 3),
 ]
 
 

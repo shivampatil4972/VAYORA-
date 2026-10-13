@@ -184,7 +184,8 @@ def test_cancellation_without_departure_time_is_surfaced(sa_conn):
 
 def test_metrics_file_defines_the_expected_queries():
     assert set(load_queries()) == {
-        "primary_metric", "late_cancellation_share", "funnel_rates", "intervention_volume"}
+        "primary_metric", "late_cancellation_share", "funnel_rates", "intervention_volume",
+        "refill_additionality"}
 
 
 def test_intervention_volume_matches_hand_computed_values(sa_conn):
@@ -205,3 +206,48 @@ def test_intervention_volume_matches_hand_computed_values(sa_conn):
     assert (one["asked"], one["released"], one["refilled"]) == (5, 2, 4)
     assert float(one["contact_rate"]) == pytest.approx(0.25)  # 5 / 20
     assert (two["asked"], two["contact_rate"]) == (0, None)
+
+
+def test_refill_additionality_matches_hand_computed_values(sa_conn):
+    later = NOW + 5 * H
+
+    def event(seed, event_type, payload, when=NOW, variant=VARIANT):
+        return {"run_id": RUN_ID, "variant": variant, "seed": seed, "sim_time": when,
+                "event_type": event_type, "payload": json.dumps(payload)}
+
+    def search(seed, search_id, offered, booking_id=None, refill=False, when=NOW, variant=VARIANT):
+        rows = [event(seed, "candidates_returned", {"search_id": search_id, "count": offered},
+                      when, variant)]
+        if booking_id is not None:
+            rows.append(event(seed, "booking_requested",
+                              {"search_id": search_id, "booking_id": booking_id}, when, variant))
+        if refill:
+            rows.append(event(seed, "seat_refilled", {"booking_id": booking_id}, when, variant))
+        return rows
+
+    rows = []
+    # Seed 1: six answers, two of them empty. Three refills: one by a passenger offered
+    # only that ride, one offered three, and one on a repeat search.
+    rows += search(1, 1, 0)
+    rows += search(1, 2, 1, booking_id=10, refill=True)
+    rows += search(1, 3, 3, booking_id=11, refill=True)
+    rows += search(1, 4, 2, booking_id=12)              # booked, but no released seat
+    # Search 5 found nothing, then on its repeat was offered one ride and took a released
+    # seat on it. The repeat reuses the search id: the booking belongs to the later answer.
+    rows += search(1, 5, 0)
+    rows += search(1, 5, 1, booking_id=13, refill=True, when=later)
+    # Seed 2: searches, no refills at all.
+    rows += search(2, 1, 2, booking_id=20)
+    rows += search(2, 2, 0)
+    # Another variant in the same run must not leak in.
+    rows += search(1, 9, 1, booking_id=99, refill=True, variant="B1")
+    sa_conn.execute(INSERT, rows)
+
+    one, two = run_query(sa_conn, "refill_additionality", run_id=RUN_ID, variant=VARIANT)
+
+    assert (one["searches_shown"], one["shown_nothing"]) == (6, 2)
+    assert float(one["empty_share"]) == pytest.approx(2 / 6)
+    assert (one["refills"], one["refills_only_option"]) == (3, 2)
+    assert float(one["only_option_share"]) == pytest.approx(2 / 3)
+    assert (two["searches_shown"], two["shown_nothing"], two["refills"],
+            two["refills_only_option"], two["only_option_share"]) == (2, 1, 0, 0, None)
