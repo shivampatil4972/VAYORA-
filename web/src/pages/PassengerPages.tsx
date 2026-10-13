@@ -35,11 +35,20 @@ interface Filters {
   maxPrice: string;
   instantOnly: boolean;
   confirmedDriver: boolean;
+  maxTwoInBack: boolean;
   smokeFree: boolean;
   petsWelcome: boolean;
 }
 
-const NO_FILTERS: Filters = { dayPart: 'ANY', maxPrice: '', instantOnly: false, confirmedDriver: false, smokeFree: false, petsWelcome: false };
+const NO_FILTERS: Filters = {
+  dayPart: 'ANY',
+  maxPrice: '',
+  instantOnly: false,
+  confirmedDriver: false,
+  maxTwoInBack: false,
+  smokeFree: false,
+  petsWelcome: false,
+};
 
 /** Only the filters that are set become query parameters. */
 function filterParams(filters: Filters): Record<string, string> {
@@ -48,7 +57,7 @@ function filterParams(filters: Filters): Record<string, string> {
   if (earliestHour !== null) params.earliestHour = String(earliestHour);
   if (latestHour !== null) params.latestHour = String(latestHour);
   if (filters.maxPrice.trim() !== '' && Number(filters.maxPrice) >= 0) params.maxPrice = String(Number(filters.maxPrice));
-  for (const flag of ['instantOnly', 'confirmedDriver', 'smokeFree', 'petsWelcome'] as const) {
+  for (const flag of ['instantOnly', 'confirmedDriver', 'maxTwoInBack', 'smokeFree', 'petsWelcome'] as const) {
     if (filters[flag]) params[flag] = 'true';
   }
   return params;
@@ -104,6 +113,13 @@ function RideRoute({ rideId, fromSeq, toSeq }: { rideId: number; fromSeq: number
             ? t('The whole ride is {km} km by road.', { km: ride.data.distanceKm })
             : t('The whole ride is about {km} km in a straight line; the road distance is not available.', { km: ride.data.distanceKm }))}
       </p>
+      {ride.data.notes && (
+        <p className="text-sm text-slate-700">
+          <span className="font-medium">{t('From the driver:')}</span>{' '}
+          {/* Rendered as text: notes are whatever the driver typed. */}
+          <span className="whitespace-pre-wrap">{ride.data.notes}</span>
+        </p>
+      )}
     </div>
   );
 }
@@ -295,6 +311,7 @@ export function SearchPage() {
                   [
                     ['instantOnly', msg('Confirm instantly')],
                     ['confirmedDriver', msg('Have a driver with a confirmed email or phone')],
+                    ['maxTwoInBack', msg('Promise at most two in the back')],
                     ['smokeFree', msg('Have a driver who said no smoking')],
                     ['petsWelcome', msg('Have a driver who said pets are welcome')],
                   ] as const
@@ -390,6 +407,7 @@ export function SearchPage() {
                       </Link>{' '}
                       · <RatingSummary average={candidate.driverRating} count={candidate.driverRatingCount} />
                       {candidate.driverConfirmed && ` · ${t('Contact confirmed')}`}
+                      {candidate.maxTwoInBack && ` · ${t('At most two in the back')}`}
                     </p>
                     <p className="mt-1 text-sm text-slate-600">
                       {candidate.seatsAvailable === 1

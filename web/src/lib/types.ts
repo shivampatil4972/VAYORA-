@@ -61,6 +61,12 @@ export interface Ride {
   routeSource: RouteSource | null;
   /** [lat, lon] pairs. */
   path: [number, number][];
+  /** Whatever the driver typed for passengers; null if nothing. */
+  notes: string | null;
+  /** The driver's promise of at most two passengers on the back seat. */
+  maxTwoInBack: boolean;
+  /** Rides published together with this one, itself included. */
+  seriesSize: number;
 }
 
 export type RouteSource = 'OSRM' | 'STRAIGHT_LINE';
@@ -103,6 +109,7 @@ export interface Candidate {
   dropoffDistanceM: number;
   /** The driver confirmed an email address or a phone number. Not an identity check. */
   driverConfirmed: boolean;
+  maxTwoInBack: boolean;
 }
 
 /** The newest durability estimate of one live booking. Administrators only. */

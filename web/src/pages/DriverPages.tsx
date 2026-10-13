@@ -13,7 +13,7 @@ import { api } from '../lib/api';
 import { CORRIDOR } from '../lib/corridor';
 import { formatDateTime, formatRupees, formatTime } from '../lib/format';
 import { msg, useT, useUnits } from '../lib/i18n';
-import { rideSchema, toPublishRequest, vehicleSchema, type RideForm, type VehicleForm } from '../lib/schemas';
+import { rideSchema, toPublishRequest, vehicleSchema, type RideForm, type VehicleForm, MAX_REPEAT_WEEKS, ridesPublished } from '../lib/schemas';
 import type { Booking, Ride, RoutePreview, Settlement, Vehicle } from '../lib/types';
 
 const useVehicles = () => useQuery({ queryKey: ['vehicles'], queryFn: () => api<Vehicle[]>('/vehicles') });
@@ -200,6 +200,10 @@ export function PublishRidePage() {
       departure: '',
       seatsOffered: 3,
       instantBooking: true,
+      maxTwoInBack: false,
+      notes: '',
+      returnDeparture: '',
+      repeatWeeks: 0,
       stops: CORRIDOR.map((stop, index) => ({
         // The two ends by default; the driver adds the towns in between.
         included: index === 0 || index === CORRIDOR.length - 1,
@@ -219,6 +223,7 @@ export function PublishRidePage() {
   });
 
   const stops = watch('stops');
+  const publishing = ridesPublished({ returnDeparture: watch('returnDeparture'), repeatWeeks: watch('repeatWeeks') });
   const firstIncluded = stops.findIndex((stop) => stop.included);
   const stopsError = formState.errors.stops as { root?: { message?: string }; message?: string } | undefined;
   const stopsMessage = stopsError?.root?.message ?? stopsError?.message;
@@ -270,6 +275,44 @@ export function PublishRidePage() {
                 <input type="checkbox" className="h-4 w-4 rounded border-slate-300" {...register('instantBooking')} />
                 {t('Confirm bookings instantly, without asking me')}
               </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700 sm:col-span-2">
+                <input type="checkbox" className="h-4 w-4 rounded border-slate-300" {...register('maxTwoInBack')} />
+                {t('I promise at most two passengers on the back seat')}
+              </label>
+              <div className="sm:col-span-2">
+                <label htmlFor="ride-notes" className="block text-sm font-medium text-slate-700">
+                  {t('Notes for passengers (optional)')}
+                </label>
+                <textarea
+                  id="ride-notes"
+                  rows={2}
+                  maxLength={500}
+                  aria-invalid={Boolean(formState.errors.notes)}
+                  className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/40"
+                  {...register('notes')}
+                />
+                <p className="mt-1 text-sm text-slate-500">{t('Luggage, where exactly you wait, anything they should know.')}</p>
+              </div>
+              <TextField
+                label={t('Return ride leaving at (optional)')}
+                type="datetime-local"
+                hint={t('The same stops in reverse, with the same prices and the same time between stops.')}
+                error={formState.errors.returnDeparture?.message}
+                {...register('returnDeparture')}
+              />
+              <SelectField label={t('Repeat every week')} hint={t('At the same time of day. Each is a separate ride you can withdraw on its own.')} {...register('repeatWeeks')}>
+                <option value={0}>{t('No, just this once')}</option>
+                {Array.from({ length: MAX_REPEAT_WEEKS }, (_, index) => index + 1).map((weeks) => (
+                  <option key={weeks} value={weeks}>
+                    {weeks === 1 ? t('For {n} more week', { n: weeks }) : t('For {n} more weeks', { n: weeks })}
+                  </option>
+                ))}
+              </SelectField>
+              {publishing > 1 && (
+                <p role="status" className="text-sm font-medium text-slate-700 sm:col-span-2">
+                  {t('This will publish {n} rides.', { n: publishing })}
+                </p>
+              )}
             </div>
 
             <fieldset>
@@ -378,6 +421,9 @@ export function RidesPage() {
                     : t('About {km} km in a straight line (road distance unavailable)', { km: ride.distanceKm })}
                 </p>
               )}
+              {ride.maxTwoInBack && <p className="mt-1 text-sm text-slate-600">{t('At most two in the back')}</p>}
+              {/* Rendered as text: notes are whatever the driver typed. */}
+              {ride.notes && <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600">{ride.notes}</p>}
               <p className="mt-2">
                 <StatusBadge status={ride.status} />
               </p>

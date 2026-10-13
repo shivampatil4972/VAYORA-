@@ -613,4 +613,37 @@ export const hi: Record<string, string> = {
     'उस दिन इन फ़िल्टरों के साथ कोई सवारी नहीं मिली। कम फ़िल्टर, दूसरी तारीख या दूसरे स्थान आज़माएँ।',
   'Contact confirmed':
     'संपर्क की पुष्टि हुई',
+  // Ride notes, return and repeated rides
+  'At most 500 characters':
+    'अधिकतम 500 अक्षर',
+  'The return must leave after you have arrived':
+    'वापसी आपके पहुँचने के बाद ही निकल सकती है',
+  'I promise at most two passengers on the back seat':
+    'मैं वादा करता/करती हूँ कि पिछली सीट पर अधिकतम दो यात्री होंगे',
+  'Notes for passengers (optional)':
+    'यात्रियों के लिए सूचना (वैकल्पिक)',
+  'Luggage, where exactly you wait, anything they should know.':
+    'सामान, आप ठीक कहाँ इंतज़ार करेंगे, जो भी उन्हें जानना चाहिए।',
+  'Return ride leaving at (optional)':
+    'वापसी की सवारी का समय (वैकल्पिक)',
+  'The same stops in reverse, with the same prices and the same time between stops.':
+    'वही पड़ाव उल्टे क्रम में, वही कीमतें और पड़ावों के बीच वही समय।',
+  'Repeat every week':
+    'हर हफ़्ते दोहराएँ',
+  'At the same time of day. Each is a separate ride you can withdraw on its own.':
+    'दिन के उसी समय। हर एक अलग सवारी है जिसे आप अलग से वापस ले सकते हैं।',
+  'No, just this once':
+    'नहीं, केवल इस बार',
+  'For {n} more week':
+    '{n} और हफ़्ते के लिए',
+  'For {n} more weeks':
+    '{n} और हफ़्तों के लिए',
+  'This will publish {n} rides.':
+    'इससे {n} सवारियाँ प्रकाशित होंगी।',
+  'At most two in the back':
+    'पीछे अधिकतम दो यात्री',
+  'Promise at most two in the back':
+    'पीछे अधिकतम दो यात्रियों का वादा करती हैं',
+  'From the driver:':
+    'चालक की ओर से:',
 };

@@ -44,12 +44,24 @@ export const vehicleSchema = z.object({
 });
 export type VehicleForm = z.infer<typeof vehicleSchema>;
 
+/** How many further weeks a ride can be repeated for. The server enforces the same limit. */
+export const MAX_REPEAT_WEEKS = 8;
+
+/** How many rides the form will publish: out and back, for each week. */
+export const ridesPublished = (form: Pick<RideForm, 'returnDeparture' | 'repeatWeeks'>): number =>
+  (form.returnDeparture === '' ? 1 : 2) * (Number(form.repeatWeeks) + 1);
+
 export const rideSchema = z
   .object({
     vehicleId: z.coerce.number().int().positive(msg('Choose a vehicle')),
     departure: z.string().min(1, msg('Choose when you leave')),
     seatsOffered: z.coerce.number().int().min(1, msg('Offer at least 1 seat')).max(8, msg('At most 8 seats')),
     instantBooking: z.boolean(),
+    maxTwoInBack: z.boolean(),
+    notes: z.string().max(500, msg('At most 500 characters')),
+    // Empty for no return ride.
+    returnDeparture: z.string(),
+    repeatWeeks: z.coerce.number().int().min(0).max(MAX_REPEAT_WEEKS),
     // One entry per corridor stop, in travel order. The numbers are checked below, and
     // only for stops the driver included: an unticked stop's fields are hidden, so an
     // error on one could never be seen or fixed.
@@ -70,6 +82,13 @@ export const rideSchema = z
       context.addIssue({ code: 'custom', path: ['departure'], message: msg('Choose a time in the future') });
     }
     const included = form.stops.map((stop, index) => ({ ...stop, index })).filter((stop) => stop.included);
+    if (form.returnDeparture !== '' && included.length >= 2) {
+      const drive = (included[included.length - 1].offsetMinutes - included[0].offsetMinutes) * 60_000;
+      // NaN compares false, so an unreadable time is refused here too.
+      if (!(Date.parse(form.returnDeparture) > Date.parse(form.departure) + drive)) {
+        context.addIssue({ code: 'custom', path: ['returnDeparture'], message: msg('The return must leave after you have arrived') });
+      }
+    }
     if (included.length < 2) {
       context.addIssue({ code: 'custom', path: ['stops'], message: msg('A ride needs at least two stops') });
     }
@@ -118,5 +137,9 @@ export function toPublishRequest(form: RideForm) {
       offsetMinutes: stop.offsetMinutes - start,
     })),
     segmentPrices: included.slice(1).map((stop) => stop.priceFromPrevious),
+    notes: form.notes.trim(),
+    maxTwoInBack: form.maxTwoInBack,
+    returnDepartureTime: form.returnDeparture === '' ? null : new Date(form.returnDeparture).toISOString(),
+    repeatWeeks: form.repeatWeeks,
   };
 }

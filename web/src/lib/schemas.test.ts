@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { registerSchema, rideSchema, searchSchema, toPublishRequest, vehicleSchema, type RideForm } from './schemas';
+import { registerSchema, rideSchema, ridesPublished, searchSchema, toPublishRequest, vehicleSchema, type RideForm } from './schemas';
 
 const messages = (result: { success: boolean; error?: { issues: { message: string }[] } }) =>
   result.error?.issues.map((issue) => issue.message) ?? [];
@@ -13,6 +13,10 @@ function ride(overrides: Partial<RideForm> = {}): RideForm {
     departure: tomorrow(),
     seatsOffered: 3,
     instantBooking: true,
+    maxTwoInBack: false,
+    notes: '',
+    returnDeparture: '',
+    repeatWeeks: 0,
     stops: [
       { included: true, lat: 16.705, lon: 74.2433, offsetMinutes: 0, priceFromPrevious: 0 },
       { included: false, lat: 17.289, lon: 74.1818, offsetMinutes: 75, priceFromPrevious: 0 },
@@ -134,5 +138,50 @@ describe('toPublishRequest', () => {
 
   it('sends the departure as an absolute instant', () => {
     expect(toPublishRequest(ride()).departureTime).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+  });
+});
+
+describe('return and repeated rides', () => {
+  // A datetime-local value so many hours after the ride leaves. Such a value has no zone
+  // and is read as local time, so it has to be written as local time too.
+  const after = (hours: number) => {
+    const at = new Date(Date.parse(tomorrow()) + hours * 3600 * 1000);
+    return new Date(at.getTime() - at.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+  };
+
+  it('sends no return and no repeat unless asked, and trims the notes', () => {
+    const body = toPublishRequest(ride({ notes: '  Two bags each.  ', maxTwoInBack: true }));
+
+    expect(body).toMatchObject({ notes: 'Two bags each.', maxTwoInBack: true, returnDepartureTime: null, repeatWeeks: 0 });
+  });
+
+  it('sends the return as an instant and the number of further weeks', () => {
+    const returnDeparture = after(8);
+
+    const body = toPublishRequest(ride({ returnDeparture, repeatWeeks: 3 }));
+
+    expect(body.returnDepartureTime).toBe(new Date(returnDeparture).toISOString());
+    expect(body.repeatWeeks).toBe(3);
+  });
+
+  it('refuses a return that leaves before the ride out has arrived', () => {
+    // The ride out takes 270 minutes.
+    expect(messages(rideSchema.safeParse(ride({ returnDeparture: after(4) })))).toEqual(['The return must leave after you have arrived']);
+    expect(messages(rideSchema.safeParse(ride({ returnDeparture: after(4.5) })))).toEqual(['The return must leave after you have arrived']);
+    expect(rideSchema.safeParse(ride({ returnDeparture: after(5) })).success).toBe(true);
+    expect(messages(rideSchema.safeParse(ride({ returnDeparture: 'soon' })))).toEqual(['The return must leave after you have arrived']);
+  });
+
+  it('refuses more weeks than the server allows and notes that are too long', () => {
+    expect(rideSchema.safeParse(ride({ repeatWeeks: 8 })).success).toBe(true);
+    expect(rideSchema.safeParse(ride({ repeatWeeks: 9 })).success).toBe(false);
+    expect(messages(rideSchema.safeParse(ride({ notes: 'x'.repeat(501) })))).toEqual(['At most 500 characters']);
+  });
+
+  it('counts the rides a form will publish', () => {
+    expect(ridesPublished({ returnDeparture: '', repeatWeeks: 0 })).toBe(1);
+    expect(ridesPublished({ returnDeparture: after(8), repeatWeeks: 0 })).toBe(2);
+    expect(ridesPublished({ returnDeparture: '', repeatWeeks: 2 })).toBe(3);
+    expect(ridesPublished({ returnDeparture: after(8), repeatWeeks: 2 })).toBe(6);
   });
 });

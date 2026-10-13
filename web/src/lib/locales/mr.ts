@@ -613,4 +613,37 @@ export const mr: Record<string, string> = {
     'त्या दिवशी या फिल्टरसह कोणताही प्रवास मिळाला नाही. कमी फिल्टर, दुसरी तारीख किंवा दुसरी ठिकाणे वापरून पहा.',
   'Contact confirmed':
     'संपर्काची खात्री झाली',
+  // Ride notes, return and repeated rides
+  'At most 500 characters':
+    'जास्तीत जास्त 500 अक्षरे',
+  'The return must leave after you have arrived':
+    'परतीचा प्रवास तुम्ही पोहोचल्यानंतरच निघू शकतो',
+  'I promise at most two passengers on the back seat':
+    'मागच्या सीटवर जास्तीत जास्त दोन प्रवासी असतील असे मी वचन देतो/देते',
+  'Notes for passengers (optional)':
+    'प्रवाशांसाठी सूचना (ऐच्छिक)',
+  'Luggage, where exactly you wait, anything they should know.':
+    'सामान, तुम्ही नेमके कुठे थांबाल, त्यांना माहीत असावे असे काहीही.',
+  'Return ride leaving at (optional)':
+    'परतीच्या प्रवासाची वेळ (ऐच्छिक)',
+  'The same stops in reverse, with the same prices and the same time between stops.':
+    'तेच थांबे उलट क्रमाने, त्याच किमती आणि थांब्यांमधील तोच वेळ.',
+  'Repeat every week':
+    'दर आठवड्याला पुन्हा',
+  'At the same time of day. Each is a separate ride you can withdraw on its own.':
+    'दिवसाच्या त्याच वेळी. प्रत्येक स्वतंत्र प्रवास आहे, जो तुम्ही वेगळा मागे घेऊ शकता.',
+  'No, just this once':
+    'नाही, फक्त या वेळी',
+  'For {n} more week':
+    'आणखी {n} आठवड्यासाठी',
+  'For {n} more weeks':
+    'आणखी {n} आठवड्यांसाठी',
+  'This will publish {n} rides.':
+    'यामुळे {n} प्रवास प्रकाशित होतील.',
+  'At most two in the back':
+    'मागे जास्तीत जास्त दोन प्रवासी',
+  'Promise at most two in the back':
+    'मागे जास्तीत जास्त दोन प्रवाशांचे वचन देतात',
+  'From the driver:':
+    'चालकाकडून:',
 };

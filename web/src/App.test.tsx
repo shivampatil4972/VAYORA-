@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
@@ -79,6 +79,7 @@ const candidate: Candidate = {
   pickupDistanceM: 1992,
   dropoffDistanceM: 0,
   driverConfirmed: false,
+  maxTwoInBack: false,
 };
 
 const rideWithRoute = {
@@ -1196,5 +1197,42 @@ describe('search filters', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Search' }));
 
     expect(await screen.findByText(/Try fewer filters/)).toBeInTheDocument();
+  });
+});
+
+describe('ride notes, return rides and weekly repeats', () => {
+  it('says how many rides a return and weekly repeats will publish', async () => {
+    signIn('DRIVER');
+    serve({ 'GET /vehicles': () => json([{ id: 3, make: 'Maruti', model: 'Ertiga', year: 2022, colour: 'Silver', seats: 7 }]) });
+    open('/rides/new');
+
+    const repeat = await screen.findByLabelText('Repeat every week');
+    expect(screen.queryByText(/This will publish/)).not.toBeInTheDocument(); // one ride needs no warning
+    await userEvent.selectOptions(repeat, 'For 2 more weeks');
+    expect(await screen.findByText('This will publish 3 rides.')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Return ride leaving at (optional)'), { target: { value: '2030-01-01T18:00' } });
+    expect(await screen.findByRole('status')).toHaveTextContent('This will publish 6 rides.');
+    expect(screen.getByLabelText('I promise at most two passengers on the back seat')).not.toBeChecked();
+    expect(screen.getByLabelText('Notes for passengers (optional)')).toHaveValue('');
+  });
+
+  it('shows the back-seat promise on a result and the driver\'s notes with the route, as text', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({
+      'GET /rides/search': () => json([{ ...candidate, maxTwoInBack: true }]),
+      'GET /rides/12': () => json({ ...rideWithRoute, notes: 'Two bags each. <b>No</b> smoking.', maxTwoInBack: true, seriesSize: 1 }),
+    });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Filters' }));
+    await userEvent.click(screen.getByLabelText('Promise at most two in the back'));
+    await userEvent.click(screen.getByRole('button', { name: 'Search' }));
+
+    expect(await screen.findByText(/At most two in the back/)).toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('maxTwoInBack=true'))).toBe(true);
+    await userEvent.click(screen.getByRole('button', { name: 'Show route' }));
+    expect(await screen.findByText('From the driver:')).toBeInTheDocument();
+    expect(screen.getByText('Two bags each. <b>No</b> smoking.')).toBeInTheDocument(); // the tag is shown, not obeyed
   });
 });
