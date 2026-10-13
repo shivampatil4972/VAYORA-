@@ -6,12 +6,13 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { SimulatedPaymentNotice } from '../components/payment';
 import { RateForm } from '../components/rating';
+import { RouteMap } from '../components/RouteMap';
 import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, StatusBadge, TextField } from '../components/ui';
 import { api } from '../lib/api';
 import { CORRIDOR } from '../lib/corridor';
-import { formatDateTime, formatRupees, formatTime } from '../lib/format';
+import { formatDateTime, formatDuration, formatRupees, formatTime } from '../lib/format';
 import { rideSchema, toPublishRequest, vehicleSchema, type RideForm, type VehicleForm } from '../lib/schemas';
-import type { Booking, Ride, Settlement, Vehicle } from '../lib/types';
+import type { Booking, Ride, RoutePreview, Settlement, Vehicle } from '../lib/types';
 
 const useVehicles = () => useQuery({ queryKey: ['vehicles'], queryFn: () => api<Vehicle[]>('/vehicles') });
 
@@ -86,11 +87,96 @@ export function VehiclesPage() {
   );
 }
 
+/**
+ * Shows the road route through the chosen stops, lets the driver move a meeting point by
+ * clicking the map, and offers prices and timings worked out from the route.
+ */
+function RoutePlanner({ stops, onMove, onUse }: {
+  stops: RideForm['stops'];
+  onMove: (index: number, lat: number, lon: number) => void;
+  onUse: (included: number[], preview: RoutePreview) => void;
+}) {
+  const included = stops.map((stop, index) => ({ ...stop, index })).filter((stop) => stop.included);
+  const [moving, setMoving] = useState<number | null>(null);
+  const target = included.some((stop) => stop.index === moving) ? moving! : included[0]?.index;
+  const preview = useMutation({
+    mutationFn: () =>
+      api<RoutePreview>('/rides/route-preview', {
+        method: 'POST',
+        body: { stops: included.map((stop) => ({ lat: Number(stop.lat), lon: Number(stop.lon) })) },
+      }),
+  });
+
+  if (included.length < 2) return null;
+  return (
+    <fieldset className="space-y-3">
+      <legend className="text-sm font-medium text-slate-700">Route and meeting points</legend>
+      <div className="max-w-xs">
+        <SelectField
+          label="A click on the map moves the meeting point for"
+          value={target}
+          onChange={(event) => setMoving(Number(event.target.value))}
+          hint="Each starts at the town centre. Put it where passengers should actually find you."
+        >
+          {included.map((stop) => (
+            <option key={stop.index} value={stop.index}>
+              {CORRIDOR[stop.index].name}
+            </option>
+          ))}
+        </SelectField>
+      </div>
+      <RouteMap
+        path={preview.data?.path}
+        points={included.map((stop) => ({
+          lat: Number(stop.lat),
+          lon: Number(stop.lon),
+          label: `${CORRIDOR[stop.index].name} meeting point`,
+          emphasis: stop.index === target,
+        }))}
+        onPick={(lat, lon) => {
+          if (target !== undefined) onMove(target, lat, lon);
+          preview.reset(); // the route shown no longer matches the pins
+        }}
+        describe={`Map of your stops: ${included.map((stop) => CORRIDOR[stop.index].name).join(', ')}`}
+      />
+      <div className="flex flex-wrap items-center gap-3">
+        <Button tone="secondary" disabled={preview.isPending} onClick={() => preview.mutate()}>
+          {preview.isPending ? 'Working out the route…' : 'Work out the route'}
+        </Button>
+        {preview.data && (
+          <Button tone="secondary" onClick={() => onUse(included.map((stop) => stop.index), preview.data)}>
+            Use the suggested prices and times
+          </Button>
+        )}
+      </div>
+      {preview.error && <Notice tone="error">{preview.error.message}</Notice>}
+      {preview.data && (
+        <div className="text-sm text-slate-700">
+          <p role="status">
+            {preview.data.source === 'OSRM'
+              ? `${preview.data.distanceKm} km by road, about ${formatDuration(preview.data.durationMinutes)} of driving.`
+              : `About ${preview.data.distanceKm} km in a straight line. The routing service is unavailable, so this is not a road distance and the times are rough guesses.`}
+          </p>
+          <ul className="mt-1 list-disc pl-5">
+            {preview.data.legs.map((leg, i) => (
+              <li key={included[i + 1].index}>
+                {CORRIDOR[included[i].index].name} to {CORRIDOR[included[i + 1].index].name}: {leg.distanceKm} km,{' '}
+                {formatDuration(leg.durationMinutes)}, suggested {formatRupees(leg.suggestedPrice)} a seat
+              </li>
+            ))}
+          </ul>
+          <p className="mt-1 text-slate-500">The suggestion is distance times a flat rate. The price is yours to set.</p>
+        </div>
+      )}
+    </fieldset>
+  );
+}
+
 export function PublishRidePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const vehicles = useVehicles();
-  const { register, handleSubmit, formState, watch } = useForm<RideForm>({
+  const { register, handleSubmit, formState, watch, setValue } = useForm<RideForm>({
     resolver: zodResolver(rideSchema),
     defaultValues: {
       departure: '',
@@ -99,6 +185,8 @@ export function PublishRidePage() {
       stops: CORRIDOR.map((stop, index) => ({
         // The two ends by default; the driver adds the towns in between.
         included: index === 0 || index === CORRIDOR.length - 1,
+        lat: stop.lat,
+        lon: stop.lon,
         offsetMinutes: stop.typicalOffsetMinutes,
         priceFromPrevious: 0,
       })),
@@ -208,6 +296,23 @@ export function PublishRidePage() {
               </div>
             </fieldset>
 
+            <RoutePlanner
+              stops={stops}
+              onMove={(index, lat, lon) => {
+                setValue(`stops.${index}.lat`, lat);
+                setValue(`stops.${index}.lon`, lon);
+              }}
+              onUse={(included, preview) => {
+                // Timings run on from the first stop's own offset; prices are per leg.
+                let minutes = Number(stops[included[0]].offsetMinutes);
+                preview.legs.forEach((leg, i) => {
+                  minutes += leg.durationMinutes;
+                  setValue(`stops.${included[i + 1]}.offsetMinutes`, minutes);
+                  setValue(`stops.${included[i + 1]}.priceFromPrevious`, leg.suggestedPrice);
+                });
+              }}
+            />
+
             <Button type="submit" disabled={publish.isPending}>
               {publish.isPending ? 'Publishing…' : 'Publish ride'}
             </Button>
@@ -245,6 +350,13 @@ export function RidesPage() {
               <p className="mt-1 text-sm text-slate-600">
                 Leaves {formatDateTime(ride.departureTime)} · {ride.instantBooking ? 'Instant booking' : 'You approve requests'}
               </p>
+              {ride.distanceKm !== null && ride.durationMinutes !== null && (
+                <p className="mt-1 text-sm text-slate-600">
+                  {ride.routeSource === 'OSRM'
+                    ? `${ride.distanceKm} km by road, about ${formatDuration(ride.durationMinutes)}`
+                    : `About ${ride.distanceKm} km in a straight line (road distance unavailable)`}
+                </p>
+              )}
               <p className="mt-2">
                 <StatusBadge status={ride.status} />
               </p>

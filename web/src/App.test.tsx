@@ -76,6 +76,34 @@ const candidate: Candidate = {
   driverId: 7,
   driverRating: 4.6667,
   driverRatingCount: 3,
+  pickupDistanceM: 1992,
+  dropoffDistanceM: 0,
+};
+
+const rideWithRoute = {
+  id: 12,
+  driverId: 7,
+  driverName: 'Ravi Jadhav',
+  vehicleId: 3,
+  departureTime: '2026-11-02T01:30:00Z',
+  seatsOffered: 3,
+  instantBooking: false,
+  status: 'SCHEDULED',
+  stops: [
+    { seq: 0, name: 'Kolhapur', lat: 16.705, lon: 74.2433, departureTime: '2026-11-02T01:30:00Z' },
+    { seq: 1, name: 'Satara', lat: 17.6805, lon: 74.0183, departureTime: '2026-11-02T03:40:00Z' },
+    { seq: 2, name: 'Pune', lat: 18.5204, lon: 73.8567, departureTime: '2026-11-02T06:00:00Z' },
+  ],
+  segments: [],
+  distanceKm: 235.9,
+  durationMinutes: 203,
+  routeSource: 'OSRM',
+  path: [
+    [16.705, 74.2433],
+    [17.2, 74.2],
+    [17.6805, 74.0183],
+    [18.5204, 73.8567],
+  ],
 };
 
 const booking: Booking = {
@@ -210,7 +238,7 @@ describe('finding and booking a ride', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Service unavailable');
 
     await userEvent.click(screen.getByRole('button', { name: 'Try again' }));
-    expect(await screen.findByText(/No rides match/)).toBeInTheDocument();
+    expect(await screen.findByText(/No rides have a stop near both ends/)).toBeInTheDocument();
   });
 
   it('shows why a booking failed and leaves the results in place', async () => {
@@ -446,6 +474,120 @@ describe('reporting and moderation', () => {
     const row = (await screen.findByText('report suspend')).closest('tr')!;
     expect(within(row).getByText('report #4')).toBeInTheDocument();
     expect(within(row).getByText('{"reason": "FRAUD"}')).toBeInTheDocument();
+  });
+});
+
+describe('maps, routes and location search', () => {
+  const searchUrls = (fetchMock: ReturnType<typeof serve>) =>
+    fetchMock.mock.calls.map(([url]) => new URL(String(url))).filter((url) => url.pathname.endsWith('/rides/search'));
+
+  it('searches from the town centres, and re-searches when the order is changed', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({ 'GET /rides/search': () => json([candidate]) });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+    expect(await screen.findByText(/Pickup 2\.0 km from your start · drop-off 0 m from your destination/)).toBeInTheDocument();
+    const first = searchUrls(fetchMock)[0].searchParams;
+    expect([first.get('originLat'), first.get('originLon')]).toEqual(['16.705', '74.2433']);
+    expect([first.get('destLat'), first.get('destLon')]).toEqual(['18.5204', '73.8567']);
+    expect(first.get('sort')).toBe('TIME');
+
+    await userEvent.selectOptions(screen.getByLabelText('Sort by'), 'Nearest pickup');
+    await screen.findByText(/Pickup 2\.0 km/);
+    const urls = searchUrls(fetchMock);
+    expect(urls[urls.length - 1].searchParams.get('sort')).toBe('PROXIMITY');
+  });
+
+  it('uses a point chosen on the map in place of the town centre, and can go back', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({ 'GET /rides/search': () => json([]) });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Choose exact points on a map' }));
+    await userEvent.click(screen.getByRole('button', { name: 'click the map' }));
+    expect(screen.getByText(/a point you chose \(17\.3070, 74\.1900\)/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Search' }));
+
+    await screen.findByText(/No rides have a stop near both ends/);
+    const sent = searchUrls(fetchMock)[0].searchParams;
+    expect([sent.get('originLat'), sent.get('originLon')]).toEqual(['17.307', '74.19']);
+    expect(sent.get('destLat')).toBe('18.5204'); // the destination is still the town
+
+    await userEvent.click(screen.getByRole('button', { name: 'Use the centre of Kolhapur instead' }));
+    expect(screen.getByText('Start: the centre of Kolhapur')).toBeInTheDocument();
+  });
+
+  it('shows the route of a result, with where to board, on request', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({
+      'GET /rides/search': () => json([candidate]),
+      'GET /rides/12': () => json(rideWithRoute),
+    });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+    await screen.findByRole('button', { name: 'Show route' });
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith('/rides/12'))).toBe(false); // not until asked
+    await userEvent.click(screen.getByRole('button', { name: 'Show route' }));
+
+    expect(await screen.findByText('Board here: Kolhapur')).toBeInTheDocument();
+    expect(screen.getByText('Get off here: Pune')).toBeInTheDocument();
+    expect(screen.getByTestId('route')).toHaveAttribute('data-points', '4');
+    expect(screen.getByText(/The whole ride is 235\.9 km by road\./)).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Map of the ride through Kolhapur, Satara, Pune' })).toBeInTheDocument();
+  });
+
+  it('does not call a straight-line estimate a road distance', async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /bookings': () => json([{ ...booking, status: 'CONFIRMED' }]),
+      'GET /rides/12': () => json({ ...rideWithRoute, routeSource: 'STRAIGHT_LINE', distanceKm: 204.1 }),
+    });
+    open('/bookings');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Show meeting point' }));
+
+    expect(await screen.findByText(/about 204\.1 km in a straight line; the road distance is not available/)).toBeInTheDocument();
+    expect(screen.getByText(/Board at Kolhapur, leaving/)).toBeInTheDocument();
+  });
+
+  it('lets a driver work out the route, take the suggested prices, and move a meeting point', async () => {
+    signIn('DRIVER');
+    const fetchMock = serve({
+      'GET /vehicles': () => json([{ id: 3, make: 'Maruti', model: 'Ertiga', year: 2022, colour: 'Silver', seats: 7 }]),
+      'POST /rides/route-preview': () =>
+        json({
+          distanceKm: 230,
+          durationMinutes: 191,
+          source: 'OSRM',
+          legs: [{ distanceKm: 230, durationMinutes: 191, suggestedPrice: 460 }],
+          path: [
+            [16.705, 74.2433],
+            [18.5204, 73.8567],
+          ],
+        }),
+    });
+    open('/rides/new');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Work out the route' }));
+    expect(await screen.findByText('230 km by road, about 3 h 11 min of driving.')).toBeInTheDocument();
+    expect(screen.getByText(/Kolhapur to Pune: 230 km, 3 h 11 min, suggested ₹460 a seat/)).toBeInTheDocument();
+    const asked = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/rides/route-preview'))!;
+    expect(JSON.parse(asked[1]!.body as string)).toEqual({
+      stops: [
+        { lat: 16.705, lon: 74.2433 },
+        { lat: 18.5204, lon: 73.8567 },
+      ],
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Use the suggested prices and times' }));
+    expect(screen.getByLabelText('Price to Pune (₹)')).toHaveValue(460);
+    expect(screen.getByLabelText('Minutes from Kolhapur to Pune')).toHaveValue(191);
+
+    // Moving a pin invalidates the route that was shown.
+    await userEvent.click(screen.getByRole('button', { name: 'click the map' }));
+    expect(screen.queryByText(/230 km by road/)).not.toBeInTheDocument();
   });
 });
 

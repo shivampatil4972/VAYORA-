@@ -55,6 +55,9 @@ export const rideSchema = z
     stops: z.array(
       z.object({
         included: z.boolean(),
+        // Where passengers meet the driver. Starts at the town centre; the driver can move it.
+        lat: z.coerce.number(),
+        lon: z.coerce.number(),
         offsetMinutes: z.coerce.number(),
         // Price per seat of the leg that ends at this stop.
         priceFromPrevious: z.coerce.number(),
@@ -108,8 +111,8 @@ export function toPublishRequest(form: RideForm) {
     instantBooking: form.instantBooking,
     stops: included.map((stop) => ({
       name: stop.place.name,
-      lat: stop.place.lat,
-      lon: stop.place.lon,
+      lat: stop.lat,
+      lon: stop.lon,
       // The server wants minutes after departure, and the ride departs from its first stop.
       offsetMinutes: stop.offsetMinutes - start,
     })),

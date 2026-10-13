@@ -54,6 +54,26 @@ export interface Ride {
   status: RideStatus;
   stops: Stop[];
   segments: Segment[];
+  /** Null on a ride with no recorded route. */
+  distanceKm: number | null;
+  durationMinutes: number | null;
+  /** `STRAIGHT_LINE` means the stops were only joined up: not a road distance. */
+  routeSource: RouteSource | null;
+  /** [lat, lon] pairs. */
+  path: [number, number][];
+}
+
+export type RouteSource = 'OSRM' | 'STRAIGHT_LINE';
+
+export type SearchSort = 'TIME' | 'PRICE' | 'RATING' | 'PROXIMITY';
+
+/** A route through some stops before a ride is published, with a suggested price per leg. */
+export interface RoutePreview {
+  distanceKm: number;
+  durationMinutes: number;
+  source: RouteSource;
+  legs: { distanceKm: number; durationMinutes: number; suggestedPrice: number }[];
+  path: [number, number][];
 }
 
 /** One search result: a ride and the stretch of it the passenger would travel. */
@@ -78,6 +98,9 @@ export interface Candidate {
   /** Null until somebody has rated the driver. */
   driverRating: number | null;
   driverRatingCount: number;
+  /** Straight-line metres between the passenger's points and the stops used. */
+  pickupDistanceM: number;
+  dropoffDistanceM: number;
 }
 
 /** The newest durability estimate of one live booking. Administrators only. */

@@ -14,10 +14,10 @@ function ride(overrides: Partial<RideForm> = {}): RideForm {
     seatsOffered: 3,
     instantBooking: true,
     stops: [
-      { included: true, offsetMinutes: 0, priceFromPrevious: 0 },
-      { included: false, offsetMinutes: 75, priceFromPrevious: 0 },
-      { included: true, offsetMinutes: 130, priceFromPrevious: 270 },
-      { included: true, offsetMinutes: 270, priceFromPrevious: 250 },
+      { included: true, lat: 16.705, lon: 74.2433, offsetMinutes: 0, priceFromPrevious: 0 },
+      { included: false, lat: 17.289, lon: 74.1818, offsetMinutes: 75, priceFromPrevious: 0 },
+      { included: true, lat: 17.6805, lon: 74.0183, offsetMinutes: 130, priceFromPrevious: 270 },
+      { included: true, lat: 18.5204, lon: 73.8567, offsetMinutes: 270, priceFromPrevious: 250 },
     ],
     ...overrides,
   };
@@ -86,7 +86,7 @@ describe('rideSchema', () => {
     expect(messages(rideSchema.safeParse(ride({ stops })))).toContain('Must be later than the stop before');
 
     const skippedIsIgnored = ride().stops;
-    skippedIsIgnored[1] = { included: false, offsetMinutes: 9999, priceFromPrevious: 0 };
+    skippedIsIgnored[1] = { ...skippedIsIgnored[1], included: false, offsetMinutes: 9999 };
     expect(rideSchema.safeParse(ride({ stops: skippedIsIgnored })).success).toBe(true);
   });
 
@@ -114,13 +114,22 @@ describe('toPublishRequest', () => {
   it('measures offsets from the first included stop when the ride starts mid-corridor', () => {
     const stops = ride().stops;
     stops[0] = { ...stops[0], included: false };
-    stops[1] = { included: true, offsetMinutes: 75, priceFromPrevious: 0 };
+    stops[1] = { ...stops[1], included: true };
 
     const body = toPublishRequest(ride({ stops }));
 
     expect(body.stops.map((stop) => stop.name)).toEqual(['Karad', 'Satara', 'Pune']);
     expect(body.stops.map((stop) => stop.offsetMinutes)).toEqual([0, 55, 195]);
     expect(body.segmentPrices).toEqual([270, 250]);
+  });
+
+  it('sends a meeting point the driver moved, under the town it belongs to', () => {
+    const stops = ride().stops;
+    stops[2] = { ...stops[2], lat: 17.6912, lon: 74.0001 };
+
+    const body = toPublishRequest(ride({ stops }));
+
+    expect(body.stops[1]).toMatchObject({ name: 'Satara', lat: 17.6912, lon: 74.0001 });
   });
 
   it('sends the departure as an absolute instant', () => {
