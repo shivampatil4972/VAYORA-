@@ -1824,3 +1824,25 @@ describe('after a trip', () => {
     expect(screen.getByText(/Nothing has been reversed/)).toBeInTheDocument();
   });
 });
+
+describe('more search filters', () => {
+  it('sends a price floor, preferences and car minimums only when set', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({ 'GET /rides/search': () => json([candidate]) });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Filters' }));
+    await userEvent.type(screen.getByLabelText('Cost at least, per seat (₹)'), '300');
+    await userEvent.selectOptions(screen.getByLabelText('Comfort at least'), 'Comfortable');
+    await userEvent.selectOptions(screen.getByLabelText('Room for luggage, at least'), 'A medium bag each');
+    await userEvent.click(screen.getByLabelText('Have a driver who prefers a quiet ride'));
+    await userEvent.click(screen.getByRole('button', { name: 'Search' }));
+
+    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/rides/search'))).toBe(true));
+    const sent = new URL(String(fetchMock.mock.calls.find(([url]) => String(url).includes('/rides/search'))![0]));
+    expect(Object.fromEntries(sent.searchParams)).toMatchObject({
+      minPrice: '300', comfortAtLeast: 'COMFORT', luggageAtLeast: 'MEDIUM', quietRide: 'true',
+    });
+    expect(sent.searchParams.has('musicWelcome')).toBe(false);
+  });
+});

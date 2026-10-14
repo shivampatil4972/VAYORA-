@@ -36,7 +36,6 @@ Ordered by value to the research question first, then by size.
 | 88 | Cascade-aware recovery | Re-offer a cancelled ride's passengers another ride | Medium |
 | 89 | Corridor demand calibration | Needs real demand figures to calibrate against, which do not exist | Blocked on data |
 | 95 | Driver reliability self-view | Computed from data already kept | Small |
-| 33, 37 | Minimum price; music, conversation, vehicle filters | Data exists | Small |
 | 9 | Experience levels | Needs the levels defined | Small |
 | 26 | Recurring rides as a schedule | Edit or withdraw a whole series | Medium |
 | 74 | Admin ride and booking browser | Screens over data that exists | Medium |

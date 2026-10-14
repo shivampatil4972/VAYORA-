@@ -15,9 +15,9 @@ import { api } from '../lib/api';
 import { CORRIDOR } from '../lib/corridor';
 import { answerBy, formatDateTime, formatRupees, formatTime, todayInCorridor } from '../lib/format';
 import { msg, useT, useUnits } from '../lib/i18n';
-import { vehiclePhrases } from '../lib/vehicle';
+import { comfortLabels, luggageLabels, vehiclePhrases } from '../lib/vehicle';
 import { searchSchema, type SearchForm } from '../lib/schemas';
-import type { Booking, Candidate, MyProfile, PaymentMethod, RequestTerms, Ride, SearchSort, SeatHold } from '../lib/types';
+import type { Booking, Candidate, Comfort, Luggage, MyProfile, PaymentMethod, RequestTerms, Ride, SearchSort, SeatHold } from '../lib/types';
 
 interface LatLon {
   lat: number;
@@ -36,6 +36,11 @@ interface Filters {
   dayPart: keyof typeof DAY_PARTS;
   /** Per seat, as typed. Empty means no limit. */
   maxPrice: string;
+  minPrice: string;
+  comfortAtLeast: Comfort | '';
+  luggageAtLeast: Luggage | '';
+  musicWelcome: boolean;
+  quietRide: boolean;
   instantOnly: boolean;
   confirmedDriver: boolean;
   maxTwoInBack: boolean;
@@ -47,6 +52,11 @@ interface Filters {
 const NO_FILTERS: Filters = {
   dayPart: 'ANY',
   maxPrice: '',
+  minPrice: '',
+  comfortAtLeast: '',
+  luggageAtLeast: '',
+  musicWelcome: false,
+  quietRide: false,
   instantOnly: false,
   confirmedDriver: false,
   maxTwoInBack: false,
@@ -62,7 +72,10 @@ function filterParams(filters: Filters): Record<string, string> {
   if (earliestHour !== null) params.earliestHour = String(earliestHour);
   if (latestHour !== null) params.latestHour = String(latestHour);
   if (filters.maxPrice.trim() !== '' && Number(filters.maxPrice) >= 0) params.maxPrice = String(Number(filters.maxPrice));
-  for (const flag of ['instantOnly', 'confirmedDriver', 'maxTwoInBack', 'womenOnly', 'smokeFree', 'petsWelcome'] as const) {
+  if (filters.minPrice.trim() !== '' && Number(filters.minPrice) >= 0) params.minPrice = String(Number(filters.minPrice));
+  if (filters.comfortAtLeast) params.comfortAtLeast = filters.comfortAtLeast;
+  if (filters.luggageAtLeast) params.luggageAtLeast = filters.luggageAtLeast;
+  for (const flag of ['instantOnly', 'confirmedDriver', 'maxTwoInBack', 'womenOnly', 'smokeFree', 'petsWelcome', 'musicWelcome', 'quietRide'] as const) {
     if (filters[flag]) params[flag] = 'true';
   }
   return params;
@@ -326,6 +339,37 @@ export function SearchPage() {
                   value={filters.maxPrice}
                   onChange={(event) => setFilters({ ...filters, maxPrice: event.target.value })}
                 />
+                <TextField
+                  label={t('Cost at least, per seat (₹)')}
+                  type="number"
+                  min={0}
+                  value={filters.minPrice}
+                  onChange={(event) => setFilters({ ...filters, minPrice: event.target.value })}
+                />
+                <SelectField
+                  label={t('Comfort at least')}
+                  value={filters.comfortAtLeast}
+                  onChange={(event) => setFilters({ ...filters, comfortAtLeast: event.target.value as Comfort | '' })}
+                >
+                  <option value="">{t('Any')}</option>
+                  {(Object.keys(comfortLabels) as Comfort[]).map((key) => (
+                    <option key={key} value={key}>
+                      {t(comfortLabels[key])}
+                    </option>
+                  ))}
+                </SelectField>
+                <SelectField
+                  label={t('Room for luggage, at least')}
+                  value={filters.luggageAtLeast}
+                  onChange={(event) => setFilters({ ...filters, luggageAtLeast: event.target.value as Luggage | '' })}
+                >
+                  <option value="">{t('Any')}</option>
+                  {(Object.keys(luggageLabels) as Luggage[]).map((key) => (
+                    <option key={key} value={key}>
+                      {t(luggageLabels[key])}
+                    </option>
+                  ))}
+                </SelectField>
                 {(
                   [
                     ['instantOnly', msg('Confirm instantly')],
@@ -333,6 +377,8 @@ export function SearchPage() {
                     ['maxTwoInBack', msg('Promise at most two in the back')],
                     ['smokeFree', msg('Have a driver who said no smoking')],
                     ['petsWelcome', msg('Have a driver who said pets are welcome')],
+                    ['musicWelcome', msg('Have a driver who likes music on the way')],
+                    ['quietRide', msg('Have a driver who prefers a quiet ride')],
                   ] as const
                 ).map(([flag, label]) => (
                   <label key={flag} className="flex items-center gap-2 text-sm">

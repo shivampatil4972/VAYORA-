@@ -68,11 +68,11 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 30 | Search by origin, destination, date, and seats | TBD | TBD | Verified (API and UI tests): by location, date and seats. A stop must be within 5 km of each end |
 | 31 | Segment booking at stopovers | TBD | TBD | Verified (API and UI tests) |
 | 32 | Departure-time filter | TBD | TBD | Verified (API and UI tests): by hour in the API; the screen offers morning, afternoon and evening |
-| 33 | Price-range filter | TBD | TBD | Partial: a maximum price per seat, API and UI tested; no minimum |
+| 33 | Price-range filter | TBD | TBD | Verified (API and UI tests): lowest and highest price per seat |
 | 34 | Instant-booking filter | TBD | TBD | Verified (API and UI tests): only rides that confirm at once |
 | 35 | Verified-profile filter | TBD | TBD | Partial: only drivers with a confirmed email or phone, API and UI tested. Confirmation is by simulated code; no identity is checked |
 | 36 | Maximum-two-in-the-back filter | TBD | TBD | Verified (API and UI tests) |
-| 37 | Amenity filters | TBD | TBD | Partial: no-smoking and pets-welcome, from what the driver said about themselves, API and UI tested. Nothing about the vehicle |
+| 37 | Amenity filters | TBD | TBD | Verified (API and UI tests): no smoking, pets, music, quiet ride, and minimum comfort and luggage. All from what drivers said; a driver who said nothing never matches |
 | 38 | Sorting by price, time, rating, and pickup proximity | TBD | TBD | Verified (API and UI tests): by time, price, driver rating or pickup distance |
 | 39 | Pickup-point map | TBD | TBD | Verified: a result's route with the boarding stop marked. UI tested with a stand-in map; the real map has not been seen in a browser |
 | 40 | Booking request and driver approval | TBD | TBD | Verified (API and UI tests): request, cancel, and the driver accepting or declining through the page. An unanswered request closes after 12 hours or 2 hours before boarding, refunded in full (API, UI and live) |

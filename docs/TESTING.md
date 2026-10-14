@@ -4,9 +4,9 @@ Counts are from the runs on 2026-10-13. Every suite passed with no failures.
 
 | Suite | Command, from the repository root | Tests |
 |---|---|---|
-| core-api | `docker compose --profile test run --rm core-api-tests` | 168 |
+| core-api | `docker compose --profile test run --rm core-api-tests` | 169 |
 | Python (events, simulator, model, scheduler, experiments, intel API) | `docker compose --profile research run --rm research` | 168 |
-| web | `cd web && npm ci && npm test` | 153 |
+| web | `cd web && npm ci && npm test` | 154 |
 | gateway | `cd gateway && npm ci && npm test` | 25 |
 
 The first two need only Docker. The Python suite also needs PostgreSQL running:
@@ -37,7 +37,7 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 | `BoardingIntegrationTest` | 4 | **The driver can check a code but is never sent it**, nobody else gets the pass, none for a cancelled booking, codes vary |
 | `AfterTripIntegrationTest` | 3 | A passenger confirms once and a denial reaches the administrators; only the trip's own passenger, only once completed; **one rating reminder per side, however often the job runs** |
 | `RouteServiceTest` | 7 | OSRM request and response, caching, **an outage gives straight lines labelled as such**, great-circle distance |
-| `RoutingIntegrationTest` | 12 | **A ride, its return and their weekly repeats are published together or not at all**, the return reverses stops, intervals and prices, the back-seat promise and its filter, **Each search filter narrows and none widens; a driver who has not said is not assumed smoke-free**, impossible filters are a 400, route stored on a ride, **the access distance is a hard limit**, direction, the four sort orders, coarse positions in the event log, route preview and price suggestion, the Redis cache |
+| `RoutingIntegrationTest` | 13 | Price floor, music, quiet ride, comfort and luggage minimums, **A ride, its return and their weekly repeats are published together or not at all**, the return reverses stops, intervals and prices, the back-seat promise and its filter, **Each search filter narrows and none widens; a driver who has not said is not assumed smoke-free**, impossible filters are a 400, route stored on a ride, **the access distance is a hard limit**, direction, the four sort orders, coarse positions in the event log, route preview and price suggestion, the Redis cache |
 | `HazardScoringIntegrationTest` | 5 | Feature snapshot and history, one score per booking per day, which bookings are scored, **model outage changes nothing**, administrators only |
 | `IntelHazardScorerTest` | 4 | Request contract with intel; outage, wrong feature version and invalid probability all yield no score |
 | `ApiIntegrationTest` | 7 | 401 without a token, hashed passwords, bad credentials, role checks, another user's booking is invisible, **a bad query is a 400, not a 500**, full journey over HTTP, CORS |

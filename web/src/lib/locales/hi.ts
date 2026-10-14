@@ -837,4 +837,17 @@ export const hi: Record<string, string> = {
     'चालक',
   'disputed {time}':
     '{time} को आपत्ति',
+  // More search filters
+  'Cost at least, per seat (₹)':
+    'प्रति सीट न्यूनतम कीमत (₹)',
+  'Comfort at least':
+    'न्यूनतम आराम',
+  'Any':
+    'कोई भी',
+  'Room for luggage, at least':
+    'सामान के लिए न्यूनतम जगह',
+  'Have a driver who likes music on the way':
+    'जिनके चालक को रास्ते में संगीत पसंद है',
+  'Have a driver who prefers a quiet ride':
+    'जिनके चालक को शांत सफर पसंद है',
 };
