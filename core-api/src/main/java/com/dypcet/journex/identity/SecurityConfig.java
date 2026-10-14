@@ -68,7 +68,9 @@ public class SecurityConfig {
             @Value("${journex.cors.allowed-origins}") List<String> allowedOrigins) {
         CorsConfiguration cors = new CorsConfiguration();
         cors.setAllowedOrigins(allowedOrigins);
-        cors.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
+        // Every method a controller uses. A method missing here works in tests and fails
+        // in a browser, which asks permission first.
+        cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         cors.setAllowedHeaders(List.of("Authorization", "Content-Type", "Idempotency-Key"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", cors);

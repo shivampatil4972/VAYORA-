@@ -218,6 +218,22 @@ class ApiIntegrationTest extends PostgresIntegrationTest {
                         .header("Access-Control-Request-Headers", "authorization,content-type"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"));
+        // A browser asks before every method that is not a plain GET or POST. Each one a
+        // screen uses has to be allowed, or that screen works everywhere except a browser.
+        for (String[] call : new String[][] {{"PUT", "/api/v1/me/profile"},
+                {"DELETE", "/api/v1/me/emergency-contacts/1"}, {"DELETE", "/api/v1/holds/mine"}}) {
+            mvc.perform(options(call[1])
+                            .header("Origin", "http://localhost:5173")
+                            .header("Access-Control-Request-Method", call[0])
+                            .header("Access-Control-Request-Headers", "authorization,content-type"))
+                    .andExpect(status().isOk())
+                    .andExpect(header().string("Access-Control-Allow-Methods",
+                            org.hamcrest.Matchers.containsString(call[0])));
+        }
+        mvc.perform(options("/api/v1/bookings")
+                        .header("Origin", "http://localhost:5173")
+                        .header("Access-Control-Request-Method", "PATCH"))
+                .andExpect(status().isForbidden());
         mvc.perform(options("/api/v1/bookings")
                         .header("Origin", "https://evil.example")
                         .header("Access-Control-Request-Method", "POST"))
