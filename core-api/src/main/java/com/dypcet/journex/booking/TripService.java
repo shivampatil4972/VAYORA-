@@ -15,12 +15,14 @@ import com.dypcet.journex.notification.NotificationService.Type;
 import com.dypcet.journex.payment.PaymentService;
 import com.dypcet.journex.payment.PaymentService.RefundReason;
 import com.dypcet.journex.payment.PaymentService.SettlementReason;
+import com.dypcet.journex.referral.ReferralService;
 import com.dypcet.journex.ride.RideService;
 import com.dypcet.journex.routing.RouteService.Point;
 import com.dypcet.journex.ride.RideService.Candidate;
 import com.dypcet.journex.ride.RideService.Ride;
 import java.time.Clock;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -73,6 +75,7 @@ public class TripService {
     private static final ZoneId CORRIDOR_ZONE = ZoneId.of("Asia/Kolkata");
 
     private final JdbcTemplate jdbc;
+    private final ReferralService referrals;
     private final BookingService bookings;
     private final PaymentService payments;
     private final NotificationService notifications;
@@ -84,7 +87,8 @@ public class TripService {
     public TripService(JdbcTemplate jdbc, BookingService bookings, PaymentService payments,
             NotificationService notifications, RideService rides,
             EventLogService events, Clock clock,
-            @Value("${journex.trip.early-start}") Duration earlyStart) {
+            @Value("${journex.trip.early-start}") Duration earlyStart, ReferralService referrals) {
+        this.referrals = referrals;
         this.jdbc = jdbc;
         this.bookings = bookings;
         this.payments = payments;
@@ -158,6 +162,7 @@ public class TripService {
             throw conflict("Only a ride in progress can be completed");
         }
         setStatus(rideId, "COMPLETED");
+        List<Long> travelled = new ArrayList<>();
         for (Booking booking : bookings.lockAll(rideId, BookingStatus.CONFIRMED)) {
             bookings.move(booking, BookingStatus.COMPLETED);
             payments.captureInFull(booking.id(), driverId, SettlementReason.TRIP_COMPLETED);
@@ -166,7 +171,11 @@ public class TripService {
                             + " is complete. You can rate your driver in My bookings.", booking.id());
             events.write(EventType.TRIP_COMPLETED,
                     new Trip(booking.id(), rideId, booking.passengerId(), driverId));
+            travelled.add(booking.passengerId());
         }
+        // A completed trip qualifies anyone among them who was referred.
+        travelled.add(driverId);
+        referrals.qualify(travelled);
         return rides.get(rideId);
     }
 

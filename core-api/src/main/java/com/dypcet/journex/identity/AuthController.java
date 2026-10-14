@@ -1,6 +1,7 @@
 package com.dypcet.journex.identity;
 
 import com.dypcet.journex.identity.IdentityService.User;
+import com.dypcet.journex.referral.ReferralService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -25,7 +26,9 @@ public class AuthController {
             // BCrypt reads at most 72 bytes.
             @NotBlank @Size(min = 8, max = 72) String password,
             @NotBlank @Size(max = 100) String fullName,
-            @NotNull UserRole role) {
+            @NotNull UserRole role,
+            // Optional: the code of the member who invited them.
+            @Size(max = 20) String referralCode) {
     }
 
     public record LoginRequest(@NotBlank String email, @NotBlank String password) {
@@ -36,17 +39,31 @@ public class AuthController {
 
     private final IdentityService identity;
     private final TokenService tokens;
+    private final ReferralService referrals;
 
-    public AuthController(IdentityService identity, TokenService tokens) {
+    public AuthController(IdentityService identity, TokenService tokens, ReferralService referrals) {
         this.identity = identity;
         this.tokens = tokens;
+        this.referrals = referrals;
+    }
+
+    /** The member's referral code, and how many have signed up and travelled with it. */
+    @GetMapping("/me/referral")
+    public ReferralService.Summary referral(@AuthenticationPrincipal Jwt jwt) {
+        return referrals.summary(CurrentUser.id(jwt));
     }
 
     @PostMapping("/auth/register")
     @ResponseStatus(HttpStatus.CREATED)
     public TokenResponse register(@Valid @RequestBody RegisterRequest request) {
-        return tokenFor(identity.register(
-                request.email(), request.password(), request.fullName(), request.role()));
+        // Checked first, so a mistyped code creates no account.
+        Long referrer = request.referralCode() == null || request.referralCode().isBlank() ? null
+                : referrals.referrerOf(request.referralCode());
+        User user = identity.register(request.email(), request.password(), request.fullName(), request.role());
+        if (referrer != null) {
+            referrals.recordSignUp(referrer, user.id());
+        }
+        return tokenFor(user);
     }
 
     @PostMapping("/auth/login")
