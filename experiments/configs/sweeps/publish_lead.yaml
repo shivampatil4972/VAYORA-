@@ -1,0 +1,17 @@
+# Do searches find nothing because the ride they want has not been published yet?
+#
+# Section 9 of EXPERIMENT_PROTOCOL.md left two explanations for why over half of all
+# searches are offered no ride even with an 8-hour window: the rides are full, or they do
+# not exist yet. Rides are published between publish_lead_days_min and 7 days ahead, and
+# passengers search up to 7 days ahead. With every ride published a full 7 days ahead,
+# nothing is missing for want of publishing; if empty searches barely fall, the rides
+# were full.
+#
+# The publishing lead changes what the baseline is offered too, so each cell has its own.
+# 1 day is the world's own value.
+name: publish-lead
+baseline: variants/B3.yaml
+variant: variants/B4.yaml
+baseline_per_cell: true
+parameters:
+  supply.publish_lead_days_min: [1.0, 4.0, 7.0]
