@@ -41,6 +41,7 @@ function serve(routes: Record<string, () => Response>) {
     // And the search and publish pages, for whether women-only rides apply.
     if (!match && key === 'GET /me/profile') return json({ gender: null });
     if (!match && key === 'GET /notifications/preferences') return json({ email: false, sms: false });
+    if (!match && key === 'GET /bus-alternatives') return json([]);
     if (!match && key === 'GET /me/referral') return json({ code: 'K7QX2M', signedUp: 0, qualified: 0 });
     if (!match && key === 'GET /booking-terms') return json({ answerWithinMinutes: 720, closesMinutesBeforeBoarding: 120 });
     // The navigation asks for this on every signed-in page.
@@ -1957,5 +1958,61 @@ describe('invitations', () => {
     expect(await section.findByText('K7QX2M')).toBeInTheDocument();
     expect(section.getByText('3 signed up with it; 1 of them have completed a trip.')).toBeInTheDocument();
     expect(section.getByText(/no reward has been decided/)).toBeInTheDocument();
+  });
+});
+
+describe('bus services', () => {
+  const bus = { id: 4, operator: 'Test Operator', fromStop: 'Kolhapur', toStop: 'Pune', departs: '15:30:00',
+    durationMinutes: 300, fare: 350, notes: null };
+
+  it('offers listed buses when no ride matches, and says they are not checked', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({ 'GET /rides/search': () => json([]), 'GET /bus-alternatives': () => json([bus]) });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+    const section = within(await screen.findByRole('region', { name: 'Buses instead' }));
+    expect(section.getByText('15:30')).toBeInTheDocument();
+    expect(section.getByText(/Check times and fares with the operator/)).toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith('/bus-alternatives?from=Kolhapur&to=Pune'))).toBe(true);
+  });
+
+  it('shows nothing about buses when none are listed', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /rides/search': () => json([]) });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+    await screen.findByText(/No rides have a stop near both ends/);
+    expect(screen.queryByRole('region', { name: 'Buses instead' })).not.toBeInTheDocument();
+  });
+
+  it('lets an administrator add a bus service and remove one after confirming', async () => {
+    signIn('ADMIN');
+    const fetchMock = serve({
+      'GET /admin/bus-services': () => json([bus]),
+      'POST /admin/bus-services': () => json(bus, 201),
+      'DELETE /admin/bus-services/4': () => new Response(null, { status: 204 }),
+    });
+    open('/admin/buses');
+
+    await userEvent.type(await screen.findByLabelText('Operator'), 'Test Operator');
+    await userEvent.type(screen.getByLabelText('Leaves at'), '15:30');
+    await userEvent.type(screen.getByLabelText('From'), 'Kolhapur');
+    await userEvent.type(screen.getByLabelText('To'), 'Pune');
+    await userEvent.type(screen.getByLabelText('Journey time in minutes'), '300');
+    await userEvent.type(screen.getByLabelText('Fare in rupees'), '350');
+    await userEvent.click(screen.getByRole('button', { name: 'Add bus service' }));
+
+    await waitFor(() => {
+      const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
+      expect(JSON.parse(String(post?.[1]?.body))).toEqual({ operator: 'Test Operator', fromStop: 'Kolhapur', toStop: 'Pune',
+        departs: '15:30', durationMinutes: 300, fare: 350, notes: null });
+    });
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Remove' }));
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'DELETE')).toBe(false);
+    await userEvent.click(screen.getByRole('button', { name: 'Yes, remove it' }));
+    await waitFor(() => expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'DELETE')).toBe(true));
   });
 });

@@ -920,4 +920,33 @@ export const mr: Record<string, string> = {
     'याने {n} जणांनी नोंदणी केली; त्यांपैकी {q} जणांनी प्रवास पूर्ण केला आहे.',
   'Inviting earns nothing yet: no reward has been decided.':
     'आमंत्रित केल्याने अजून काही मिळत नाही: कोणतेही बक्षीस ठरलेले नाही.',
+  // Bus services
+  'Buses instead':
+    'त्याऐवजी बसेस',
+  'Listed by JOURNEX staff, not by the bus operator. Check times and fares with the operator before you travel.':
+    'JOURNEX कर्मचाऱ्यांनी सूचीबद्ध केलेले, बस चालक कंपनीने नाही. प्रवासापूर्वी वेळ आणि भाडे चालक कंपनीकडे तपासा.',
+  'about {hours} h':
+    'सुमारे {hours} तास',
+  'Bus services':
+    'बस सेवा',
+  'Passengers see these when no ride matches their search, and in the notice when a driver withdraws. Enter them from the operator\'s published timetable: nothing here checks them, and passengers are told to check with the operator.':
+    'कोणतीही राइड शोधाशी जुळत नाही तेव्हा आणि चालक राइड मागे घेतो तेव्हा प्रवाशांना या दिसतात. त्या चालक कंपनीच्या प्रकाशित वेळापत्रकावरून नोंदवा: येथे त्यांची तपासणी होत नाही, आणि प्रवाशांना चालक कंपनीकडे तपासण्यास सांगितले जाते.',
+  'Operator':
+    'चालक कंपनी',
+  'Leaves at':
+    'सुटण्याची वेळ',
+  'Journey time in minutes':
+    'प्रवासाचा वेळ (मिनिटे)',
+  'Fare in rupees':
+    'भाडे (रुपये)',
+  'Notes (optional)':
+    'टीप (ऐच्छिक)',
+  'Add bus service':
+    'बस सेवा जोडा',
+  'No bus services are listed.':
+    'कोणतीही बस सेवा सूचीबद्ध नाही.',
+  'Remove':
+    'काढा',
+  'Yes, remove it':
+    'होय, काढा',
 };

@@ -31,6 +31,7 @@ Access is through `JdbcTemplate` with hand-written SQL. There is no ORM.
 | V17 | On bookings: `passenger_confirmed`, `passenger_confirmed_at`, `rating_reminded_at` |
 | V18 | `notification_preferences` |
 | V19 | `referrals`; on users: `referral_code` |
+| V20 | `bus_services` (entered by administrators; none shipped) |
 
 ### Tables
 

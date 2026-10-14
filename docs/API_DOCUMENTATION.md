@@ -35,6 +35,8 @@ territory.
 | `POST /api/v1/auth/login` | public | Returns a token valid for 12 hours |
 | `GET /api/v1/me` | any | The signed-in account |
 | `GET /api/v1/me/referral` | any | Own invitation code and how many used it |
+| `GET /api/v1/bus-alternatives?from=&to=&after=HH:mm` | any | Up to five administrator-entered buses between two towns, earliest first; not checked against the operator |
+| `GET/POST /api/v1/admin/bus-services`, `DELETE /api/v1/admin/bus-services/{id}` | ADMIN | List, add and remove bus services; adding and removing are audited |
 | `GET /api/v1/me/profile` | any | Own profile, including phone and confirmation status |
 | `PUT /api/v1/me/profile` | any | Replace own profile. A changed phone must be confirmed again |
 | `POST /api/v1/me/verification/{email\|phone}/request` | any | Send a 6-digit code (simulated sender) |

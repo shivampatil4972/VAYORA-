@@ -15,7 +15,7 @@ behaviour is exercised by an automated test that passes; a row says which layers
 screen has been looked at in a browser: UI claims rest on component tests and a clean
 production build.
 
-Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TESTING.md).
+Last updated: 2026-10-14. Test suites and how to run them are in [TESTING.md](TESTING.md).
 
 ## Identity and profile
 
@@ -133,7 +133,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 |---|---|---|---|---|
 | 71 | English, Hindi, and Marathi | TBD | TBD | Partial: every screen is in English, Hindi and Marathi and tests enforce completeness. The translations have had no native review, and text the server writes (error explanations, notification messages) stays in English |
 | 72 | Referral programme | TBD | TBD | Partial: invitation codes, recorded at sign-up and counted once the invited member completes a trip (API and UI tested). **No reward**: none has been decided |
-| 73 | Static/configured MSRTC alternatives | TBD | TBD | Not started |
+| 73 | Static/configured MSRTC alternatives | TBD | TBD | Verified (API and UI tests): administrators enter bus services; passengers see them when a search finds no ride. None ship with the platform, nothing checks them against MSRTC, and passengers are told to check with the operator |
 | 74 | Admin back office | TBD | TBD | Verified (API and UI tests): overview, reports queue, members, rides and bookings by status, disputed trips, emergencies and simulated outbox, booking durability with reasons, audit log. No experiment screens |
 
 ## Research modules
@@ -164,7 +164,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 87 | Live what-if simulator | TBD | TBD | Not started |
 | 90 | Reproducibility capsule (`make reproduce` or equivalent) | TBD | TBD | Verified: `scripts/reproduce.sh` rebuilds the tests, model, ladder and current sweeps and fails unless every file matches the committed one. Run in full on 2026-10-16: every committed number reproduced exactly |
 | 91 | Last-mile rickshaw, bus, and walking access | TBD | TBD | Not started |
-| 92 | Bus alternative after recovery failure | TBD | TBD | Not started |
+| 92 | Bus alternative after recovery failure | TBD | TBD | Verified (API test): when a driver withdraws and no other ride fits, the notice names up to three listed buses, with the same warning |
 | 95 | Driver reliability self-view | TBD | TBD | Verified (API and UI tests): rides completed and withdrawn, passengers carried, cancelled and marked absent, rating, response rate and level, for the driver only |
 
 ## Infrastructure that exists but is not a backlog feature

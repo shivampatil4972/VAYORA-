@@ -920,4 +920,33 @@ export const hi: Record<string, string> = {
     'इससे {n} ने साइन अप किया; उनमें से {q} ने यात्रा पूरी की है।',
   'Inviting earns nothing yet: no reward has been decided.':
     'आमंत्रित करने पर अभी कुछ नहीं मिलता: कोई इनाम तय नहीं हुआ है।',
+  // Bus services
+  'Buses instead':
+    'इसके बजाय बसें',
+  'Listed by JOURNEX staff, not by the bus operator. Check times and fares with the operator before you travel.':
+    'JOURNEX कर्मचारियों द्वारा सूचीबद्ध, बस संचालक द्वारा नहीं। यात्रा से पहले समय और किराया संचालक से जाँच लें।',
+  'about {hours} h':
+    'लगभग {hours} घंटे',
+  'Bus services':
+    'बस सेवाएँ',
+  'Passengers see these when no ride matches their search, and in the notice when a driver withdraws. Enter them from the operator\'s published timetable: nothing here checks them, and passengers are told to check with the operator.':
+    'जब कोई सवारी खोज से मेल नहीं खाती, और जब चालक सवारी वापस लेता है, तब यात्रियों को ये दिखती हैं। इन्हें संचालक की प्रकाशित समय-सारणी से दर्ज करें: यहाँ इनकी जाँच नहीं होती, और यात्रियों को संचालक से जाँचने को कहा जाता है।',
+  'Operator':
+    'संचालक',
+  'Leaves at':
+    'रवाना होने का समय',
+  'Journey time in minutes':
+    'यात्रा का समय (मिनट)',
+  'Fare in rupees':
+    'किराया (रुपये)',
+  'Notes (optional)':
+    'टिप्पणी (वैकल्पिक)',
+  'Add bus service':
+    'बस सेवा जोड़ें',
+  'No bus services are listed.':
+    'कोई बस सेवा सूचीबद्ध नहीं है।',
+  'Remove':
+    'हटाएँ',
+  'Yes, remove it':
+    'हाँ, हटाएँ',
 };

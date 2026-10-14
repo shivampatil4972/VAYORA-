@@ -9,7 +9,7 @@ import { LanguageProvider, useT } from './lib/i18n';
 import { DurabilityPage } from './pages/AdminPages';
 import { AccountPage } from './pages/AccountPage';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
-import { AdminBookingsPage, AdminRidesPage, AuditPage, DisputesPage, MembersPage, OverviewPage, ReportsPage } from './pages/BackOfficePages';
+import { AdminBookingsPage, AdminRidesPage, AuditPage, BusServicesPage, DisputesPage, MembersPage, OverviewPage, ReportsPage } from './pages/BackOfficePages';
 import { EarningsPage, PublishRidePage, RidesPage, VehiclesPage } from './pages/DriverPages';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { PassesPage } from './pages/PassesPage';
@@ -68,6 +68,7 @@ export function AppRoutes() {
           <Route path="admin/disputes" element={<DisputesPage />} />
           <Route path="admin/rides" element={<AdminRidesPage />} />
           <Route path="admin/bookings" element={<AdminBookingsPage />} />
+          <Route path="admin/buses" element={<BusServicesPage />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Route>

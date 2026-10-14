@@ -443,3 +443,16 @@ export interface DisputedTrip {
   boardingTime: string;
   disputedAt: string;
 }
+
+/** A bus service entered by an administrator; not checked against the operator. */
+export interface BusService {
+  id: number;
+  operator: string;
+  fromStop: string;
+  toStop: string;
+  /** Local time of day, HH:mm:ss. */
+  departs: string;
+  durationMinutes: number;
+  fare: number;
+  notes: string | null;
+}

@@ -8,6 +8,7 @@ import { RefundTerms, SimulatedPaymentNotice } from '../components/payment';
 import { RateForm, RatingSummary } from '../components/rating';
 import { RideChat } from '../components/RideChat';
 import { BoardingPassView } from '../components/boarding';
+import { BusAlternatives } from '../components/bus';
 import { TripConfirmation } from '../components/tripConfirmation';
 import { RouteMap, type MapPoint } from '../components/RouteMap';
 import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, StatusBadge, TextField } from '../components/ui';
@@ -432,6 +433,7 @@ export function SearchPage() {
             }
             onRetry={() => void results.refetch()}
           />
+          {results.data?.length === 0 && <BusAlternatives from={criteria.form.origin} to={criteria.form.destination} />}
           {results.data && results.data.length > 0 && (
             <>
               <SimulatedPaymentNotice />

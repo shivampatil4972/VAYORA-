@@ -1,5 +1,14 @@
 # Progress
 
+## 2026-10-14 — bus alternatives
+
+- **Bus alternatives (features 73 and 92).** Administrators enter bus services (operator,
+  towns, daily departure time, journey time, fare). A passenger whose search finds no ride
+  sees the listed buses between those towns; a passenger whose ride is withdrawn with no
+  other ride to offer is named up to three in the notice. No timetable ships with the
+  platform: nothing was invented, and nothing checks the entries against MSRTC, which both
+  screens and the notice say. Verified by `BusIntegrationTest` and `App.test.tsx`.
+
 ## 2026-10-16 (later) — reproducibility, completion confirmation, rating reminders
 
 - **`scripts/reproduce.sh`** rebuilds the tests, the model, the ladder and the current

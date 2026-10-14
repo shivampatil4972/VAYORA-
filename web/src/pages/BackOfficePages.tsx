@@ -7,7 +7,8 @@ import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, Sta
 import { api } from '../lib/api';
 import { formatDateTime } from '../lib/format';
 import { msg, useT } from '../lib/i18n';
-import type { AdminOverview, AuditEntry, BookingStatus, DisputedTrip, Member, MemberReport, ReportOutcome, RideStatus, Role } from '../lib/types';
+import { formatRupees } from '../lib/format';
+import type { AdminOverview, AuditEntry, BookingStatus, BusService, DisputedTrip, Member, MemberReport, ReportOutcome, RideStatus, Role } from '../lib/types';
 
 // The server's own codes, in words. A code with no entry here is shown as it is.
 const codeLabels: Record<string, string> = {
@@ -311,6 +312,89 @@ export function DisputesPage() {
             </Link>{' '}
             · {t('disputed {time}', { time: formatDateTime(dispute.disputedAt) })}
           </p>
+        </Card>
+      ))}
+    </Page>
+  );
+}
+
+const emptyBus = { operator: '', fromStop: '', toStop: '', departs: '', durationMinutes: '', fare: '', notes: '' };
+
+/** Bus services offered to passengers when no ride will do. None ship with the platform. */
+export function BusServicesPage() {
+  const t = useT();
+  const queryClient = useQueryClient();
+  const [draft, setDraft] = useState(emptyBus);
+  const buses = useQuery({ queryKey: ['admin', 'bus-services'], queryFn: () => api<BusService[]>('/admin/bus-services') });
+  const add = useMutation({
+    mutationFn: () =>
+      api<BusService>('/admin/bus-services', {
+        method: 'POST',
+        body: { ...draft, durationMinutes: Number(draft.durationMinutes), fare: Number(draft.fare), notes: draft.notes || null },
+      }),
+    onSuccess: () => setDraft(emptyBus),
+    onSettled: () => void queryClient.invalidateQueries({ queryKey: ['admin', 'bus-services'] }),
+  });
+  const remove = useMutation({
+    mutationFn: (id: number) => api<void>(`/admin/bus-services/${id}`, { method: 'DELETE' }),
+    onSettled: () => void queryClient.invalidateQueries({ queryKey: ['admin', 'bus-services'] }),
+  });
+  const field = (name: keyof typeof emptyBus) => ({
+    value: draft[name],
+    onChange: (event: { target: { value: string } }) => setDraft({ ...draft, [name]: event.target.value }),
+  });
+
+  return (
+    <Page title={t('Bus services')}>
+      <p className="text-sm text-slate-600">
+        {t('Passengers see these when no ride matches their search, and in the notice when a driver withdraws. Enter them from the operator\'s published timetable: nothing here checks them, and passengers are told to check with the operator.')}
+      </p>
+      {(add.error ?? remove.error) && <Notice tone="error">{(add.error ?? remove.error)!.message}</Notice>}
+      <Card>
+        <form
+          className="grid gap-3 sm:grid-cols-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            add.mutate();
+          }}
+        >
+          <TextField label={t('Operator')} required {...field('operator')} />
+          <TextField label={t('Leaves at')} type="time" required {...field('departs')} />
+          <TextField label={t('From')} required {...field('fromStop')} />
+          <TextField label={t('To')} required {...field('toStop')} />
+          <TextField label={t('Journey time in minutes')} type="number" min={10} max={1440} required {...field('durationMinutes')} />
+          <TextField label={t('Fare in rupees')} type="number" min={0} step="0.01" required {...field('fare')} />
+          <TextField label={t('Notes (optional)')} {...field('notes')} />
+          <div className="sm:col-span-2">
+            <Button type="submit" disabled={add.isPending}>
+              {t('Add bus service')}
+            </Button>
+          </div>
+        </form>
+      </Card>
+      <QueryState
+        isPending={buses.isPending}
+        error={buses.error}
+        isEmpty={buses.data?.length === 0}
+        empty={t('No bus services are listed.')}
+        onRetry={() => void buses.refetch()}
+      />
+      {buses.data?.map((bus) => (
+        <Card key={bus.id}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p>
+              <span className="font-medium">
+                {bus.fromStop} → {bus.toStop} · {bus.departs.slice(0, 5)}
+              </span>{' '}
+              · {bus.operator} · {formatRupees(bus.fare)}
+            </p>
+            <ConfirmButton
+              label={t('Remove')}
+              confirmLabel={t('Yes, remove it')}
+              disabled={remove.isPending}
+              onConfirm={() => remove.mutate(bus.id)}
+            />
+          </div>
         </Card>
       ))}
     </Page>

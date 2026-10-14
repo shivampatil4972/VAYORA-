@@ -30,6 +30,7 @@ const links: Record<Role, { to: string; label: string }[]> = {
     { to: '/admin/users', label: msg('Members') },
     { to: '/admin/rides', label: msg('Rides') },
     { to: '/admin/bookings', label: msg('Bookings') },
+    { to: '/admin/buses', label: msg('Bus services') },
     { to: '/admin/durability', label: msg('Booking durability') },
     { to: '/admin/audit', label: msg('Audit log') },
   ],
