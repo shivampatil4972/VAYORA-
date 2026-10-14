@@ -201,7 +201,9 @@ class NotificationIntegrationTest extends PostgresIntegrationTest {
         MongoTemplate broken = mock(MongoTemplate.class);
         when(broken.insert(any(Document.class), anyString()))
                 .thenThrow(new DataAccessResourceFailureException("mongo is down"));
-        NotificationService withBrokenStore = new NotificationService(broken, Clock.systemUTC());
+        NotificationService withBrokenStore = new NotificationService(broken, Clock.systemUTC(),
+                mock(org.springframework.jdbc.core.JdbcTemplate.class),
+                mock(com.dypcet.journex.account.MessageSender.class));
 
         assertThatCode(() -> withBrokenStore.send(1L, Type.BOOKING_REQUESTED, "hello", 7L))
                 .doesNotThrowAnyException();

@@ -1,8 +1,11 @@
 package com.dypcet.journex.notification;
 
+import com.dypcet.journex.account.MessageSender;
+import com.dypcet.journex.account.MessageSender.Channel;
 import jakarta.annotation.PostConstruct;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.bson.Document;
@@ -15,6 +18,7 @@ import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -53,12 +57,24 @@ public class NotificationService {
             Instant createdAt, boolean read) {
     }
 
+    /** Copies wanted besides the in-app notification, which is always kept. */
+    public record Preferences(boolean email, boolean sms) {
+    }
+
+    private record Copy(Channel channel, String to) {
+    }
+
     private final MongoTemplate mongo;
     private final Clock clock;
 
-    public NotificationService(MongoTemplate mongo, Clock clock) {
+    private final JdbcTemplate jdbc;
+    private final MessageSender sender;
+
+    public NotificationService(MongoTemplate mongo, Clock clock, JdbcTemplate jdbc, MessageSender sender) {
         this.mongo = mongo;
         this.clock = clock;
+        this.jdbc = jdbc;
+        this.sender = sender;
     }
 
     @PostConstruct
@@ -78,15 +94,76 @@ public class NotificationService {
                 .append("bookingId", bookingId)
                 .append("createdAt", Date.from(clock.instant()))
                 .append("readAt", null);
+        List<Copy> copies = copiesFor(userId);
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
                     write(document);
+                    deliver(copies, message);
                 }
             });
         } else {
             write(document);
+            deliver(copies, message);
+        }
+    }
+
+    public Preferences preferences(long userId) {
+        List<Preferences> found = jdbc.query(
+                "SELECT email, sms FROM notification_preferences WHERE user_id = ?",
+                (rs, n) -> new Preferences(rs.getBoolean("email"), rs.getBoolean("sms")), userId);
+        return found.isEmpty() ? new Preferences(false, false) : found.get(0);
+    }
+
+    public Preferences setPreferences(long userId, Preferences preferences) {
+        jdbc.update("""
+                INSERT INTO notification_preferences (user_id, email, sms) VALUES (?, ?, ?)
+                ON CONFLICT (user_id) DO UPDATE
+                SET email = EXCLUDED.email, sms = EXCLUDED.sms, updated_at = now()""",
+                userId, preferences.email(), preferences.sms());
+        return preferences(userId);
+    }
+
+    /**
+     * Where copies go: each channel the member turned on, to an address they confirmed.
+     * Worked out before the transaction ends, and never allowed to fail the caller.
+     */
+    private List<Copy> copiesFor(long userId) {
+        try {
+            List<Copy> found = jdbc.query("""
+                    SELECT u.email, u.email_verified_at IS NOT NULL AS email_ok,
+                           u.phone, u.phone_verified_at IS NOT NULL AS phone_ok,
+                           COALESCE(p.email, FALSE) AS wants_email, COALESCE(p.sms, FALSE) AS wants_sms
+                    FROM users u LEFT JOIN notification_preferences p ON p.user_id = u.id
+                    WHERE u.id = ?""",
+                    rs -> {
+                        List<Copy> copies = new ArrayList<>();
+                        if (rs.next()) {
+                            if (rs.getBoolean("wants_email") && rs.getBoolean("email_ok")) {
+                                copies.add(new Copy(Channel.EMAIL, rs.getString("email")));
+                            }
+                            if (rs.getBoolean("wants_sms") && rs.getBoolean("phone_ok")) {
+                                copies.add(new Copy(Channel.PHONE, rs.getString("phone")));
+                            }
+                        }
+                        return copies;
+                    },
+                    userId);
+            return found == null ? List.of() : found;
+        } catch (RuntimeException e) {
+            log.warn("Notification copies skipped for user {}: {}", userId, e.getMessage());
+            return List.of();
+        }
+    }
+
+    private void deliver(List<Copy> copies, String message) {
+        for (Copy copy : copies) {
+            try {
+                sender.send(copy.channel(), copy.to(), "JOURNEX: " + message);
+            } catch (RuntimeException e) {
+                log.warn("Notification copy not sent by {}: {}", copy.channel(), e.getMessage());
+            }
         }
     }
 
