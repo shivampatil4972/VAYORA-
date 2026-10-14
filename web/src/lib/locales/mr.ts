@@ -949,4 +949,7 @@ export const mr: Record<string, string> = {
     'काढा',
   'Yes, remove it':
     'होय, काढा',
+  // Electric range
+  'This route is longer than the {range} km your vehicle covers on a full charge, by your own figures. Plan a charging stop: JOURNEX does not plan one for you.':
+    'हा मार्ग तुमच्याच आकड्यांनुसार पूर्ण चार्जवर तुमचे वाहन जाणाऱ्या {range} किमीपेक्षा लांब आहे. चार्जिंगसाठी थांब्याचे नियोजन करा: JOURNEX तुमच्यासाठी ते नियोजन करत नाही.',
 };

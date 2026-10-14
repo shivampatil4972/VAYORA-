@@ -1,5 +1,13 @@
 # Progress
 
+## 2026-10-14 — electric range warning
+
+- **Range against route (features 15 and 75).** When a driver works out the route for an
+  electric car, the publish screen compares the road distance with the range implied by the
+  driver's own battery and consumption figures and, if the route is longer, tells them to
+  plan a charging stop. A warning only: publishing is not blocked, and no charging stop is
+  planned (feature 83 still needs charger data). Verified by `App.test.tsx`.
+
 ## 2026-10-14 — bus alternatives
 
 - **Bus alternatives (features 73 and 92).** Administrators enter bus services (operator,

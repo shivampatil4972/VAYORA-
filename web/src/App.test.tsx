@@ -2016,3 +2016,30 @@ describe('bus services', () => {
     await waitFor(() => expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'DELETE')).toBe(true));
   });
 });
+
+describe('electric range', () => {
+  const preview = () =>
+    json({ distanceKm: 230, durationMinutes: 191, source: 'OSRM', legs: [{ distanceKm: 230, durationMinutes: 191, suggestedPrice: 460 }],
+      path: [[16.705, 74.2433], [18.5204, 73.8567]] });
+  const ev = (rangeKm: number) => ({ id: 3, make: 'Tata', model: 'Nexon EV', year: 2023, colour: 'Blue', seats: 5,
+    electric: true, batteryKwh: 30, consumptionKwhPer100Km: 15, estimatedRangeKm: rangeKm });
+
+  it('warns a driver whose route is longer than their stated range', async () => {
+    signIn('DRIVER');
+    serve({ 'GET /vehicles': () => json([ev(200)]), 'POST /rides/route-preview': preview });
+    open('/rides/new');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Work out the route' }));
+    expect(await screen.findByText(/longer than the 200 km your vehicle covers on a full charge/)).toBeInTheDocument();
+  });
+
+  it('says nothing when the route is within range', async () => {
+    signIn('DRIVER');
+    serve({ 'GET /vehicles': () => json([ev(300)]), 'POST /rides/route-preview': preview });
+    open('/rides/new');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Work out the route' }));
+    await screen.findByText('230 km by road, about 3 h 11 min of driving.');
+    expect(screen.queryByText(/on a full charge/)).not.toBeInTheDocument();
+  });
+});

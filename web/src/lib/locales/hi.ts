@@ -949,4 +949,7 @@ export const hi: Record<string, string> = {
     'हटाएँ',
   'Yes, remove it':
     'हाँ, हटाएँ',
+  // Electric range
+  'This route is longer than the {range} km your vehicle covers on a full charge, by your own figures. Plan a charging stop: JOURNEX does not plan one for you.':
+    'यह मार्ग आपके अपने आँकड़ों के अनुसार पूरी चार्ज पर आपके वाहन की {range} किमी की दूरी से लंबा है। चार्जिंग के लिए रुकने की योजना बनाएँ: JOURNEX आपके लिए यह योजना नहीं बनाता।',
 };

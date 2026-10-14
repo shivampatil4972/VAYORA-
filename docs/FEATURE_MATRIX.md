@@ -40,7 +40,7 @@ Last updated: 2026-10-14. Test suites and how to run them are in [TESTING.md](TE
 | 12 | Make, model, year, and colour | TBD | TBD | Verified (API and UI tests) |
 | 13 | Seat count and comfort class | TBD | TBD | Verified (API and UI tests): comfort is the driver's own description, shown on search results; nothing inspects the car |
 | 14 | Luggage allowance | TBD | TBD | Verified (API and UI tests): the largest bag each passenger may bring, shown on search results; not a search filter |
-| 15 | EV status, battery capacity, and consumption rate | TBD | TBD | Verified (API and UI tests): stored and shown, with the range the two figures imply. Nothing uses them yet: no check of a ride against the range |
+| 15 | EV status, battery capacity, and consumption rate | TBD | TBD | Verified (API and UI tests): stored and shown, with the range the two figures imply. When a driver works out a route longer than that range, the publish screen tells them to plan a charging stop (UI tested); it does not stop them publishing and plans no stop |
 | 16 | Vehicle photo | TBD | TBD | Not started |
 
 ## Driver ride publishing
@@ -140,7 +140,7 @@ Last updated: 2026-10-14. Test suites and how to run them are in [TESTING.md](TE
 
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
-| 75 | PostGIS/OSRM feasibility filter | TBD | TBD | Partial: the access distance is a hard limit enforced in PostGIS, and rides carry an OSRM road route; no detour or EV energy check |
+| 75 | PostGIS/OSRM feasibility filter | TBD | TBD | Partial: the access distance is a hard limit enforced in PostGIS, and rides carry an OSRM road route; an electric car's route is compared with its stated range and the driver warned (UI only, not enforced). No detour check |
 | 76 | Two-sided match scoring | TBD | TBD | Not started |
 | 77 | CommitmentDecay survival modelling | TBD | TBD | Partial: model trained, evaluated, served and scored in the app, on synthetic data only; see AI_ML_METHODOLOGY.md |
 | 78 | Reliability indicator in search results | TBD | TBD | Not started |

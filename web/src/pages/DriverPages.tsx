@@ -141,8 +141,10 @@ export function VehiclesPage() {
  * Shows the road route through the chosen stops, lets the driver move a meeting point by
  * clicking the map, and offers prices and timings worked out from the route.
  */
-function RoutePlanner({ stops, onMove, onUse }: {
+function RoutePlanner({ stops, rangeKm, onMove, onUse }: {
   stops: RideForm['stops'];
+  /** The chosen vehicle's range on a full charge, from the driver's own figures; null if not electric. */
+  rangeKm: number | null;
   onMove: (index: number, lat: number, lon: number) => void;
   onUse: (included: number[], preview: RoutePreview) => void;
 }) {
@@ -230,6 +232,13 @@ function RoutePlanner({ stops, onMove, onUse }: {
             ))}
           </ul>
           <p className="mt-1 text-slate-500">{t('The suggestion is distance times a flat rate. The price is yours to set.')}</p>
+          {rangeKm != null && preview.data.distanceKm > rangeKm && (
+            <div className="mt-2">
+              <Notice tone="info">
+                {t('This route is longer than the {range} km your vehicle covers on a full charge, by your own figures. Plan a charging stop: JOURNEX does not plan one for you.', { range: rangeKm })}
+              </Notice>
+            </div>
+          )}
         </div>
       )}
     </fieldset>
@@ -419,6 +428,11 @@ export function PublishRidePage() {
 
             <RoutePlanner
               stops={stops}
+              // Until the driver picks one, the select shows (and the form sends) the first vehicle.
+              rangeKm={
+                (vehicles.data.find((vehicle) => String(vehicle.id) === String(watch('vehicleId'))) ?? vehicles.data[0])
+                  ?.estimatedRangeKm ?? null
+              }
               onMove={(index, lat, lon) => {
                 setValue(`stops.${index}.lat`, lat);
                 setValue(`stops.${index}.lon`, lon);
