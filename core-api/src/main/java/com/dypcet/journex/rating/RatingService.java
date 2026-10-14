@@ -3,6 +3,7 @@ package com.dypcet.journex.rating;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
+@EnableConfigurationProperties(LevelProperties.class)
 public class RatingService {
 
     /** @param reviewerName the first name only of whoever wrote it */
@@ -34,7 +36,20 @@ public class RatingService {
             int completedTrips, Double averageStars, int ratingCount, List<Review> reviews,
             boolean emailVerified, boolean phoneVerified, String bio, Integer age,
             Boolean smoking, Boolean pets, Boolean music, String chattiness,
-            Double responseRate, Integer responseMinutes) {
+            Double responseRate, Integer responseMinutes, String level) {
+    }
+
+    /**
+     * A driver's own record, for them to see. Counts are over everything they have ever
+     * driven.
+     *
+     * @param ridesWithdrawn       rides the driver cancelled before they ran
+     * @param passengersCancelled  bookings the driver cancelled, by withdrawing or otherwise
+     * @param noShowsMarked        passengers the driver marked as not boarding
+     */
+    public record Reliability(int ridesCompleted, int ridesWithdrawn, int passengersCarried,
+            int passengersCancelled, int noShowsMarked, Double averageStars, int ratingCount,
+            Double responseRate, Integer responseMinutes, String level) {
     }
 
     private record Responsiveness(Double rate, Integer minutes) {
@@ -54,8 +69,11 @@ public class RatingService {
 
     private final JdbcTemplate jdbc;
 
-    public RatingService(JdbcTemplate jdbc) {
+    private final LevelProperties levels;
+
+    public RatingService(JdbcTemplate jdbc, LevelProperties levels) {
         this.jdbc = jdbc;
+        this.levels = levels;
     }
 
     /** Rates the other party of a completed booking. Each side may do so once. */
@@ -120,7 +138,10 @@ public class RatingService {
                         rs.getString("bio"), (Integer) rs.getObject("age"),
                         (Boolean) rs.getObject("smoking"), (Boolean) rs.getObject("pets"),
                         (Boolean) rs.getObject("music"), rs.getString("chattiness"),
-                        null, null),
+                        null, null,
+                        levels.levelFor(rs.getInt("completed"), (Double) rs.getObject("average"),
+                                rs.getInt("rating_count"), rs.getBoolean("email_verified"),
+                                rs.getBoolean("phone_verified"))),
                 userId);
         if (found.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found");
@@ -134,7 +155,27 @@ public class RatingService {
                 profile.completedTrips(), profile.averageStars(), profile.ratingCount(),
                 profile.reviews(), profile.emailVerified(), profile.phoneVerified(), profile.bio(),
                 profile.age(), profile.smoking(), profile.pets(), profile.music(),
-                profile.chattiness(), answers.rate(), answers.minutes());
+                profile.chattiness(), answers.rate(), answers.minutes(), profile.level());
+    }
+
+    /** The driver's own record. */
+    public Reliability reliability(long driverId) {
+        Profile profile = profile(driverId);
+        return jdbc.queryForObject("""
+                SELECT
+                  (SELECT COUNT(*) FROM rides WHERE driver_id = ? AND status = 'COMPLETED') AS completed,
+                  (SELECT COUNT(*) FROM rides WHERE driver_id = ? AND status = 'CANCELLED') AS withdrawn,
+                  (SELECT COUNT(*) FROM bookings b JOIN rides r ON r.id = b.ride_id
+                   WHERE r.driver_id = ? AND b.status = 'COMPLETED') AS carried,
+                  (SELECT COUNT(*) FROM bookings b JOIN rides r ON r.id = b.ride_id
+                   WHERE r.driver_id = ? AND b.status = 'CANCELLED' AND b.cancelled_by = 'driver') AS cancelled,
+                  (SELECT COUNT(*) FROM bookings b JOIN rides r ON r.id = b.ride_id
+                   WHERE r.driver_id = ? AND b.status = 'NO_SHOW') AS no_shows""",
+                (rs, n) -> new Reliability(rs.getInt("completed"), rs.getInt("withdrawn"),
+                        rs.getInt("carried"), rs.getInt("cancelled"), rs.getInt("no_shows"),
+                        profile.averageStars(), profile.ratingCount(), profile.responseRate(),
+                        profile.responseMinutes(), profile.level()),
+                driverId, driverId, driverId, driverId, driverId);
     }
 
     /**

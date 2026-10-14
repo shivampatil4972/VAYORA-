@@ -44,6 +44,13 @@ public class RatingController {
         return ratings.unratedBy(CurrentUser.id(jwt));
     }
 
+    /** The signed-in driver's own record. */
+    @GetMapping("/me/reliability")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('DRIVER')")
+    public RatingService.Reliability reliability(@AuthenticationPrincipal Jwt jwt) {
+        return ratings.reliability(CurrentUser.id(jwt));
+    }
+
     @GetMapping("/users/{id}/profile")
     public Profile profile(@PathVariable long id) {
         return ratings.profile(id);

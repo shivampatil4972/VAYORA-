@@ -87,6 +87,38 @@ journex:
     close-before-boarding: PT2H
     # How often unanswered requests are looked for. "-" turns it off.
     expiry-cron: ${BOOKING_EXPIRY_CRON:0 */5 * * * *}
+  levels:
+    # Experience levels, lowest first. A member holds the highest whose every condition
+    # they meet. The thresholds are the authors' assumptions.
+    levels:
+      - name: NEWCOMER
+        min-completed-trips: 0
+        min-ratings: 0
+        confirmed-email: false
+        confirmed-phone: false
+      - name: INTERMEDIATE
+        min-completed-trips: 3
+        min-ratings: 0
+        confirmed-email: true
+        confirmed-phone: false
+      - name: EXPERIENCED
+        min-completed-trips: 10
+        min-average-stars: 4.0
+        min-ratings: 3
+        confirmed-email: true
+        confirmed-phone: false
+      - name: EXPERT
+        min-completed-trips: 25
+        min-average-stars: 4.4
+        min-ratings: 10
+        confirmed-email: true
+        confirmed-phone: true
+      - name: AMBASSADOR
+        min-completed-trips: 50
+        min-average-stars: 4.6
+        min-ratings: 25
+        confirmed-email: true
+        confirmed-phone: true
   rating:
     # A trip nobody has rated gets one reminder this long after it is completed.
     remind-after: PT24H
