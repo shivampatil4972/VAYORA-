@@ -795,4 +795,21 @@ export const mr: Record<string, string> = {
     'अजून पुरेशा विनंत्या नाहीत',
   '{rate}, usually within {time}':
     '{rate}, सहसा {time} मध्ये',
+  // Boarding codes
+  'Reference {reference}. Boarding code':
+    'संदर्भ {reference}. बोर्डिंग कोड',
+  'Show the code to the driver when you board.':
+    'बसताना हा कोड चालकाला दाखवा.',
+  'Show my boarding code':
+    'माझा बोर्डिंग कोड दाखवा',
+  'Boarding code shown by the passenger':
+    'प्रवाशाने दाखवलेला बोर्डिंग कोड',
+  'Code':
+    'कोड',
+  'Check code':
+    'कोड तपासा',
+  'Matches this booking':
+    'या बुकिंगशी जुळतो',
+  'Does not match this booking':
+    'या बुकिंगशी जुळत नाही',
 };

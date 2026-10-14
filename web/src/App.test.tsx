@@ -1750,3 +1750,38 @@ describe("a driver's response rate", () => {
     expect(await screen.findByText('Not enough requests yet')).toBeInTheDocument();
   });
 });
+
+describe('boarding codes', () => {
+  it('shows a passenger their reference and code when asked', async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /bookings/90/boarding-pass': () => json({ bookingId: 90, reference: 'JX-000090', code: '4821' }),
+      'GET /bookings': () => json([{ ...booking, status: 'CONFIRMED' }]),
+    });
+    open('/bookings');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Show my boarding code' }));
+    expect(await screen.findByText('4821')).toBeInTheDocument();
+    expect(screen.getByText(/Reference JX-000090/)).toBeInTheDocument();
+  });
+
+  it('lets a driver check a code without ever being sent it', async () => {
+    signIn('DRIVER');
+    const fetchMock = serve({
+      'GET /rides/mine': () => json([{ ...rideWithRoute, notes: null, maxTwoInBack: false, seriesSize: 1, womenOnly: false }]),
+      'GET /rides/12/bookings': () => json([{ ...booking, status: 'CONFIRMED' }]),
+      'POST /bookings/90/check-code': () => json({ matches: false }),
+    });
+    open('/rides');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Show passengers' }));
+    const input = await screen.findByLabelText('Boarding code shown by the passenger');
+    await userEvent.type(input, '48a21');
+    expect(input).toHaveValue('4821'); // digits only, four at most
+    await userEvent.click(screen.getByRole('button', { name: 'Check code' }));
+
+    expect(await screen.findByText('Does not match this booking')).toBeInTheDocument();
+    const sent = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/check-code'));
+    expect(JSON.parse(String(sent?.[1]?.body))).toEqual({ code: '4821' });
+  });
+});

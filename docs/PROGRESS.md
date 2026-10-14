@@ -1,5 +1,12 @@
 # Progress
 
+## 2026-10-16 (later) — boarding codes
+
+Each booking now has a reference (`JX-000090`) and a 4-digit boarding code. The passenger
+can show theirs; the driver can check a code against a booking but is never sent it.
+Checking changes nothing: a wrong code does not stop anyone travelling, and boarding is
+still the driver's word. Verified by `BoardingIntegrationTest` and `App.test.tsx`.
+
 ## 2026-10-16 — the oracle ceiling
 
 Committed on `stage-2-3-booking-core-and-simulator`.

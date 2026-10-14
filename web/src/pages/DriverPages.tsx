@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { SimulatedPaymentNotice } from '../components/payment';
 import { RateForm } from '../components/rating';
+import { CheckCode } from '../components/boarding';
 import { RideChat } from '../components/RideChat';
 import { RouteMap } from '../components/RouteMap';
 import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, StatusBadge, TextField } from '../components/ui';
@@ -614,6 +615,9 @@ function RideBookings({ ride }: { ride: Ride }) {
                           {t('Decline')}
                         </Button>
                       </>
+                    )}
+                    {booking.status === 'CONFIRMED' && (ride.status === 'SCHEDULED' || ride.status === 'IN_PROGRESS') && (
+                      <CheckCode bookingId={booking.id} />
                     )}
                     {booking.status === 'CONFIRMED' && ride.status === 'IN_PROGRESS' && (
                       <ConfirmButton

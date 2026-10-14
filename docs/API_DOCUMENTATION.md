@@ -73,6 +73,8 @@ woman, filter or no filter.
 | `GET /api/v1/rides/{rideId}/bookings` | D | Bookings on own ride |
 | `POST /api/v1/bookings/{id}/accept` | D | Accept a pending request |
 | `POST /api/v1/bookings/{id}/reject` | D | Decline it; everything is returned |
+| `GET /api/v1/bookings/{id}/boarding-pass` | P | Own reference and boarding code |
+| `POST /api/v1/bookings/{id}/check-code` | D | Whether a code shown at pickup belongs to the booking |
 
 `POST /api/v1/bookings` accepts an `Idempotency-Key` header. Sending the same key again
 returns the booking the first request made instead of making another.

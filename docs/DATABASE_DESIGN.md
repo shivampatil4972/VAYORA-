@@ -27,6 +27,7 @@ Access is through `JdbcTemplate` with hand-written SQL. There is no ORM.
 | V13 | On rides: `women_only` |
 | V14 | `passes` |
 | V15 | On bookings: `rejected_by`, driver or platform |
+| V16 | On bookings: `boarding_code` |
 
 ### Tables
 

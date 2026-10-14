@@ -121,7 +121,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
-| 66 | Booking reference and boarding code | TBD | TBD | Not started |
+| 66 | Booking reference and boarding code | TBD | TBD | Verified (API and UI tests): the passenger sees a reference and a 4-digit code; the driver can check a code but is never sent it. Checking changes nothing about the booking |
 | 67 | Meeting-point details and map | TBD | TBD | Verified: meeting point and route on a booking. UI tested with a stand-in map; the real map has not been seen in a browser |
 | 68 | Live GPS tracking | TBD | TBD | Partial: the driver shares their position while the ride is under way and passengers see the latest point on a map. Verified in gateway and UI tests and a live run; the browser's own location reading and the real map are unseen |
 | 69 | Two-sided completion confirmation | TBD | TBD | Partial: driver starts and completes, API verified; no passenger confirmation |

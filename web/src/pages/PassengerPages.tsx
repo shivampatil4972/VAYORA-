@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { RefundTerms, SimulatedPaymentNotice } from '../components/payment';
 import { RateForm, RatingSummary } from '../components/rating';
 import { RideChat } from '../components/RideChat';
+import { BoardingPassView } from '../components/boarding';
 import { RouteMap, type MapPoint } from '../components/RouteMap';
 import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, StatusBadge, TextField } from '../components/ui';
 import { api } from '../lib/api';
@@ -553,6 +554,7 @@ export function BookingsPage() {
                   })}
                 </p>
               )}
+              {cancellable(booking) && <BoardingPassView bookingId={booking.id} />}
             </div>
             <div className="flex flex-wrap gap-2">
               {cancellable(booking) && (
