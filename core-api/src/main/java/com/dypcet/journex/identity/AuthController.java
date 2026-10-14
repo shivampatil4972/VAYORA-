@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,13 +17,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/v1")
 public class AuthController {
 
+    /** Exactly one of {@code email} and {@code phone}: it is what the member signs in with. */
     public record RegisterRequest(
-            @NotBlank @Email @Size(max = 254) String email,
+            @Email @Size(max = 254) String email,
+            @Pattern(regexp = PHONE) String phone,
             // BCrypt reads at most 72 bytes.
             @NotBlank @Size(min = 8, max = 72) String password,
             @NotBlank @Size(max = 100) String fullName,
@@ -31,8 +35,12 @@ public class AuthController {
             @Size(max = 20) String referralCode) {
     }
 
-    public record LoginRequest(@NotBlank String email, @NotBlank String password) {
+    /** Exactly one of {@code email} and {@code phone}. */
+    public record LoginRequest(String email, String phone, @NotBlank String password) {
     }
+
+    // Spaces and hyphens allowed; Phones.normalise removes them.
+    private static final String PHONE = "^\\+?[0-9][0-9 -]{8,18}[0-9]$";
 
     public record TokenResponse(String accessToken, long expiresInSeconds, User user) {
     }
@@ -59,7 +67,10 @@ public class AuthController {
         // Checked first, so a mistyped code creates no account.
         Long referrer = request.referralCode() == null || request.referralCode().isBlank() ? null
                 : referrals.referrerOf(request.referralCode());
-        User user = identity.register(request.email(), request.password(), request.fullName(), request.role());
+        boolean byPhone = oneOf(request.email(), request.phone());
+        User user = byPhone
+                ? identity.registerByPhone(request.phone(), request.password(), request.fullName(), request.role())
+                : identity.register(request.email(), request.password(), request.fullName(), request.role());
         if (referrer != null) {
             referrals.recordSignUp(referrer, user.id());
         }
@@ -68,7 +79,19 @@ public class AuthController {
 
     @PostMapping("/auth/login")
     public TokenResponse login(@Valid @RequestBody LoginRequest request) {
-        return tokenFor(identity.authenticate(request.email(), request.password()));
+        return tokenFor(oneOf(request.email(), request.phone())
+                ? identity.authenticateByPhone(request.phone(), request.password())
+                : identity.authenticate(request.email(), request.password()));
+    }
+
+    /** True for a phone, false for an email; refuses neither or both. */
+    private static boolean oneOf(String email, String phone) {
+        boolean hasEmail = email != null && !email.isBlank();
+        boolean hasPhone = phone != null && !phone.isBlank();
+        if (hasEmail == hasPhone) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Give an email address or a phone number");
+        }
+        return hasPhone;
     }
 
     @GetMapping("/me")

@@ -1,6 +1,7 @@
 package com.dypcet.journex.account;
 
 import com.dypcet.journex.account.MessageSender.Channel;
+import com.dypcet.journex.identity.Phones;
 import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Duration;
@@ -9,6 +10,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -95,14 +97,22 @@ public class AccountService {
     /** Replaces the whole profile. A changed phone number is unverified until proved again. */
     @Transactional
     public MyProfile update(long userId, ProfileUpdate update) {
-        String phone = blankToNull(update.phone());
-        jdbc.update("""
+        String phone = Phones.normalise(update.phone());
+        if (phone == null && jdbc.queryForObject("SELECT email IS NULL FROM users WHERE id = ?", Boolean.class, userId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "You sign in with your phone number, so it cannot be removed");
+        }
+        try {
+            jdbc.update("""
                 UPDATE users
                 SET phone_verified_at = CASE WHEN phone IS NOT DISTINCT FROM ?
                                              THEN phone_verified_at END,
                     phone = ?
                 WHERE id = ?""",
                 phone, phone, userId);
+        } catch (DuplicateKeyException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "That phone number belongs to another account");
+        }
         jdbc.update("""
                 INSERT INTO profiles (user_id, bio, birth_year, gender, smoking, pets, music, chattiness)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)

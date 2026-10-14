@@ -54,7 +54,7 @@ public class AdminController {
                 jdbc.queryForObject("SELECT COUNT(*) FROM bookings WHERE passenger_confirmed IS FALSE", Long.class));
     }
 
-    /** Members whose name or email contains {@code q}, newest first. */
+    /** Members whose name, email or phone contains {@code q}, newest first. */
     @GetMapping("/users")
     public List<Member> users(@RequestParam(defaultValue = "") String q) {
         // The pattern is a bound parameter; % and _ in the search text are matched literally.
@@ -62,12 +62,12 @@ public class AdminController {
                 .replace("_", "\\_") + "%";
         return jdbc.query("""
                 SELECT id, full_name, email, role, status, created_at FROM users
-                WHERE full_name ILIKE ? OR email ILIKE ?
+                WHERE full_name ILIKE ? OR email ILIKE ? OR phone ILIKE ?
                 ORDER BY id DESC LIMIT ?""",
                 (rs, n) -> new Member(rs.getLong("id"), rs.getString("full_name"),
                         rs.getString("email"), rs.getString("role"), rs.getString("status"),
                         rs.getObject("created_at", OffsetDateTime.class).toInstant()),
-                pattern, pattern, LISTED);
+                pattern, pattern, pattern, LISTED);
     }
 
     /** One ride as the back office lists it. */

@@ -29,20 +29,33 @@ public class IdentityService {
     }
 
     public User register(String email, String password, String fullName, UserRole role) {
+        return insert(normalise(email), null, password, fullName, role);
+    }
+
+    /** An account known by its phone number, which is unconfirmed until a code proves it. */
+    public User registerByPhone(String phone, String password, String fullName, UserRole role) {
+        String normalised = Phones.normalise(phone);
+        if (normalised == null || !normalised.matches("\\+?[0-9]{10,15}")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Enter a phone number of 10 to 15 digits");
+        }
+        return insert(null, normalised, password, fullName, role);
+    }
+
+    private User insert(String email, String phone, String password, String fullName, UserRole role) {
         if (role == UserRole.ADMIN) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Administrators cannot self-register");
         }
-        String normalised = normalise(email);
         try {
             Long id = jdbc.queryForObject("""
-                    INSERT INTO users (email, password_hash, full_name, role)
-                    VALUES (?, ?, ?, ?) RETURNING id""",
-                    Long.class, normalised, passwordEncoder.encode(password), fullName.strip(),
+                    INSERT INTO users (email, phone, password_hash, full_name, role)
+                    VALUES (?, ?, ?, ?, ?) RETURNING id""",
+                    Long.class, email, phone, passwordEncoder.encode(password), fullName.strip(),
                     role.name());
-            return new User(id, normalised, fullName.strip(), role);
+            return new User(id, email, fullName.strip(), role);
         } catch (DuplicateKeyException e) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is already registered");
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    email != null ? "Email is already registered" : "Phone number is already registered");
         }
     }
 
@@ -57,16 +70,28 @@ public class IdentityService {
 
     /** Fails with the same 401 whether the email is unknown or the password is wrong. */
     public User authenticate(String email, String password) {
-        List<Credentials> found = jdbc.query("""
-                SELECT id, email, full_name, role, password_hash, status
-                FROM users WHERE email = ?""",
+        return check(credentials("email", normalise(email)), password);
+    }
+
+    /** As {@link #authenticate}, for a member who signs in with their phone number. */
+    public User authenticateByPhone(String phone, String password) {
+        return check(credentials("phone", Phones.normalise(phone)), password);
+    }
+
+    /** @param column a fixed column name, never caller input */
+    private List<Credentials> credentials(String column, String value) {
+        return jdbc.query("SELECT id, email, full_name, role, password_hash, status FROM users WHERE "
+                        + column + " = ?",
                 (rs, n) -> new Credentials(
                         new User(rs.getLong("id"), rs.getString("email"),
                                 rs.getString("full_name"), UserRole.valueOf(rs.getString("role"))),
                         rs.getString("password_hash"), rs.getString("status")),
-                normalise(email));
+                value);
+    }
+
+    private User check(List<Credentials> found, String password) {
         if (found.isEmpty() || !passwordEncoder.matches(password, found.get(0).passwordHash())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email, phone number or password");
         }
         // Only said to someone who has proved they own the account.
         if ("SUSPENDED".equals(found.get(0).status())) {
