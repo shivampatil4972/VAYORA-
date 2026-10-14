@@ -34,6 +34,10 @@ MEASURES = [
     ("refill_additionality", "refills_only_option",
      "Refills by a passenger offered no other ride", 1),
     ("refill_additionality", "empty_share", "Searches offered no ride", 3),
+    ("refill_by_release_timing", "early_refill_share",
+     "Share of seats refilled, rides with only early releases", 3),
+    ("refill_by_release_timing", "late_refill_share",
+     "Share of seats refilled, rides with only late releases", 3),
 ]
 
 

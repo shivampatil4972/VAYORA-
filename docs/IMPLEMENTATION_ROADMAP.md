@@ -75,7 +75,8 @@ mock that says so, as payments and SMS already are.
 | Split "offered no ride" | Record whether a search failed for want of a ride at that time or want of seats | Section 8 of EXPERIMENT_PROTOCOL.md points here; needs approval for a new payload key |
 | ~~Time-tolerance sweep~~ | Done: a wider window does not help (EXPERIMENT_PROTOCOL.md section 9) | |
 | ~~Publishing-lead sweep~~ | Done: late publishing explains little; most empty searches are full rides (EXPERIMENT_PROTOCOL.md section 10) | |
-| Refills by release timing | Are seats released late refilled anyway? | The likeliest remaining reason early release adds nothing; needs only a metric query |
+| ~~Refills by release timing~~ | Done: early releases are refilled 94%, late ones 68%; B4 moves too few (EXPERIMENT_PROTOCOL.md section 11) | |
+| Oracle variant | Ask exactly the passengers who will cancel late | The most any reconfirmation policy could gain in this world |
 | B5 with random choice | Same budget, requests chosen at random | Says whether the scheduler beats chance |
 | Survival-threshold sweep; B4 with the no-feature model; component removal | Robustness | Planned since section 7 |
 | Variants B6 to B11 | Not defined anywhere in the repository | Need their definitions |

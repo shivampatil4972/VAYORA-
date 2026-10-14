@@ -141,3 +141,57 @@ SELECT seed,
 FROM answers
 GROUP BY seed
 ORDER BY seed;
+
+-- name: refill_by_release_timing
+-- Are seats a passenger releases late refilled anyway, and how much better do early ones do?
+--
+-- Seats on a ride are interchangeable, so a refill cannot be tied to one release. This is
+-- therefore answered per ride: rides whose passenger releases were all early (24 hours or
+-- more before departure), and rides whose releases were all late. Rides with both, and
+-- rides a driver cancelled bookings on, are left out.
+--
+-- early_rides, early_released, early_refilled   rides with only early releases, and their seats
+-- early_refill_share                             early_refilled / early_released
+-- late_rides, late_released, late_refilled       the same for rides with only late releases
+-- late_refill_share                              late_refilled / late_released
+--
+-- If late releases are refilled about as often as early ones, freeing a seat earlier has
+-- little left to gain.
+WITH scoped AS (
+  SELECT seed, sim_time, event_type, payload
+  FROM events
+  WHERE run_id = :run_id AND variant = :variant
+    AND event_type IN ('booking_cancelled', 'seat_refilled')
+),
+rides AS (
+  SELECT seed, payload->>'ride_id' AS ride_id,
+         SUM((payload->>'seats')::int) FILTER (
+             WHERE event_type = 'booking_cancelled' AND payload->>'cancelled_by' = 'passenger')
+             AS released,
+         SUM((payload->>'seats')::int) FILTER (WHERE event_type = 'seat_refilled') AS refilled,
+         BOOL_OR(event_type = 'booking_cancelled' AND payload->>'cancelled_by' = 'passenger'
+                 AND CAST(payload->>'departure_time' AS timestamptz) - sim_time >= interval '24 hours')
+             AS any_early,
+         BOOL_OR(event_type = 'booking_cancelled' AND payload->>'cancelled_by' = 'passenger'
+                 AND CAST(payload->>'departure_time' AS timestamptz) - sim_time < interval '24 hours')
+             AS any_late,
+         BOOL_OR(event_type = 'booking_cancelled' AND payload->>'cancelled_by' = 'driver')
+             AS driver_cancelled
+  FROM scoped
+  GROUP BY seed, payload->>'ride_id'
+)
+SELECT seed,
+  COUNT(*) FILTER (WHERE any_early AND NOT any_late) AS early_rides,
+  COALESCE(SUM(released) FILTER (WHERE any_early AND NOT any_late), 0) AS early_released,
+  COALESCE(SUM(COALESCE(refilled, 0)) FILTER (WHERE any_early AND NOT any_late), 0) AS early_refilled,
+  1.0 * SUM(COALESCE(refilled, 0)) FILTER (WHERE any_early AND NOT any_late)
+      / NULLIF(SUM(released) FILTER (WHERE any_early AND NOT any_late), 0) AS early_refill_share,
+  COUNT(*) FILTER (WHERE any_late AND NOT any_early) AS late_rides,
+  COALESCE(SUM(released) FILTER (WHERE any_late AND NOT any_early), 0) AS late_released,
+  COALESCE(SUM(COALESCE(refilled, 0)) FILTER (WHERE any_late AND NOT any_early), 0) AS late_refilled,
+  1.0 * SUM(COALESCE(refilled, 0)) FILTER (WHERE any_late AND NOT any_early)
+      / NULLIF(SUM(released) FILTER (WHERE any_late AND NOT any_early), 0) AS late_refill_share
+FROM rides
+WHERE released IS NOT NULL AND NOT driver_cancelled
+GROUP BY seed
+ORDER BY seed;

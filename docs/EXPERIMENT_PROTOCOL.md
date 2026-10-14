@@ -420,3 +420,69 @@ The candidates, none yet measured:
   seat another would have taken a little later.
 
 The first is the one to measure next; it needs only a new metric query.
+
+## 11. Why early release adds so little
+
+Measured on 2026-10-15 over the existing ladder run of section 8
+(`experiments/reports/ladder-7a1c0de0-0000-4000-8000-000000000003.md`, regenerated with the
+new measures); no new simulation. Synthetic data, 30 seeds.
+
+### Are late releases refilled anyway? No.
+
+A new query, `refill_by_release_timing`, compares rides whose passenger releases were all
+early (24 hours or more before departure) with rides whose releases were all late. Seats
+on a ride are interchangeable, so this is measured per ride, not per seat; rides with both
+kinds, or with a driver cancellation, are left out.
+
+| | B0 | B3 | B4 | B5 |
+|---|---|---|---|---|
+| Seats refilled, rides with only early releases | 0.928 | 0.935 | 0.944 | 0.938 |
+| Seats refilled, rides with only late releases | 0.665 | 0.695 | 0.685 | 0.694 |
+
+An early release is refilled about 94% of the time, a late one about 68%. **The project's
+premise holds in this simulator: an early release is worth more than a late one**, by
+roughly a quarter of a seat.
+
+### Then why no gain? Because B4 moves very few releases.
+
+Per seed, averaged over the 30 seeds:
+
+| | B3 | B4 | B4 − B3 |
+|---|---|---|---|
+| Passenger cancellations | 186.2 | 193.0 | +6.8 |
+| of which late (under 24 hours) | 67.1 | 57.0 | −10.1 |
+| Completed trips | 1122.9 | 1122.6 | −0.3 |
+| Searches | 3611 | 3611 | |
+
+- B4 turns about 10 late releases into early ones. At a quarter of a seat each that is
+  worth about **2.6 completed trips per seed, or 0.07 per 100 searches**, before anything
+  is subtracted. The experiment's interval on the difference is about ±0.035 per 100, so
+  a gain this size would just about show.
+- Against it: B4 also produces about 7 cancellations B3 does not. In the simulator a
+  passenger who was going to travel cancels only if put off by being asked (2% of them,
+  an assumed value), and some refilled seats are booked by passengers who later cancel
+  in turn. Each extra cancellation is a seat that must be refilled just to break even.
+- And a refill is a completed trip only if whoever took it would not have travelled
+  anyway. Section 8 found that the extra refills go to passengers who had another ride on
+  offer, so part of the gain is a passenger moving between rides.
+
+The arithmetic says the effect should be small and positive; the measurement says zero
+within ±0.04. The two are not far apart, and the difference is in the direction the
+second and third points predict. That account fits but has not been tested piece by
+piece.
+
+### What this means for the project's idea
+
+The idea is right about seats and wrong about this intervention. An early release does
+help, but **asking risky bookings to reconfirm moves too few releases to matter**: of
+about 67 late releases per seed, B4 brings forward 10. That follows from a model that
+discriminates weakly (concordance 0.59) and from assuming half of those asked who were
+going to cancel would say so.
+
+### What would test it next
+
+- A sweep of `early_release_probability` already exists (section 6) and showed at most
+  +0.06; this section explains why that is the ceiling.
+- The lever that matters is how many late releases can be found and moved. A better model
+  is the obvious one; an oracle variant that asks exactly the passengers who will cancel
+  late would show the most any reconfirmation policy could gain in this world.

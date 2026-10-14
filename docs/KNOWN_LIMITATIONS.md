@@ -29,8 +29,10 @@ mistake for more. Updated 2026-10-13.
   from means, not a paired test.
 - Over half of all searches are offered no ride. Neither a wider window nor earlier
   publishing changes that much, so in this world most are full rides: about 31 seats a day
-  are offered against about 84 wanted. Even so, early release adds no completed rides
-  (EXPERIMENT_PROTOCOL.md sections 9 and 10), and why is not yet known.
+  are offered against about 84 wanted. Early releases are refilled far more often than
+  late ones (94% against 68%), but B4 moves only about 10 of 67 late releases per seed,
+  worth at most about 0.07 completed rides per 100 searches before losses
+  (EXPERIMENT_PROTOCOL.md sections 9 to 11).
 - It is one synthetic corridor. It is not evidence that the idea fails in reality.
 - Variants B1, B2 and B6 to B11 are not built. No component-removal or robustness
   experiment has been run.

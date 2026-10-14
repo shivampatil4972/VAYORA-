@@ -1,5 +1,17 @@
 # Progress
 
+## 2026-10-15 (late night) — why early release adds so little
+
+Committed on `stage-2-3-booking-core-and-simulator`.
+
+A new metric, `refill_by_release_timing`, applied to the existing ladder run: seats
+released early are refilled about 94% of the time, seats released late about 68%. So the
+project's premise holds in this simulator. The intervention fails for a plainer reason:
+B4 moves only about 10 of 67 late releases per seed earlier, worth at most about 0.07
+completed rides per 100 searches, and adds about 7 cancellations of its own. The
+measured effect (zero within ±0.04) is close to what that arithmetic allows. Section 11
+of EXPERIMENT_PROTOCOL.md has the numbers and the proposed next test, an oracle variant.
+
 ## 2026-10-15 (night) — publishing lead, and driver response rate
 
 Committed on `stage-2-3-booking-core-and-simulator`.

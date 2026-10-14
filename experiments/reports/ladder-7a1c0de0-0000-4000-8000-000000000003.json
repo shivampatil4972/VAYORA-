@@ -45,6 +45,18 @@
         "seeds": 30,
         "mean": 0.5504295230398956,
         "vs_baseline": null
+      },
+      "early_refill_share": {
+        "label": "Share of seats refilled, rides with only early releases",
+        "seeds": 30,
+        "mean": 0.9281551796161511,
+        "vs_baseline": null
+      },
+      "late_refill_share": {
+        "label": "Share of seats refilled, rides with only late releases",
+        "seeds": 30,
+        "mean": 0.6649556953178367,
+        "vs_baseline": null
       }
     },
     "B3": {
@@ -151,6 +163,36 @@
           "wilcoxon_p": 8.009374141693115e-08,
           "seeds_improved": 2,
           "seeds_worsened": 28
+        }
+      },
+      "early_refill_share": {
+        "label": "Share of seats refilled, rides with only early releases",
+        "seeds": 30,
+        "mean": 0.9345132286662324,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 0.006358049050081323,
+          "ci_low": -0.0041979125838796085,
+          "ci_high": 0.016914010684042254,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.39305018074810505,
+          "seeds_improved": 18,
+          "seeds_worsened": 12
+        }
+      },
+      "late_refill_share": {
+        "label": "Share of seats refilled, rides with only late releases",
+        "seeds": 30,
+        "mean": 0.6945845449800291,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 0.029628849662192282,
+          "ci_low": 0.009519671989101967,
+          "ci_high": 0.0497380273352826,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.01209351669923487,
+          "seeds_improved": 19,
+          "seeds_worsened": 11
         }
       }
     },
@@ -259,6 +301,36 @@
           "seeds_improved": 1,
           "seeds_worsened": 29
         }
+      },
+      "early_refill_share": {
+        "label": "Share of seats refilled, rides with only early releases",
+        "seeds": 30,
+        "mean": 0.9443089385521006,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 0.016153758935949388,
+          "ci_low": 0.006730345431816831,
+          "ci_high": 0.025577172440081945,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.0011314544826745987,
+          "seeds_improved": 22,
+          "seeds_worsened": 8
+        }
+      },
+      "late_refill_share": {
+        "label": "Share of seats refilled, rides with only late releases",
+        "seeds": 30,
+        "mean": 0.6854424784780118,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 0.020486783160175062,
+          "ci_low": -0.006415224423295337,
+          "ci_high": 0.047388790743645465,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.22181698571454478,
+          "seeds_improved": 14,
+          "seeds_worsened": 15
+        }
       }
     },
     "B5": {
@@ -365,6 +437,36 @@
           "wilcoxon_p": 2.60770320892334e-08,
           "seeds_improved": 1,
           "seeds_worsened": 29
+        }
+      },
+      "early_refill_share": {
+        "label": "Share of seats refilled, rides with only early releases",
+        "seeds": 30,
+        "mean": 0.9377941826861331,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 0.009639003069981973,
+          "ci_low": 0.0006349156696419771,
+          "ci_high": 0.01864309047032197,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.034536734223365784,
+          "seeds_improved": 20,
+          "seeds_worsened": 10
+        }
+      },
+      "late_refill_share": {
+        "label": "Share of seats refilled, rides with only late releases",
+        "seeds": 30,
+        "mean": 0.6938932996623599,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 0.028937604344523145,
+          "ci_low": 0.007162555241807866,
+          "ci_high": 0.05071265344723842,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.02977040515042219,
+          "seeds_improved": 19,
+          "seeds_worsened": 10
         }
       }
     }

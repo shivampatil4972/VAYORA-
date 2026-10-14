@@ -185,7 +185,7 @@ def test_cancellation_without_departure_time_is_surfaced(sa_conn):
 def test_metrics_file_defines_the_expected_queries():
     assert set(load_queries()) == {
         "primary_metric", "late_cancellation_share", "funnel_rates", "intervention_volume",
-        "refill_additionality"}
+        "refill_additionality", "refill_by_release_timing"}
 
 
 def test_intervention_volume_matches_hand_computed_values(sa_conn):
@@ -251,3 +251,42 @@ def test_refill_additionality_matches_hand_computed_values(sa_conn):
     assert float(one["only_option_share"]) == pytest.approx(2 / 3)
     assert (two["searches_shown"], two["shown_nothing"], two["refills"],
             two["refills_only_option"], two["only_option_share"]) == (2, 1, 0, 0, None)
+
+
+def test_refill_by_release_timing_matches_hand_computed_values(sa_conn):
+    departure = NOW + 100 * H
+
+    def event(ride, event_type, seats, before, by="passenger", seed=1, variant=VARIANT):
+        payload = {"ride_id": ride, "seats": seats}
+        if event_type == "booking_cancelled":
+            payload |= {"cancelled_by": by, "departure_time": departure.astimezone(IST).isoformat()}
+        return {"run_id": RUN_ID, "variant": variant, "seed": seed, "sim_time": departure - before,
+                "event_type": event_type, "payload": json.dumps(payload)}
+
+    rows = [
+        # Ride 1: two early releases, 3 seats; 2 refilled.
+        event(1, "booking_cancelled", 2, 72 * H), event(1, "booking_cancelled", 1, 30 * H),
+        event(1, "seat_refilled", 2, 20 * H),
+        # Ride 2: one late release of 2 seats; 1 refilled. Exactly 24 h before is early,
+        # so 23h59m is late.
+        event(2, "booking_cancelled", 2, 23 * H + 59 * M), event(2, "seat_refilled", 1, 5 * H),
+        # Ride 3: one early release, never refilled.
+        event(3, "booking_cancelled", 1, 24 * H),
+        # Ride 4: early and late both: left out.
+        event(4, "booking_cancelled", 1, 50 * H), event(4, "booking_cancelled", 1, 2 * H),
+        event(4, "seat_refilled", 2, H),
+        # Ride 5: a driver cancelled a booking on it: left out.
+        event(5, "booking_cancelled", 1, 60 * H), event(5, "booking_cancelled", 1, 10 * H, by="driver"),
+        # Ride 6: refills with no passenger release (cannot happen in the simulator): left out.
+        event(6, "seat_refilled", 1, 3 * H),
+        # Another variant must not leak in.
+        event(1, "booking_cancelled", 4, 2 * H, variant="B1"),
+    ]
+    sa_conn.execute(INSERT, rows)
+
+    (one,) = run_query(sa_conn, "refill_by_release_timing", run_id=RUN_ID, variant=VARIANT)
+
+    assert (one["early_rides"], one["early_released"], one["early_refilled"]) == (2, 4, 2)
+    assert float(one["early_refill_share"]) == pytest.approx(0.5)
+    assert (one["late_rides"], one["late_released"], one["late_refilled"]) == (1, 2, 1)
+    assert float(one["late_refill_share"]) == pytest.approx(0.5)
