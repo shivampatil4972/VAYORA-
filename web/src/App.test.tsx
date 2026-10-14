@@ -920,6 +920,33 @@ describe('my account', () => {
     expect(bodyOf(fetchMock, 'POST', '/me/verification/email/confirm')).toEqual({ code: '123456' });
   });
 
+  it('confirms a phone number with its own code, leaving the confirmed email alone', async () => {
+    signIn('PASSENGER');
+    let confirmed = false;
+    const fetchMock = serve({
+      'GET /me/profile': () => json({ ...mine, emailVerified: true, phone: '+919800000009', phoneVerified: confirmed }),
+      'GET /me/emergency-contacts': () => json([]),
+      'POST /me/verification/phone/request': () => new Response(null, { status: 204 }),
+      'POST /me/verification/phone/confirm': () => {
+        confirmed = true;
+        return new Response(null, { status: 204 });
+      },
+    });
+    open('/account');
+
+    const section = within(await screen.findByRole('region', { name: 'Email and phone' }));
+    expect(await section.findByText('+919800000009')).toBeInTheDocument();
+    // Only the phone needs confirming, so there is one button.
+    await userEvent.click(section.getByRole('button', { name: 'Send me a code' }));
+    expect(await section.findByText(/sends no real email or SMS/)).toBeInTheDocument();
+    await userEvent.type(section.getByLabelText('6-digit code'), '654321');
+    await userEvent.click(section.getByRole('button', { name: 'Confirm' }));
+
+    await waitFor(() => expect(section.getAllByText('Confirmed')).toHaveLength(2));
+    expect(bodyOf(fetchMock, 'POST', '/me/verification/phone/confirm')).toEqual({ code: '654321' });
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/verification/email/'))).toBe(false);
+  });
+
   it("shows the server's reason when a code is wrong", async () => {
     signIn('PASSENGER');
     serve({

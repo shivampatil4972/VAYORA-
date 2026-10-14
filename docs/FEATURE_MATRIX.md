@@ -26,7 +26,7 @@ Last updated: 2026-10-14. Test suites and how to run them are in [TESTING.md](TE
 | 3 | Profile photo upload | TBD | TBD | Not started |
 | 4 | Bio, age, and gender | TBD | TBD | Verified (API and UI tests): bio and an approximate age on the profile; gender is stored and shown to nobody |
 | 5 | Email verification | TBD | TBD | Verified (API and UI tests), simulated sender, nothing is sent: the code is read from an administrator-only outbox |
-| 6 | Phone OTP verification | TBD | TBD | Partial: API verified, simulated sender, nothing is sent: the code is read from an administrator-only outbox; the screen is the email one, tested for email only |
+| 6 | Phone OTP verification | TBD | TBD | Verified (API and UI tests), simulated sender, nothing is sent: the code is read from an administrator-only outbox |
 | 7 | Government ID verification | TBD | TBD | Not started |
 | 8 | Verified-profile badge | TBD | TBD | Partial: "Email confirmed" and "Phone confirmed" on the profile, which also says no identity document was checked |
 | 9 | Experience levels from Newcomer to Ambassador | TBD | TBD | Verified (API and UI tests): five levels from completed trips, ratings and confirmed contact details, shown on profiles. The thresholds are the authors' assumptions, in `application.yml` |

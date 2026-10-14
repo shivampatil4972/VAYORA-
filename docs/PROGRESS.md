@@ -1,5 +1,11 @@
 # Progress
 
+## 2026-10-14 — phone confirmation screen tested
+
+- **Feature 6** moves from Partial to Verified: a UI test now confirms a phone number on the
+  account page. No code changed; the screen was already shared with email. Still a
+  simulated sender: no SMS is sent.
+
 ## 2026-10-14 — electric range warning
 
 - **Range against route (features 15 and 75).** When a driver works out the route for an
