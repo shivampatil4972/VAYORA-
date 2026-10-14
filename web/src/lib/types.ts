@@ -23,7 +23,20 @@ export interface Vehicle {
   colour: string | null;
   /** Total seats including the driver's. */
   seats: number;
+  /** The driver's own description; null if not said. */
+  comfort: Comfort | null;
+  luggage: Luggage | null;
+  electric: boolean;
+  batteryKwh: number | null;
+  consumptionKwhPer100Km: number | null;
+  /** What the two figures above imply on a full charge. Not a measured range. */
+  estimatedRangeKm: number | null;
 }
+
+export type Comfort = 'BASIC' | 'COMFORT' | 'PREMIUM';
+
+/** The largest bag each passenger may bring. */
+export type Luggage = 'NONE' | 'SMALL' | 'MEDIUM' | 'LARGE';
 
 export interface Stop {
   seq: number;
@@ -110,6 +123,11 @@ export interface Candidate {
   /** The driver confirmed an email address or a phone number. Not an identity check. */
   driverConfirmed: boolean;
   maxTwoInBack: boolean;
+  /** Make and model, as the driver entered them. */
+  vehicle: string;
+  comfort: Comfort | null;
+  luggage: Luggage | null;
+  electric: boolean;
 }
 
 /** The newest durability estimate of one live booking. Administrators only. */

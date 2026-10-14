@@ -646,4 +646,39 @@ export const hi: Record<string, string> = {
     'पीछे अधिकतम दो यात्रियों का वादा करती हैं',
   'From the driver:':
     'चालक की ओर से:',
+  // Vehicle details
+  'Basic':
+    'साधारण',
+  'Comfortable':
+    'आरामदायक',
+  'Premium':
+    'प्रीमियम',
+  'No luggage':
+    'सामान नहीं',
+  'A small bag each':
+    'हर यात्री एक छोटा बैग',
+  'A medium bag each':
+    'हर यात्री एक मध्यम बैग',
+  'A large suitcase each':
+    'हर यात्री एक बड़ा सूटकेस',
+  'Electric':
+    'इलेक्ट्रिक',
+  'Between 1 and 300 kWh':
+    '1 से 300 kWh के बीच',
+  'Between 5 and 60 kWh per 100 km':
+    'प्रति 100 किमी 5 से 60 kWh के बीच',
+  'About {km} km on a full charge, from the figures you gave. Not a measured range.':
+    'आपके दिए आँकड़ों के अनुसार पूरी चार्जिंग पर लगभग {km} किमी। यह मापी गई रेंज नहीं है।',
+  'Comfort (optional)':
+    'आराम का स्तर (वैकल्पिक)',
+  'Your own description. Nobody inspects the car.':
+    'यह आपका अपना विवरण है। गाड़ी की कोई जाँच नहीं करता।',
+  'Luggage per passenger (optional)':
+    'प्रति यात्री सामान (वैकल्पिक)',
+  'This vehicle is electric':
+    'यह वाहन इलेक्ट्रिक है',
+  'Battery (kWh, optional)':
+    'बैटरी (kWh, वैकल्पिक)',
+  'Consumption (kWh per 100 km, optional)':
+    'खपत (kWh प्रति 100 किमी, वैकल्पिक)',
 };

@@ -13,6 +13,7 @@ import { api } from '../lib/api';
 import { CORRIDOR } from '../lib/corridor';
 import { formatDateTime, formatRupees, formatTime, todayInCorridor } from '../lib/format';
 import { msg, useT, useUnits } from '../lib/i18n';
+import { vehiclePhrases } from '../lib/vehicle';
 import { searchSchema, type SearchForm } from '../lib/schemas';
 import type { Booking, Candidate, PaymentMethod, Ride, SearchSort } from '../lib/types';
 
@@ -415,6 +416,8 @@ export function SearchPage() {
                         : t('{n} seats left', { n: candidate.seatsAvailable })}{' '}
                       · {candidate.instantBooking ? t('Confirms instantly') : t('Driver approves each request')}
                     </p>
+                    {/* `vehicle` is what the driver typed: shown as text, not translated. */}
+                    {candidate.vehicle && <p className="mt-1 text-sm text-slate-600">{[candidate.vehicle, ...vehiclePhrases(candidate, t)].join(' · ')}</p>}
                     <p className="mt-1 text-sm text-slate-600">
                       {t('Pickup {pickup} from your start · drop-off {dropoff} from your destination', {
                         pickup: units.distance(candidate.pickupDistanceM),

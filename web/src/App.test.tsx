@@ -80,6 +80,10 @@ const candidate: Candidate = {
   dropoffDistanceM: 0,
   driverConfirmed: false,
   maxTwoInBack: false,
+  vehicle: 'Maruti Ertiga',
+  comfort: null,
+  luggage: null,
+  electric: false,
 };
 
 const rideWithRoute = {
@@ -1234,5 +1238,75 @@ describe('ride notes, return rides and weekly repeats', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Show route' }));
     expect(await screen.findByText('From the driver:')).toBeInTheDocument();
     expect(screen.getByText('Two bags each. <b>No</b> smoking.')).toBeInTheDocument(); // the tag is shown, not obeyed
+  });
+});
+
+describe('my vehicles', () => {
+  const plain = {
+    id: 3, make: 'Maruti', model: 'Ertiga', year: 2022, colour: 'Silver', seats: 7,
+    comfort: null, luggage: null, electric: false, batteryKwh: null, consumptionKwhPer100Km: null, estimatedRangeKm: null,
+  };
+  const ev = {
+    id: 4, make: 'Tata', model: 'Nexon EV', year: null, colour: null, seats: 5,
+    comfort: 'PREMIUM', luggage: 'MEDIUM', electric: true, batteryKwh: 40.5, consumptionKwhPer100Km: 15, estimatedRangeKm: 270,
+  };
+
+  it('adds an electric vehicle with what the driver says about it', async () => {
+    signIn('DRIVER');
+    let owned: unknown[] = [plain];
+    const fetchMock = serve({
+      'GET /vehicles': () => json(owned),
+      'POST /vehicles': () => {
+        owned = [plain, ev];
+        return json(ev, 201);
+      },
+    });
+    open('/vehicles');
+
+    expect(await screen.findByText('Maruti Ertiga')).toBeInTheDocument();
+    expect(screen.queryByText(/on a full charge/)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Battery (kWh, optional)')).not.toBeInTheDocument(); // only for an electric vehicle
+
+    await userEvent.type(screen.getByLabelText('Make'), 'Tata');
+    await userEvent.type(screen.getByLabelText('Model'), 'Nexon EV');
+    await userEvent.selectOptions(screen.getByLabelText('Comfort (optional)'), 'Premium');
+    await userEvent.selectOptions(screen.getByLabelText('Luggage per passenger (optional)'), 'A medium bag each');
+    await userEvent.click(screen.getByLabelText('This vehicle is electric'));
+    await userEvent.type(screen.getByLabelText('Battery (kWh, optional)'), '40.5');
+    await userEvent.type(screen.getByLabelText('Consumption (kWh per 100 km, optional)'), '15');
+    await userEvent.click(screen.getByRole('button', { name: 'Add vehicle' }));
+
+    expect(await screen.findByText('Premium · A medium bag each · Electric')).toBeInTheDocument();
+    expect(screen.getByText('About 270 km on a full charge, from the figures you gave. Not a measured range.')).toBeInTheDocument();
+    const sent = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
+    expect(JSON.parse(String(sent?.[1]?.body))).toEqual({
+      make: 'Tata', model: 'Nexon EV', year: null, colour: null, seats: 5,
+      comfort: 'PREMIUM', luggage: 'MEDIUM', electric: true, batteryKwh: 40.5, consumptionKwhPer100Km: 15,
+    });
+  });
+
+  it('refuses an impossible battery without asking the server', async () => {
+    signIn('DRIVER');
+    const fetchMock = serve({ 'GET /vehicles': () => json([]) });
+    open('/vehicles');
+
+    await userEvent.type(await screen.findByLabelText('Make'), 'Tata');
+    await userEvent.type(screen.getByLabelText('Model'), 'Nexon EV');
+    await userEvent.click(screen.getByLabelText('This vehicle is electric'));
+    await userEvent.type(screen.getByLabelText('Battery (kWh, optional)'), '900');
+    await userEvent.click(screen.getByRole('button', { name: 'Add vehicle' }));
+
+    expect(await screen.findByText('Between 1 and 300 kWh')).toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false);
+  });
+
+  it('tells a passenger what car a result is', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /rides/search': () => json([{ ...candidate, vehicle: 'Tata Nexon EV', comfort: 'COMFORT', luggage: 'SMALL', electric: true }]) });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+
+    expect(await screen.findByText('Tata Nexon EV · Comfortable · A small bag each · Electric')).toBeInTheDocument();
   });
 });

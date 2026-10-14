@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { registerSchema, rideSchema, ridesPublished, searchSchema, toPublishRequest, vehicleSchema, type RideForm } from './schemas';
+import { registerSchema, rideSchema, ridesPublished, searchSchema, toPublishRequest, toVehicleRequest, vehicleSchema, type RideForm } from './schemas';
 
 const messages = (result: { success: boolean; error?: { issues: { message: string }[] } }) =>
   result.error?.issues.map((issue) => issue.message) ?? [];
@@ -62,7 +62,7 @@ describe('searchSchema', () => {
 
 describe('vehicleSchema', () => {
   it('lets the year be left blank but not nonsensical', () => {
-    const base = { make: 'Maruti', model: 'Ertiga', colour: '', seats: '7' };
+    const base = { make: 'Maruti', model: 'Ertiga', colour: '', seats: '7', comfort: '', luggage: '', electric: false, batteryKwh: '', consumptionKwhPer100Km: '' };
     expect(vehicleSchema.parse({ ...base, year: '' }).year).toBe('');
     expect(vehicleSchema.parse({ ...base, year: '2022' }).year).toBe(2022);
     expect(vehicleSchema.safeParse({ ...base, year: '1492' }).success).toBe(false);
@@ -183,5 +183,34 @@ describe('return and repeated rides', () => {
     expect(ridesPublished({ returnDeparture: after(8), repeatWeeks: 0 })).toBe(2);
     expect(ridesPublished({ returnDeparture: '', repeatWeeks: 2 })).toBe(3);
     expect(ridesPublished({ returnDeparture: after(8), repeatWeeks: 2 })).toBe(6);
+  });
+});
+
+describe('vehicle details', () => {
+  const base = { make: 'Tata', model: 'Nexon EV', year: '', colour: '', seats: '5', comfort: '', luggage: '', electric: false, batteryKwh: '', consumptionKwhPer100Km: '' };
+
+  it('sends what was not said as nothing', () => {
+    expect(toVehicleRequest(vehicleSchema.parse(base))).toEqual({
+      make: 'Tata', model: 'Nexon EV', year: null, colour: null, seats: 5,
+      comfort: null, luggage: null, electric: false, batteryKwh: null, consumptionKwhPer100Km: null,
+    });
+  });
+
+  it('sends the battery figures of an electric vehicle, to one decimal', () => {
+    const form = vehicleSchema.parse({ ...base, comfort: 'PREMIUM', luggage: 'MEDIUM', electric: true, batteryKwh: '40.52', consumptionKwhPer100Km: '15' });
+
+    expect(toVehicleRequest(form)).toMatchObject({ comfort: 'PREMIUM', luggage: 'MEDIUM', electric: true, batteryKwh: 40.5, consumptionKwhPer100Km: 15 });
+  });
+
+  it('drops battery figures left behind when the vehicle is no longer marked electric', () => {
+    const form = vehicleSchema.parse({ ...base, electric: false, batteryKwh: '40.5', consumptionKwhPer100Km: '15' });
+
+    expect(toVehicleRequest(form)).toMatchObject({ electric: false, batteryKwh: null, consumptionKwhPer100Km: null });
+  });
+
+  it('refuses figures no car has and a class that does not exist', () => {
+    expect(messages(vehicleSchema.safeParse({ ...base, electric: true, batteryKwh: '0' }))).toEqual(['Between 1 and 300 kWh']);
+    expect(messages(vehicleSchema.safeParse({ ...base, electric: true, consumptionKwhPer100Km: '99' }))).toEqual(['Between 5 and 60 kWh per 100 km']);
+    expect(vehicleSchema.safeParse({ ...base, comfort: 'LUXURY' }).success).toBe(false);
   });
 });

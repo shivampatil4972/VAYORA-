@@ -41,8 +41,34 @@ export const vehicleSchema = z.object({
   year: z.union([z.literal(''), z.coerce.number().int().min(1980, msg('Too old')).max(2100, msg('Check the year'))]),
   colour: z.string().trim().max(30),
   seats: z.coerce.number().int().min(2, msg('At least 2, counting the driver')).max(9, msg('At most 9')),
+  // Empty means the driver has not said.
+  comfort: z.enum(['', 'BASIC', 'COMFORT', 'PREMIUM']),
+  luggage: z.enum(['', 'NONE', 'SMALL', 'MEDIUM', 'LARGE']),
+  electric: z.boolean(),
+  batteryKwh: z.union([z.literal(''), z.coerce.number().min(1, msg('Between 1 and 300 kWh')).max(300, msg('Between 1 and 300 kWh'))]),
+  consumptionKwhPer100Km: z.union([
+    z.literal(''),
+    z.coerce.number().min(5, msg('Between 5 and 60 kWh per 100 km')).max(60, msg('Between 5 and 60 kWh per 100 km')),
+  ]),
 });
 export type VehicleForm = z.infer<typeof vehicleSchema>;
+
+/** Turns the vehicle form into the body core-api expects. Battery figures go only with an electric vehicle. */
+export function toVehicleRequest(form: VehicleForm) {
+  const figure = (value: number | '') => (form.electric && value !== '' ? Math.round(value * 10) / 10 : null);
+  return {
+    make: form.make,
+    model: form.model,
+    year: form.year === '' ? null : form.year,
+    colour: form.colour || null,
+    seats: form.seats,
+    comfort: form.comfort || null,
+    luggage: form.luggage || null,
+    electric: form.electric,
+    batteryKwh: figure(form.batteryKwh),
+    consumptionKwhPer100Km: figure(form.consumptionKwhPer100Km),
+  };
+}
 
 /** How many further weeks a ride can be repeated for. The server enforces the same limit. */
 export const MAX_REPEAT_WEEKS = 8;

@@ -13,8 +13,9 @@ import { api } from '../lib/api';
 import { CORRIDOR } from '../lib/corridor';
 import { formatDateTime, formatRupees, formatTime } from '../lib/format';
 import { msg, useT, useUnits } from '../lib/i18n';
-import { rideSchema, toPublishRequest, vehicleSchema, type RideForm, type VehicleForm, MAX_REPEAT_WEEKS, ridesPublished } from '../lib/schemas';
-import type { Booking, Ride, RoutePreview, Settlement, Vehicle } from '../lib/types';
+import { rideSchema, toPublishRequest, vehicleSchema, type RideForm, type VehicleForm, MAX_REPEAT_WEEKS, ridesPublished, toVehicleRequest } from '../lib/schemas';
+import { comfortLabels, luggageLabels, vehiclePhrases } from '../lib/vehicle';
+import type { Booking, Comfort, Luggage, Ride, RoutePreview, Settlement, Vehicle } from '../lib/types';
 
 const useVehicles = () => useQuery({ queryKey: ['vehicles'], queryFn: () => api<Vehicle[]>('/vehicles') });
 
@@ -22,15 +23,16 @@ export function VehiclesPage() {
   const t = useT();
   const queryClient = useQueryClient();
   const vehicles = useVehicles();
-  const { register, handleSubmit, formState, reset } = useForm<VehicleForm>({
+  const { register, handleSubmit, formState, reset, watch: watchVehicle } = useForm<VehicleForm>({
     resolver: zodResolver(vehicleSchema),
-    defaultValues: { make: '', model: '', year: '', colour: '', seats: 5 },
+    defaultValues: { make: '', model: '', year: '', colour: '', seats: 5, comfort: '', luggage: '', electric: false, batteryKwh: '', consumptionKwhPer100Km: '' },
   });
+  const electric = watchVehicle('electric');
   const add = useMutation({
     mutationFn: (form: VehicleForm) =>
       api<Vehicle>('/vehicles', {
         method: 'POST',
-        body: { ...form, year: form.year === '' ? null : form.year, colour: form.colour || null },
+        body: toVehicleRequest(form),
       }),
     onSuccess: () => {
       reset();
@@ -55,6 +57,12 @@ export function VehiclesPage() {
           <p className="mt-1 text-sm text-slate-600">
             {[vehicle.colour, vehicle.year, t('{n} seats including yours', { n: vehicle.seats })].filter(Boolean).join(' · ')}
           </p>
+          {vehiclePhrases(vehicle, t).length > 0 && <p className="mt-1 text-sm text-slate-600">{vehiclePhrases(vehicle, t).join(' · ')}</p>}
+          {vehicle.estimatedRangeKm != null && (
+            <p className="mt-1 text-sm text-slate-600">
+              {t('About {km} km on a full charge, from the figures you gave. Not a measured range.', { km: vehicle.estimatedRangeKm })}
+            </p>
+          )}
         </Card>
       ))}
 
@@ -79,6 +87,44 @@ export function VehiclesPage() {
             error={formState.errors.seats?.message}
             {...register('seats')}
           />
+          <SelectField label={t('Comfort (optional)')} hint={t('Your own description. Nobody inspects the car.')} {...register('comfort')}>
+            <option value="">{t('Not said')}</option>
+            {(Object.keys(comfortLabels) as Comfort[]).map((key) => (
+              <option key={key} value={key}>
+                {t(comfortLabels[key])}
+              </option>
+            ))}
+          </SelectField>
+          <SelectField label={t('Luggage per passenger (optional)')} {...register('luggage')}>
+            <option value="">{t('Not said')}</option>
+            {(Object.keys(luggageLabels) as Luggage[]).map((key) => (
+              <option key={key} value={key}>
+                {t(luggageLabels[key])}
+              </option>
+            ))}
+          </SelectField>
+          <label className="flex items-center gap-2 text-sm text-slate-700 sm:col-span-2">
+            <input type="checkbox" className="h-4 w-4 rounded border-slate-300" {...register('electric')} />
+            {t('This vehicle is electric')}
+          </label>
+          {electric && (
+            <>
+              <TextField
+                label={t('Battery (kWh, optional)')}
+                type="number"
+                step="0.1"
+                error={formState.errors.batteryKwh?.message}
+                {...register('batteryKwh')}
+              />
+              <TextField
+                label={t('Consumption (kWh per 100 km, optional)')}
+                type="number"
+                step="0.1"
+                error={formState.errors.consumptionKwhPer100Km?.message}
+                {...register('consumptionKwhPer100Km')}
+              />
+            </>
+          )}
           <div className="sm:col-span-2">
             <Button type="submit" disabled={add.isPending}>
               {add.isPending ? t('Adding…') : t('Add vehicle')}
