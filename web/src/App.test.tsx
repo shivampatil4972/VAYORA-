@@ -1499,3 +1499,40 @@ describe('running a ride from my rides', () => {
     expect(posted(fetchMock)).toEqual(['/rides/12/start', '/bookings/90/no-show', '/rides/12/complete']);
   });
 });
+
+describe('payments (passenger)', () => {
+  const payment = {
+    bookingId: 90, fromStop: 'Kolhapur', toStop: 'Pune', fare: 520, serviceFee: 52, amount: 572,
+    method: 'UPI', provider: 'MOCK', status: 'SETTLED', refunded: 0, refundReason: null, createdAt: '2026-10-30T10:00:00Z',
+  };
+
+  it('lists what was paid and what came back, and says the money is simulated', async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /payments': () =>
+        json([
+          { ...payment, bookingId: 92, status: 'HELD' },
+          { ...payment, bookingId: 91, method: 'CARD', refunded: 572, refundReason: 'DRIVER_CANCELLED' },
+          payment,
+        ]),
+    });
+    open('/payments');
+
+    // 572 held + (572 - 572) + 572 settled.
+    expect(await screen.findByText('₹1,144')).toBeInTheDocument();
+    expect(screen.getByText('₹572: The driver cancelled')).toBeInTheDocument();
+    expect(screen.getByText('Held until the trip ends')).toBeInTheDocument();
+    expect(screen.getByText('Nothing')).toBeInTheDocument();
+    expect(screen.getByText('Card')).toBeInTheDocument();
+    expect(screen.getAllByText('₹520 fare + ₹52 service fee')).toHaveLength(3);
+    expect(await screen.findByText(/Payments here are simulated/)).toBeInTheDocument();
+    expect(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Payments' })).toHaveAttribute('href', '/payments');
+  });
+
+  it('says so when nothing has been paid, and is not offered to drivers', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /payments': () => json([]) });
+    open('/payments');
+    expect(await screen.findByText('You have not paid for anything yet.')).toBeInTheDocument();
+  });
+});

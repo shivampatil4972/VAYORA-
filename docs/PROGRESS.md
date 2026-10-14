@@ -1,5 +1,17 @@
 # Progress
 
+## 2026-10-14 (late night) — the driver's pages tested, and a payments page
+
+Committed on `stage-2-3-booking-core-and-simulator`.
+
+- **Page-level tests for publishing and running a ride.** The publish form is now tested
+  through the page, from typing to the request sent and the list shown after, and the
+  my-rides page through accepting, declining, starting, marking a no-show and completing.
+  Seven features held at "partial" only for want of these tests are now verified. All
+  four tests passed on their first run.
+- **A payments page for passengers**: what was paid, by which method, what came back
+  and why, under the notice that payments are simulated.
+
 ## 2026-10-14 (night) — a time limit on unanswered requests
 
 Committed on `stage-2-3-booking-core-and-simulator`.

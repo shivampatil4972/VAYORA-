@@ -12,6 +12,7 @@ import { LoginPage, RegisterPage } from './pages/AuthPages';
 import { AuditPage, MembersPage, OverviewPage, ReportsPage } from './pages/BackOfficePages';
 import { EarningsPage, PublishRidePage, RidesPage, VehiclesPage } from './pages/DriverPages';
 import { NotificationsPage } from './pages/NotificationsPage';
+import { PaymentsPage } from './pages/PaymentsPage';
 import { BookingsPage, SearchPage } from './pages/PassengerPages';
 import { ProfilePage } from './pages/ProfilePage';
 import { EmergenciesPage } from './pages/SafetyAdminPages';
@@ -40,6 +41,7 @@ export function AppRoutes() {
         <Route element={<RequireRole role="PASSENGER" />}>
           <Route path="search" element={<SearchPage />} />
           <Route path="bookings" element={<BookingsPage />} />
+          <Route path="payments" element={<PaymentsPage />} />
         </Route>
         <Route element={<RequireRole role="DRIVER" />}>
           <Route path="rides" element={<RidesPage />} />

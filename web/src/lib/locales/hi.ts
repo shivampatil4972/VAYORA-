@@ -689,4 +689,29 @@ export const hi: Record<string, string> = {
   // Request expiry
   'The driver has until {time} to answer. After that the request closes and everything you paid is returned.':
     'चालक के पास जवाब देने के लिए {time} तक का समय है। उसके बाद अनुरोध बंद हो जाएगा और आपका पूरा भुगतान लौटा दिया जाएगा।',
+  // Passenger payments
+  'Payments':
+    'भुगतान',
+  'The driver did not accept':
+    'चालक ने स्वीकार नहीं किया',
+  'The driver cancelled':
+    'चालक ने रद्द किया',
+  'You cancelled':
+    'आपने रद्द किया',
+  'You have not paid for anything yet.':
+    'आपने अभी तक किसी चीज़ का भुगतान नहीं किया है।',
+  'Paid, less what came back':
+    'भुगतान, लौटाई गई राशि घटाकर',
+  'Payments, newest first':
+    'भुगतान, सबसे नए पहले',
+  'Booked':
+    'बुकिंग का समय',
+  'Paid with':
+    'भुगतान का तरीका',
+  'Came back':
+    'वापस मिला',
+  'Held until the trip ends':
+    'यात्रा पूरी होने तक रोका गया',
+  'Nothing':
+    'कुछ नहीं',
 };

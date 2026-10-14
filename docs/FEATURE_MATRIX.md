@@ -89,7 +89,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 46 | Card, UPI, and wallet selection | TBD | TBD | Partial: method is chosen and recorded, API and UI tested; mock provider, no money moves, so the choice changes nothing |
 | 47 | Tiered refunds by cancellation timing | TBD | TBD | Verified (API and UI tests): refund share by time before boarding, tiers in config and shown before cancelling |
 | 48 | Full refund for qualifying driver cancellations | TBD | TBD | Verified (API tests): everything returned, fee included, when the driver cancels, declines or never answers |
-| 49 | Transaction history | TBD | TBD | Partial: passenger payments and driver payouts by API; driver earnings screen tested; no passenger payments screen |
+| 49 | Transaction history | TBD | TBD | Verified (API and UI tests), mock provider, no money moves: a passenger's payments with what came back and why; a driver's payouts |
 | 50 | PDF invoice and receipt | TBD | TBD | Not started |
 
 ## Trust and safety

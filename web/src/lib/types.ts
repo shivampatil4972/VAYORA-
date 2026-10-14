@@ -323,6 +323,25 @@ export interface PaymentTerms {
   refundTiers: { atLeastHoursBefore: number; fareShare: number }[];
 }
 
+/** One of a passenger's payments, with what came back. */
+export interface PassengerPayment {
+  bookingId: number;
+  fromStop: string;
+  toStop: string;
+  fare: number;
+  serviceFee: number;
+  /** Fare plus fee: what was held. */
+  amount: number;
+  method: PaymentMethod;
+  /** `MOCK` means no money moved. */
+  provider: string;
+  status: 'HELD' | 'SETTLED';
+  /** 0 when nothing came back. */
+  refunded: number;
+  refundReason: 'NOT_ACCEPTED' | 'DRIVER_CANCELLED' | 'PASSENGER_CANCELLED' | null;
+  createdAt: string;
+}
+
 /** A payout to a driver. */
 export interface Settlement {
   bookingId: number;
