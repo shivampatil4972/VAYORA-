@@ -124,8 +124,8 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 66 | Booking reference and boarding code | TBD | TBD | Verified (API and UI tests): the passenger sees a reference and a 4-digit code; the driver can check a code but is never sent it. Checking changes nothing about the booking |
 | 67 | Meeting-point details and map | TBD | TBD | Verified: meeting point and route on a booking. UI tested with a stand-in map; the real map has not been seen in a browser |
 | 68 | Live GPS tracking | TBD | TBD | Partial: the driver shares their position while the ride is under way and passengers see the latest point on a map. Verified in gateway and UI tests and a live run; the browser's own location reading and the real map are unseen |
-| 69 | Two-sided completion confirmation | TBD | TBD | Partial: driver starts and completes, API verified; no passenger confirmation |
-| 70 | Post-trip rating prompt | TBD | TBD | Partial: a rating form appears on completed trips and a notification points to it; no reminder |
+| 69 | Two-sided completion confirmation | TBD | TBD | Partial: the passenger confirms a completed trip or says it did not happen, and a denial is listed for administrators (API tested). The passenger's screen for it is not built yet |
+| 70 | Post-trip rating prompt | TBD | TBD | Verified (API and UI tests): a rating form on completed trips, and one reminder a day later to each side that has not rated |
 
 ## General platform
 
@@ -162,7 +162,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 83 | Fuel and EV charging stops | TBD | TBD | Not started |
 | 85 | Weekly, monthly, and annual travel passes | TBD | TBD | Verified (API and UI tests, live run), mock provider, no money moves: a running pass waives the service fee; the driver's fare is untouched. Prices are assumptions |
 | 87 | Live what-if simulator | TBD | TBD | Not started |
-| 90 | Reproducibility capsule (`make reproduce` or equivalent) | TBD | TBD | Partial: every result reproduces from documented commands; no single `make reproduce` |
+| 90 | Reproducibility capsule (`make reproduce` or equivalent) | TBD | TBD | Verified: `scripts/reproduce.sh` rebuilds the tests, model, ladder and current sweeps and fails unless every file matches the committed one. Run in full on 2026-10-16: every committed number reproduced exactly |
 | 91 | Last-mile rickshaw, bus, and walking access | TBD | TBD | Not started |
 | 92 | Bus alternative after recovery failure | TBD | TBD | Not started |
 | 95 | Driver reliability self-view | TBD | TBD | Not started |

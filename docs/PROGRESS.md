@@ -1,5 +1,17 @@
 # Progress
 
+## 2026-10-16 (later) — reproducibility, completion confirmation, rating reminders
+
+- **`scripts/reproduce.sh`** rebuilds the tests, the model, the ladder and the current
+  sweeps, and fails unless every output matches the committed file. Run in full: every
+  committed number reproduced exactly (EXPERIMENT_PROTOCOL.md section 4). The script was
+  committed with the boarding-code change by mistake rather than on its own.
+- **Two-sided completion (feature 69).** A passenger can confirm a completed trip or say
+  it did not happen; a denial is listed for administrators and nothing is reversed
+  automatically. API only so far.
+- **Rating reminders (feature 70).** One reminder, a day after the trip, to each side that
+  has not rated it.
+
 ## 2026-10-16 (later) — boarding codes
 
 Each booking now has a reference (`JX-000090`) and a 4-digit boarding code. The passenger

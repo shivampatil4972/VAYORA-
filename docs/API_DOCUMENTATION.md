@@ -108,6 +108,8 @@ returns the booking the first request made instead of making another.
 | `POST /api/v1/bookings/{bookingId}/rating` | P, D | Rate the other side of a completed booking, once |
 | `GET /api/v1/ratings/pending` | any | Completed trips the caller has not rated |
 | `POST /api/v1/reports` | P, D | Report a member one has shared a booking with |
+| `POST /api/v1/bookings/{id}/trip-confirmation` | P | Say whether a completed trip happened, once |
+| `GET /api/v1/admin/disputed-trips` | A | Completed trips their passenger says did not happen |
 | `GET /api/v1/me/emergency-contacts` | any | Own emergency contacts |
 | `POST /api/v1/me/emergency-contacts` | any | Add one, up to three |
 | `DELETE /api/v1/me/emergency-contacts/{id}` | any | Remove one |

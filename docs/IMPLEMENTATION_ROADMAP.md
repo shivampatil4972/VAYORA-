@@ -35,10 +35,7 @@ Ordered by value to the research question first, then by size.
 | 93 | Supply-gap detection and nudging | Three event types already reserved (`nudge_*`, `supply_gap_detected`); nudge conversion must stay a swept parameter, never a result | Medium |
 | 88 | Cascade-aware recovery | Re-offer a cancelled ride's passengers another ride | Medium |
 | 89 | Corridor demand calibration | Needs real demand figures to calibrate against, which do not exist | Blocked on data |
-| 90 | Reproducibility capsule | One command that rebuilds every result | Small |
 | 95 | Driver reliability self-view | Computed from data already kept | Small |
-| 66, 69 | Boarding code; passenger confirms completion | A code shown to the passenger, checked by the driver | Small |
-| 70 | Post-trip rating reminder | A reminder notification | Small |
 | 33, 37 | Minimum price; music, conversation, vehicle filters | Data exists | Small |
 | 9 | Experience levels | Needs the levels defined | Small |
 | 26 | Recurring rides as a schedule | Edit or withdraw a whole series | Medium |

@@ -47,6 +47,24 @@ The platform never cancels a booking. An intervention only asks; the passenger d
 
 ## 4. Reproducing a run
 
+**One command rebuilds every current result** and fails unless each file comes out
+exactly as committed:
+
+```sh
+scripts/reproduce.sh              # tests, model, ladder, sweeps: about an hour
+scripts/reproduce.sh --no-sweeps  # without the sweeps
+```
+
+It was run in full on 2026-10-16. The model files, the model report, the ladder report
+and the departure-tolerance and publishing-lead sweeps came out byte for byte as
+committed. The contact-budget sweep report came out with three more tables, because
+sweep reports gained those measures after it was first written; every number already in
+it was identical, and the fuller report is now the committed one. Ladders `...001` and
+`...002` and sweeps `...001` and `...002` were made with earlier code and are kept as
+history; the script does not rebuild them.
+
+To run a single comparison by hand:
+
 ```sh
 docker compose up -d --wait postgres core-api
 RUN=$(python -c "import uuid; print(uuid.uuid4())")

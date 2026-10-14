@@ -4,7 +4,7 @@ Counts are from the runs on 2026-10-13. Every suite passed with no failures.
 
 | Suite | Command, from the repository root | Tests |
 |---|---|---|
-| core-api | `docker compose --profile test run --rm core-api-tests` | 165 |
+| core-api | `docker compose --profile test run --rm core-api-tests` | 168 |
 | Python (events, simulator, model, scheduler, experiments, intel API) | `docker compose --profile research run --rm research` | 168 |
 | web | `cd web && npm ci && npm test` | 150 |
 | gateway | `cd gateway && npm ci && npm test` | 25 |
@@ -35,6 +35,7 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 | `ReceiptIntegrationTest` | 6 | **Each receipt read back as text**: amounts, refund, provider, the simulated-payment statement, not a tax invoice; nobody gets another's; characters the fonts cannot draw become "?"; the endpoint serves a PDF |
 | `ResponseRateIntegrationTest` | 3 | **Only the driver's own answers count**: lapsed requests and those closed when the ride starts are unanswered, withdrawn ones do not count; the median time; nothing for passengers or instant rides |
 | `BoardingIntegrationTest` | 4 | **The driver can check a code but is never sent it**, nobody else gets the pass, none for a cancelled booking, codes vary |
+| `AfterTripIntegrationTest` | 3 | A passenger confirms once and a denial reaches the administrators; only the trip's own passenger, only once completed; **one rating reminder per side, however often the job runs** |
 | `RouteServiceTest` | 7 | OSRM request and response, caching, **an outage gives straight lines labelled as such**, great-circle distance |
 | `RoutingIntegrationTest` | 12 | **A ride, its return and their weekly repeats are published together or not at all**, the return reverses stops, intervals and prices, the back-seat promise and its filter, **Each search filter narrows and none widens; a driver who has not said is not assumed smoke-free**, impossible filters are a 400, route stored on a ride, **the access distance is a hard limit**, direction, the four sort orders, coarse positions in the event log, route preview and price suggestion, the Redis cache |
 | `HazardScoringIntegrationTest` | 5 | Feature snapshot and history, one score per booking per day, which bookings are scored, **model outage changes nothing**, administrators only |
@@ -71,6 +72,11 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 No web test can reach a real server: `fetch` is replaced before every test. The map
 library is replaced by a stand-in that renders what the map was given as plain elements,
 because Leaflet needs a real browser to draw.
+
+## Reproduction
+
+`scripts/reproduce.sh` (EXPERIMENT_PROTOCOL.md section 4) was run in full on 2026-10-16
+and reproduced every committed number exactly.
 
 ## Checked by hand against the running stack
 
