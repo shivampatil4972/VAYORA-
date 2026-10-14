@@ -1,5 +1,13 @@
 # Progress
 
+## 2026-10-15 (night) — the last three documents
+
+DECISIONS, IMPLEMENTATION_ROADMAP and DATASET_DOCUMENTATION are written, so every
+document the specification asked for now exists. DECISIONS gathers what PROGRESS
+recorded, by subject. The roadmap says plainly that the team's stage definitions and
+feature tiers were never given and that its order is a proposal. DATASET_DOCUMENTATION
+was checked against the training code, which corrected three statements in the draft.
+
 ## 2026-10-15 (evening) — PDF receipts
 
 Committed on `stage-2-3-booking-core-and-simulator`.

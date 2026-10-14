@@ -1,0 +1,98 @@
+# Decisions
+
+The decisions that shape JOURNEX, each with the reason it was made and what it costs. Each
+was recorded when it was made, in PROGRESS.md; this file gathers them by subject. A
+decision listed here is to be changed on purpose, not by accident: change it here first.
+
+The rules in CLAUDE.md (frozen parameters, the architecture rule, data placement, the
+research integrity rules) are the project's own and are not repeated. Everything below
+was decided while building within them.
+
+## Research
+
+| Decision | Why | Cost |
+|---|---|---|
+| The primary metric is completed rides per 100 searches, every other number secondary | CLAUDE.md fixes it; bookings can rise while rides do not | A variant that only moves cancellations earlier scores nothing, which is what happened |
+| Cox proportional hazards is the served model | Best departure Brier score and concordance of the three fitted | Its proportional-hazards assumption is violated for lead time |
+| The gradient-boosted survival model trains on a 5,000-row sample | Its loss is quadratic in rows; the full set ran for over ten minutes | It is compared on less data than Cox |
+| Variants B1 and B2 are not built | The simulated corridor has one origin and one destination: there is no geography to filter or rank two-sidedly | Two rungs of the ladder are missing |
+| B5 keeps B4's threshold and adds only a budget | So the two differ in one thing | |
+| The contact scheduler is a CP-SAT integer programme | A seat limit per departure day makes the choice one that sorting cannot solve | A dependency (OR-Tools) for a constraint that rarely binds at this scale |
+| A sweep can vary a variant's parameters, not only the world's | The budget is a property of the variant | |
+| Metric queries group rather than join on keys inside the JSON payload | A join on payload keys did not finish in ten minutes; grouping takes seconds | Queries are longer to read |
+| SOS presses and seat holds write no event | The 22-event vocabulary is frozen and neither is a research measurement | They cannot be analysed from the log |
+| A request closed for want of an answer is logged as `booking_rejected` by the platform, with a reason | Tells a lapse from a driver's refusal without a new event type | Queries must read the actor to tell them apart |
+
+## Platform: correctness
+
+| Decision | Why | Cost |
+|---|---|---|
+| JdbcTemplate with hand-written SQL, no ORM | The existing code used it, and taking seats is one conditional `UPDATE` that reads more plainly without an ORM | More SQL to maintain |
+| Seats are counted per leg of a ride | A passenger on one stretch must not take a seat from another stretch | Every booking touches several rows |
+| Booking locks the ride row, then takes all legs in one conditional update | Concurrent requests for the last seat must produce exactly one booking | Bookings on one ride are serialised |
+| Payment is held in the same transaction as the booking | A declined payment leaves no booking and no seat taken, and no hold-expiry machinery is needed | A slow provider would hold the ride lock |
+| The money ledger and the audit log cannot be rewritten, enforced by database triggers | So the application cannot quietly correct history | Mistakes are fixed by new entries only |
+| A seat hold lives only in Redis and never changes PostgreSQL's counts | No entity in two stores, and nothing to keep in step | A hold is a courtesy: it is not honoured while Redis is down |
+| An unanswered request closes after 12 hours or 2 hours before boarding | So seats and money are not tied up until the ride leaves | A driver who answers late finds it gone |
+| A ride, its return and its weekly repeats are published in one transaction | A driver is never left with half a series | Each is still a ride of its own, with no series-wide edit |
+
+## Platform: money
+
+| Decision | Why | Cost |
+|---|---|---|
+| The only payment provider is a mock, and every screen and receipt says so | The project must not claim money moves | Nothing is tested against a real gateway |
+| The service fee is kept once a driver has accepted; returned in full if the driver declines, never answers or cancels | The platform did its part once the driver accepted | |
+| The fare a late-cancelling passenger forfeits goes to the driver | The seat was held for them | |
+| A travel pass waives only the service fee | Drivers set fares; the only price the platform can discount is its own fee | A pass is worth 10% of fares, which may be too little to be attractive |
+| Refund terms and booking deadlines are fetched from the server, not repeated in the app | One source of truth | One more request per page |
+| Receipts are not tax invoices | The platform handles no GST | |
+
+## Platform: identity, trust and safety
+
+| Decision | Why | Cost |
+|---|---|---|
+| One role per account: passenger, driver or administrator | Simpler permissions | A person cannot be both passenger and driver |
+| Administrators cannot sign up; they are created from configuration | So nobody can make themselves one | |
+| Another member's booking, ride or contact answers 404, not 403 | Ids cannot be probed | Debugging is a little harder |
+| Suspension is checked on every request | A token cannot be recalled before it expires | One extra query per request |
+| A report needs a booking shared with the member reported | Strangers cannot file against each other | |
+| "Confirmed", never "verified", for an email or phone proved by code | A code proves an address, not a person | |
+| Confirmation codes are stored as hashes, expire in 10 minutes, work once, die after 5 wrong guesses | Codes are credentials | |
+| Women-only rides rest on the gender a member declares, which nobody checks | It is the only information the platform has | The rule can be got round by anyone willing to lie |
+| Gender is used but never shown | It decides women-only access; it is not other members' business | |
+| The emergency panel puts calling 112 before alerting JOURNEX | JOURNEX is not an emergency service, and its messages are simulated | |
+| Durability scores are shown to administrators only | A prediction about a person must not change how they are treated by other members | |
+| Predicted risk never cancels a booking or changes a price | The project's own rules forbid treating a prediction as proof of intent | The intervention can only ask |
+
+## Platform: search and routing
+
+| Decision | Why | Cost |
+|---|---|---|
+| Search is by location; town names are presets for coordinates | Passengers rarely start at a stop | A straight-line access limit, not a walking distance |
+| The 5 km access distance is a hard limit | A far-away ride ranked low is still not one a passenger can take | |
+| A road route unavailable from OSRM is drawn as straight lines and labelled so | A straight-line estimate must never pass for a road distance | |
+| A filter only ever narrows a search | Predictability | |
+| Smoking and pets filters leave out drivers who have not said | Silence is not a promise | Today they leave out nearly everyone |
+| Search positions are rounded to about 100 m in the event log | Research needs the area, not the doorstep | |
+
+## Interface
+
+| Decision | Why | Cost |
+|---|---|---|
+| English text is the translation key, and tests fail if a string lacks Hindi or Marathi | A missing translation is caught by the build, and still shows English rather than nothing | The English wording cannot change without the tables |
+| Money and times use the same digits in every language | Passenger and driver read the same fare | |
+| A chat message is shown when the gateway relays it, not when it is typed | What a sender sees is what everyone received | |
+| Irreversible actions need a second, explicit press | Cancelling, completing and marking a no-show cannot be undone | One more click |
+| Receipts are in English | The PDF's built-in fonts cover Latin script only | Devanagari names print as "?" |
+
+## Dependencies
+
+Each was justified in one sentence when it was added, as CLAUDE.md requires.
+
+| Dependency | Where | Why |
+|---|---|---|
+| OR-Tools | intel, research | CP-SAT for the contact scheduler |
+| Apache PDFBox | core-api | Writes receipts; tests read them back |
+| lifelines, scikit-survival | research only | Fitting the survival models; serving needs neither |
+| Leaflet, react-leaflet | web | Maps for routes and meeting points |
+| socket.io-client | web | Chat and live position |
