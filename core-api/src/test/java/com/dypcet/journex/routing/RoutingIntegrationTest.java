@@ -24,6 +24,8 @@ import com.dypcet.journex.ride.RideService.Sort;
 import com.dypcet.journex.ride.RideService.StopInput;
 import com.dypcet.journex.routing.RouteService.Point;
 import com.dypcet.journex.vehicle.VehicleService;
+import com.dypcet.journex.vehicle.VehicleService.Comfort;
+import com.dypcet.journex.vehicle.VehicleService.Luggage;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
@@ -234,6 +236,44 @@ class RoutingIntegrationTest extends PostgresIntegrationTest {
         assertThatThrownBy(() -> hours(10, 10))
                 .isInstanceOfSatisfying(ResponseStatusException.class,
                         e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST));
+    }
+
+    @Test
+    void theRemainingFiltersNarrowByPriceFloorDriverPreferencesAndTheCar() throws Exception {
+        long plain = user(UserRole.DRIVER);
+        long fussy = user(UserRole.DRIVER);
+        long cheap = ride(plain, day.atTime(8, 0).atZone(ZONE).toInstant(), "250.00", KOLHAPUR, PUNE);
+        long dear = ride(fussy, day.atTime(9, 0).atZone(ZONE).toInstant(), "600.00", KOLHAPUR, PUNE);
+        jdbc.update("INSERT INTO profiles (user_id, music, chattiness) VALUES (?, TRUE, 'QUIET')", fussy);
+        jdbc.update("UPDATE vehicles SET comfort = 'COMFORT', luggage = 'MEDIUM' WHERE owner_id = ?", fussy);
+
+        assertThat(found(withExtras(new BigDecimal("300"), false, false, null, null))).containsExactly(dear);
+        assertThat(found(withExtras(null, true, false, null, null))).containsExactly(dear);
+        assertThat(found(withExtras(null, false, true, null, null))).containsExactly(dear);
+        assertThat(found(withExtras(null, false, false, Comfort.BASIC, null))).containsExactly(dear);
+        assertThat(found(withExtras(null, false, false, Comfort.COMFORT, null))).containsExactly(dear);
+        assertThat(found(withExtras(null, false, false, Comfort.PREMIUM, null))).isEmpty();
+        assertThat(found(withExtras(null, false, false, null, Luggage.MEDIUM))).containsExactly(dear);
+        assertThat(found(withExtras(null, false, false, null, Luggage.LARGE))).isEmpty();
+        // The driver who said nothing about the car never meets a minimum.
+        assertThat(found(withExtras(null, false, false, null, Luggage.NONE))).containsExactly(dear);
+        assertThat(found(Filters.NONE)).containsExactly(cheap, dear);
+
+        String passenger = "Bearer " + tokens.issue(passengerId, UserRole.PASSENGER);
+        String base = "/api/v1/rides/search?originLat=16.7050&originLon=74.2433&destLat=18.5204"
+                + "&destLon=73.8567&date=" + day;
+        mvc.perform(get(base + "&minPrice=300&comfortAtLeast=COMFORT&luggageAtLeast=SMALL&musicWelcome=true"
+                        + "&quietRide=true").header("Authorization", passenger))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1));
+        for (String bad : List.of("&minPrice=500&maxPrice=400", "&comfortAtLeast=LUXURY", "&minPrice=-1")) {
+            mvc.perform(get(base + bad).header("Authorization", passenger)).andExpect(status().isBadRequest());
+        }
+    }
+
+    private static Filters withExtras(BigDecimal minPrice, boolean music, boolean quiet, Comfort comfort,
+            Luggage luggage) {
+        return new Filters(null, null, null, false, false, false, false, false, false, minPrice, music, quiet,
+                comfort, luggage);
     }
 
     @Test

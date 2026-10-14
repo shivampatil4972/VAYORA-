@@ -11,6 +11,8 @@ import com.dypcet.journex.routing.RouteService.Leg;
 import com.dypcet.journex.routing.RouteService.Point;
 import com.dypcet.journex.routing.RouteService.Route;
 import com.dypcet.journex.vehicle.VehicleService;
+import com.dypcet.journex.vehicle.VehicleService.Comfort;
+import com.dypcet.journex.vehicle.VehicleService.Luggage;
 import com.dypcet.journex.vehicle.VehicleService.Vehicle;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -178,9 +180,17 @@ public class RideService {
      */
     public record Filters(Integer earliestHour, Integer latestHour, BigDecimal maxPricePerSeat,
             boolean instantOnly, boolean confirmedDriver, boolean smokeFree, boolean petsWelcome,
-            boolean maxTwoInBack, boolean womenOnly) {
+            boolean maxTwoInBack, boolean womenOnly, BigDecimal minPricePerSeat, boolean musicWelcome,
+            boolean quietRide, Comfort comfortAtLeast, Luggage luggageAtLeast) {
 
         public static final Filters NONE = new Filters(null, null, null, false, false, false, false);
+
+        public Filters(Integer earliestHour, Integer latestHour, BigDecimal maxPricePerSeat,
+                boolean instantOnly, boolean confirmedDriver, boolean smokeFree,
+                boolean petsWelcome, boolean maxTwoInBack, boolean womenOnly) {
+            this(earliestHour, latestHour, maxPricePerSeat, instantOnly, confirmedDriver, smokeFree,
+                    petsWelcome, maxTwoInBack, womenOnly, null, false, false, null, null);
+        }
 
         public Filters(Integer earliestHour, Integer latestHour, BigDecimal maxPricePerSeat,
                 boolean instantOnly, boolean confirmedDriver, boolean smokeFree,
@@ -200,6 +210,11 @@ public class RideService {
             if (earliestHour != null && latestHour != null && earliestHour >= latestHour) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "The earliest hour must be before the latest");
+            }
+            if (minPricePerSeat != null && maxPricePerSeat != null
+                    && minPricePerSeat.compareTo(maxPricePerSeat) > 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "The lowest price must not be above the highest");
             }
         }
     }
@@ -514,7 +529,10 @@ public class RideService {
                 .addValue("zone", CORRIDOR_ZONE.getId())
                 .addValue("earliestHour", filters.earliestHour())
                 .addValue("latestHour", filters.latestHour())
-                .addValue("maxPrice", filters.maxPricePerSeat());
+                .addValue("maxPrice", filters.maxPricePerSeat())
+                .addValue("minPrice", filters.minPricePerSeat())
+                .addValue("comfort", filters.comfortAtLeast() == null ? null : filters.comfortAtLeast().name())
+                .addValue("luggage", filters.luggageAtLeast() == null ? null : filters.luggageAtLeast().name());
         // Each fragment is a constant chosen by a flag; caller values are bound, never spliced.
         String boardingHour = "EXTRACT(HOUR FROM (" + BOARDING + ") AT TIME ZONE :zone)";
         String narrowed = (filters.earliestHour() == null ? "" : " AND " + boardingHour + " >= :earliestHour")
@@ -526,6 +544,16 @@ public class RideService {
                 + (filters.petsWelcome() ? " AND p.pets IS TRUE" : "")
                 + (filters.maxTwoInBack() ? " AND r.max_two_in_back" : "")
                 + (filters.womenOnly() ? " AND r.women_only" : "")
+                + (filters.minPricePerSeat() == null ? "" : " AND legs.price >= :minPrice")
+                + (filters.musicWelcome() ? " AND p.music IS TRUE" : "")
+                + (filters.quietRide() ? " AND p.chattiness = 'QUIET'" : "")
+                // An unstated class or allowance never meets a minimum.
+                + (filters.comfortAtLeast() == null ? ""
+                        : " AND array_position(ARRAY['BASIC','COMFORT','PREMIUM'], v.comfort)"
+                          + " >= array_position(ARRAY['BASIC','COMFORT','PREMIUM'], :comfort)")
+                + (filters.luggageAtLeast() == null ? ""
+                        : " AND array_position(ARRAY['NONE','SMALL','MEDIUM','LARGE'], v.luggage)"
+                          + " >= array_position(ARRAY['NONE','SMALL','MEDIUM','LARGE'], :luggage)")
                 // Not a filter: a women-only ride is never offered to anyone else.
                 + " AND (NOT r.women_only OR " + PASSENGER_SAYS_WOMAN + ")";
         // What the passenger would pay now: a running pass waives the fee.

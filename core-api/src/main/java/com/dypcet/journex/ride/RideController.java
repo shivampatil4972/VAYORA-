@@ -3,6 +3,8 @@ package com.dypcet.journex.ride;
 import com.dypcet.journex.identity.CurrentUser;
 import com.dypcet.journex.ride.RideService.Candidate;
 import com.dypcet.journex.ride.RideService.Filters;
+import com.dypcet.journex.vehicle.VehicleService.Comfort;
+import com.dypcet.journex.vehicle.VehicleService.Luggage;
 import com.dypcet.journex.ride.RideService.Membership;
 import com.dypcet.journex.ride.RideService.PublishRide;
 import com.dypcet.journex.ride.RideService.Ride;
@@ -118,11 +120,17 @@ public class RideController {
             @RequestParam(defaultValue = "false") boolean smokeFree,
             @RequestParam(defaultValue = "false") boolean petsWelcome,
             @RequestParam(defaultValue = "false") boolean maxTwoInBack,
-            @RequestParam(defaultValue = "false") boolean womenOnly) {
+            @RequestParam(defaultValue = "false") boolean womenOnly,
+            @RequestParam(required = false) @DecimalMin("0") BigDecimal minPrice,
+            @RequestParam(defaultValue = "false") boolean musicWelcome,
+            @RequestParam(defaultValue = "false") boolean quietRide,
+            @RequestParam(required = false) Comfort comfortAtLeast,
+            @RequestParam(required = false) Luggage luggageAtLeast) {
         return rides.search(CurrentUser.id(jwt), new Point(originLat, originLon),
                 new Point(destLat, destLon), date, seats, sort,
                 new Filters(earliestHour, latestHour, maxPrice, instantOnly, confirmedDriver,
-                        smokeFree, petsWelcome, maxTwoInBack, womenOnly));
+                        smokeFree, petsWelcome, maxTwoInBack, womenOnly, minPrice, musicWelcome,
+                        quietRide, comfortAtLeast, luggageAtLeast));
     }
 
     @GetMapping("/mine")
