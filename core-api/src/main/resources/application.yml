@@ -87,6 +87,10 @@ journex:
     close-before-boarding: PT2H
     # How often unanswered requests are looked for. "-" turns it off.
     expiry-cron: ${BOOKING_EXPIRY_CRON:0 */5 * * * *}
+  rating:
+    # A trip nobody has rated gets one reminder this long after it is completed.
+    remind-after: PT24H
+    reminder-cron: ${RATING_REMINDER_CRON:0 0 * * * *}
   hold:
     # How long seats a passenger asked to hold are kept from other passengers.
     ttl: PT5M

@@ -44,7 +44,9 @@ public class NotificationService {
         MARKED_NO_SHOW,
         ACCOUNT_NOTICE,
         SOS_RAISED,
-        REQUEST_EXPIRED
+        REQUEST_EXPIRED,
+        TRIP_DISPUTED,
+        RATING_REMINDER
     }
 
     public record Notification(String id, Type type, String message, Long bookingId,

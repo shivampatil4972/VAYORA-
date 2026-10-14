@@ -47,12 +47,14 @@ public class BookingService {
      * @param boardingTime   when the ride leaves the passenger's boarding stop
      * @param passengerRated whether the passenger has rated the driver for this trip
      * @param driverRated    whether the driver has rated the passenger for this trip
+     * @param passengerConfirmed the passenger's answer to whether a completed trip
+     *                           happened; null until they answer
      */
     public record Booking(long id, long rideId, long passengerId, String passengerName,
             int fromSeq, int toSeq, String fromStop, String toStop, int seats, BigDecimal price,
             BigDecimal serviceFee, BigDecimal total, BigDecimal refunded,
             BookingStatus status, Instant boardingTime, Instant createdAt,
-            boolean passengerRated, boolean driverRated) {
+            boolean passengerRated, boolean driverRated, Boolean passengerConfirmed) {
     }
 
     /**
@@ -151,7 +153,8 @@ public class BookingService {
             BookingStatus.valueOf(rs.getString("status")),
             rs.getObject("boarding", OffsetDateTime.class).toInstant(),
             rs.getObject("created_at", OffsetDateTime.class).toInstant(),
-            rs.getBoolean("passenger_rated"), rs.getBoolean("driver_rated"));
+            rs.getBoolean("passenger_rated"), rs.getBoolean("driver_rated"),
+            (Boolean) rs.getObject("passenger_confirmed"));
 
     private final JdbcTemplate jdbc;
     private final EventLogService events;

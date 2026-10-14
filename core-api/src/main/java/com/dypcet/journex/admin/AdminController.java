@@ -26,7 +26,7 @@ public class AdminController {
      * @param bookings bookings by status
      */
     public record Overview(Map<String, Long> users, Map<String, Long> rides,
-            Map<String, Long> bookings, long suspendedMembers, long openReports) {
+            Map<String, Long> bookings, long suspendedMembers, long openReports, long disputedTrips) {
     }
 
     public record Member(long id, String fullName, String email, String role, String status,
@@ -50,7 +50,8 @@ public class AdminController {
                 counts("SELECT status, COUNT(*) FROM rides GROUP BY status ORDER BY status"),
                 counts("SELECT status, COUNT(*) FROM bookings GROUP BY status ORDER BY status"),
                 jdbc.queryForObject("SELECT COUNT(*) FROM users WHERE status = 'SUSPENDED'", Long.class),
-                jdbc.queryForObject("SELECT COUNT(*) FROM reports WHERE status = 'OPEN'", Long.class));
+                jdbc.queryForObject("SELECT COUNT(*) FROM reports WHERE status = 'OPEN'", Long.class),
+                jdbc.queryForObject("SELECT COUNT(*) FROM bookings WHERE passenger_confirmed IS FALSE", Long.class));
     }
 
     /** Members whose name or email contains {@code q}, newest first. */
