@@ -45,7 +45,12 @@ mistake for more. Updated 2026-10-13.
 - No invoice or receipt, and no screen listing a passenger's payments.
 - A payout is recorded the moment a trip completes. There is no settlement delay,
   dispute window or bank detail.
-- **No seat holds with expiry and no Redis use.** A pending request holds its seats
+- **A seat hold is a courtesy, not a guarantee.** It lives only in Redis. If Redis is
+  down, holds are neither placed nor honoured and anyone may book the seats. A hold and
+  another passenger's booking arriving in the same instant are not ordered against each
+  other: the booking can win. One passenger holds seats on one ride at a time, and
+  nothing limits how often a passenger renews a hold.
+- **A pending request still has no expiry.** It holds its seats
   until the driver answers or the ride starts.
 - **Search measures access in a straight line**, not by road or on foot, and uses one
   fixed limit of 5 km for everyone.

@@ -1,5 +1,23 @@
 # Progress
 
+## 2026-10-14 (later) — seat holds
+
+Committed on `stage-2-3-booking-core-and-simulator`.
+
+A passenger can hold the seats of a search result for five minutes while deciding. While
+the hold lasts, other passengers cannot book or hold those seats on those legs, and their
+searches show the ride with fewer seats. Verified by `SeatHoldIntegrationTest`,
+`App.test.tsx` and a live run.
+
+- **Holds live in Redis and only there.** PostgreSQL's seat counts never change for a
+  hold, so no entity is in two stores and there is nothing to keep in step.
+- **Redis is never in the way of a booking.** If it cannot be reached, holds are simply
+  not honoured.
+- Placing a hold is one Lua script, so two passengers asking for the last seat at the
+  same moment cannot both get it.
+- A passenger's own hold never blocks their own booking, and booking the ride releases it.
+- No event is logged for a hold: the vocabulary is frozen, and a hold is not a booking.
+
 ## 2026-10-14 — vehicle details
 
 Committed on `stage-2-3-booking-core-and-simulator`.
