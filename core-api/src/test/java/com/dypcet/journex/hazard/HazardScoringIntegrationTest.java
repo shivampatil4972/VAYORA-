@@ -93,7 +93,8 @@ class HazardScoringIntegrationTest extends PostgresIntegrationTest {
         jdbc.update("TRUNCATE events");
         driverId = user(UserRole.DRIVER);
         when(scorer.score(any(), anyDouble(), anyDouble()))
-                .thenReturn(Optional.of(new Score(0.82, "h1-cox", "f1")));
+                .thenReturn(Optional.of(new Score(0.82, "h1-cox", "f1",
+                        java.util.Map.of("lead_hours", 0.4, "prior_cancel_share", -0.1))));
     }
 
     @Test
@@ -220,6 +221,8 @@ class HazardScoringIntegrationTest extends PostgresIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].survivalProbability").value(0.82))
+                .andExpect(jsonPath("$[0].contributions.lead_hours").value(0.4))
+                .andExpect(jsonPath("$[0].contributions.prior_cancel_share").value(-0.1))
                 .andExpect(jsonPath("$[0].modelVersion").value("h1-cox"))
                 .andExpect(jsonPath("$[0].fromStop").value("Kolhapur"));
     }

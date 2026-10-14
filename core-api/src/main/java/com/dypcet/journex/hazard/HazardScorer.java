@@ -9,8 +9,16 @@ public interface HazardScorer {
     /**
      * @param survivalProbability estimate that the passenger will not cancel before the
      *                            horizon, given no cancellation so far
+     * @param contributions       each feature's share of the log relative risk; positive
+     *                            raises the estimated chance of a cancellation. Empty if
+     *                            the model gave none
      */
-    record Score(double survivalProbability, String modelVersion, String featureVersion) {
+    record Score(double survivalProbability, String modelVersion, String featureVersion,
+            Map<String, Double> contributions) {
+
+        public Score(double survivalProbability, String modelVersion, String featureVersion) {
+            this(survivalProbability, modelVersion, featureVersion, Map.of());
+        }
     }
 
     /**

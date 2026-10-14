@@ -32,7 +32,8 @@ public class IntelHazardScorer implements HazardScorer {
     record Response(
             @JsonProperty("survival_probability") Double survivalProbability,
             @JsonProperty("model_version") String modelVersion,
-            @JsonProperty("feature_version") String featureVersion) {
+            @JsonProperty("feature_version") String featureVersion,
+            @JsonProperty("contributions") Map<String, Double> contributions) {
     }
 
     private final RestClient client;
@@ -71,7 +72,8 @@ public class IntelHazardScorer implements HazardScorer {
                 return Optional.empty();
             }
             return Optional.of(new Score(response.survivalProbability(), response.modelVersion(),
-                    response.featureVersion()));
+                    response.featureVersion(),
+                    response.contributions() == null ? Map.of() : Map.copyOf(response.contributions())));
         } catch (RestClientException e) {
             log.warn("Hazard score unavailable: {}", e.getMessage());
             return Optional.empty();

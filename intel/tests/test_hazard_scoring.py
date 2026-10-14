@@ -189,3 +189,35 @@ def test_bad_requests_are_rejected(body):
 
 def test_health_still_answers():
     assert client.get("/health").json() == {"status": "UP", "service": "intel"}
+
+
+# ---- explanations -----------------------------------------------------------------
+
+def test_contributions_are_exact_and_add_up_to_the_log_relative_risk():
+    model = _toy_model(coef=(0.5,) + (0.0,) * (len(FEATURES) - 1), mean=(10.0,) + (0.0,) * (len(FEATURES) - 1))
+    x = {**ZERO, FEATURES[0]: 14.0}
+
+    shares = model.contributions(x)
+
+    assert shares[FEATURES[0]] == pytest.approx(2.0)  # 0.5 * (14 - 10)
+    assert all(shares[name] == 0.0 for name in FEATURES[1:])
+    assert sum(shares.values()) == pytest.approx(math.log(model._relative_risk(x)))
+    # And therefore reproduce the survival estimate exactly.
+    hazard_at_20 = 0.3
+    assert model.survival(x, 20.0) == pytest.approx(math.exp(-hazard_at_20 * math.exp(sum(shares.values()))))
+
+
+def test_the_served_model_explains_every_score_it_gives():
+    model = HazardModel.load(MODEL_DIR / "h2-cox.json")
+    x = {name: 1.0 for name in FEATURES}
+
+    body = TestClient(app).post("/v1/hazard/score", json={
+        "features": x, "elapsed_hours": 0, "horizon_hours": 48}).json()
+
+    assert set(body["contributions"]) == set(FEATURES)
+    assert body["contributions"] == pytest.approx(model.contributions(x))
+
+
+def test_a_model_with_no_covariates_has_nothing_to_explain():
+    km = HazardModel.load(MODEL_DIR / "h2-km.json")
+    assert set(km.contributions({name: 3.0 for name in FEATURES}).values()) == {0.0}

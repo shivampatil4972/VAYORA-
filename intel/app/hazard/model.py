@@ -84,6 +84,19 @@ class HazardModel:
         index = bisect_right(self.times, hours)
         return self.cumulative_hazard[index - 1] if index else 0.0
 
+    def contributions(self, x: Mapping[str, float]) -> dict[str, float]:
+        """Each feature's exact share of the log relative risk, coef * (x - mean).
+
+        They add up to log(relative risk). Positive means the feature makes an early
+        cancellation more likely than for a booking at the training means; negative, less.
+        For a proportional-hazards model this is the whole explanation, with no
+        approximation, which is why no SHAP is used.
+        """
+        missing = [name for name in self.features if name not in x]
+        if missing:
+            raise KeyError(f"missing features: {missing}")
+        return {name: c * (x[name] - m) for name, c, m in zip(self.features, self.coef, self.mean)}
+
     def _relative_risk(self, x: Mapping[str, float]) -> float:
         missing = [name for name in self.features if name not in x]
         if missing:

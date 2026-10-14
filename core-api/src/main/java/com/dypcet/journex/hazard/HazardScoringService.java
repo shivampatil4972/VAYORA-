@@ -48,13 +48,14 @@ public class HazardScoringService {
     }
 
     record Scored(long bookingId, double survivalProbability, double elapsedHours,
-            double horizonHours, String modelVersion, String featureVersion) {
+            double horizonHours, String modelVersion, String featureVersion,
+            Map<String, Double> contributions) {
     }
 
     /** The newest score of one live booking. */
     public record LatestScore(long bookingId, long rideId, String passengerName, String fromStop,
             String toStop, Instant boardingTime, double survivalProbability, String modelVersion,
-            Instant scoredAt) {
+            Instant scoredAt, Map<String, Double> contributions) {
     }
 
     private record Candidate(long bookingId, String features, Instant acceptedAt, Instant boarding) {
@@ -125,7 +126,8 @@ public class HazardScoringService {
             }
             events.write(EventType.HAZARD_SCORED, new Scored(candidate.bookingId(),
                     score.get().survivalProbability(), elapsed, horizon,
-                    score.get().modelVersion(), score.get().featureVersion()));
+                    score.get().modelVersion(), score.get().featureVersion(),
+                    score.get().contributions()));
             scored++;
         }
         return new Summary(scored, alreadyScored, failed, false);
@@ -138,7 +140,8 @@ public class HazardScoringService {
                        b.id, b.ride_id, u.full_name, s.name AS from_stop, t.name AS to_stop,
                        r.departure_time + make_interval(mins => s.offset_minutes) AS boarding,
                        (e.payload->>'survival_probability')::float8 AS survival,
-                       e.payload->>'model_version' AS model_version, e.sim_time
+                       e.payload->>'model_version' AS model_version, e.sim_time,
+                       e.payload->'contributions' AS contributions
                 FROM bookings b
                 JOIN rides r ON r.id = b.ride_id
                 JOIN users u ON u.id = b.passenger_id
@@ -153,7 +156,20 @@ public class HazardScoringService {
                         rs.getString("to_stop"),
                         rs.getObject("boarding", OffsetDateTime.class).toInstant(),
                         rs.getDouble("survival"), rs.getString("model_version"),
-                        rs.getObject("sim_time", OffsetDateTime.class).toInstant()));
+                        rs.getObject("sim_time", OffsetDateTime.class).toInstant(),
+                        shares(rs.getString("contributions"))));
+    }
+
+    /** Scores logged before explanations existed have none. */
+    private Map<String, Double> shares(String json) {
+        if (json == null) {
+            return Map.of();
+        }
+        try {
+            return mapper.readValue(json, new TypeReference<Map<String, Double>>() { });
+        } catch (JsonProcessingException e) {
+            return Map.of();
+        }
     }
 
     private boolean scoredSince(long bookingId, Instant since) {

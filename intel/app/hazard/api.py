@@ -49,6 +49,10 @@ class ScoreResponse(BaseModel):
     model_version: str
     model_kind: str
     feature_version: str
+    # Each feature's share of the log relative risk; they sum to it. Positive raises the
+    # estimated chance of a cancellation, negative lowers it. All zero for a model with no
+    # covariates.
+    contributions: dict[str, float]
     scored_at: datetime
     # The model is trained on simulator output only; see docs/AI_ML_METHODOLOGY.md.
     trained_on: str = "synthetic"
@@ -65,6 +69,7 @@ def score(request: ScoreRequest) -> ScoreResponse:
         horizon_hours=request.horizon_hours,
         model_version=model.version,
         model_kind=model.kind,
+        contributions=model.contributions(request.features),
         feature_version=model.feature_version,
         scored_at=datetime.now(timezone.utc),
     )

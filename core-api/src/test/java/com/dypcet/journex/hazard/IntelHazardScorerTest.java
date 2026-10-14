@@ -44,14 +44,14 @@ class IntelHazardScorerTest {
                         {"features": {"lead_hours": 48.0}, "elapsed_hours": 6.0, "horizon_hours": 54.0}
                         """))
                 .andRespond(withSuccess("""
-                        {"survival_probability": 0.87, "model_version": "h1-cox",
+                        {"survival_probability": 0.87, "model_version": "h1-cox", "contributions": {"lead_hours": 0.25},
                          "feature_version": "f1", "model_kind": "cox_ph", "trained_on": "synthetic",
                          "elapsed_hours": 6.0, "horizon_hours": 54.0,
                          "scored_at": "2026-10-10T06:00:00Z"}""", MediaType.APPLICATION_JSON));
 
         Optional<Score> score = scorer.score(FEATURES, 6.0, 54.0);
 
-        assertThat(score).contains(new Score(0.87, "h1-cox", "f1"));
+        assertThat(score).contains(new Score(0.87, "h1-cox", "f1", java.util.Map.of("lead_hours", 0.25)));
         intel.verify();
     }
 
