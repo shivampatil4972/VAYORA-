@@ -1,5 +1,23 @@
 # Progress
 
+## 2026-10-15 (late) — a wider departure window, and explained scores
+
+Committed on `stage-2-3-booking-core-and-simulator`.
+
+**Research, synthetic data.** A departure-tolerance sweep (1, 2, 4 and 8 hours either side,
+each with its own B3 baseline, 30 seeds) tested the guess in section 8 that early release
+fails because freed seats are on the wrong departure. It does not hold: a wider window
+helps every variant equally, early release still adds nothing (and at 8 hours costs
+0.05), and 52% of searches find no ride even at 8 hours. Section 8 is marked as
+corrected; section 9 has the result and the two explanations still standing.
+
+**Explanations.** Every durability score now carries each feature's exact share of the
+log relative risk, from intel through the event log to the administrators' page, which
+names the two features that moved each estimate most. For Cox these shares are the whole
+explanation, so no SHAP library was added. Verified by intel, core-api and web tests.
+
+Sweep reports now include refills and the share of searches offered no ride.
+
 ## 2026-10-15 (night) — the last three documents
 
 DECISIONS, IMPLEMENTATION_ROADMAP and DATASET_DOCUMENTATION are written, so every

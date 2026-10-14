@@ -31,7 +31,6 @@ Ordered by value to the research question first, then by size.
 | # | Feature | What is missing | Size |
 |---|---|---|---|
 | 78 | Reliability indicator in search results | Show the durability score to passengers, which needs a decision: today scores are shown to administrators only, on purpose | Small, but a policy question first |
-| 86 | Per-booking explanations | For Cox the per-feature contribution to the log hazard is `coef × (x − mean)`, exactly, without SHAP | Small |
 | 81 | Hazard-informed flexibility tiers | Needs the tier rules defined, and two frozen event types (`tier_selected`, `driver_tier_selected`) already reserved for it | Medium |
 | 93 | Supply-gap detection and nudging | Three event types already reserved (`nudge_*`, `supply_gap_detected`); nudge conversion must stay a swept parameter, never a result | Medium |
 | 88 | Cascade-aware recovery | Re-offer a cancelled ride's passengers another ride | Medium |
@@ -74,7 +73,8 @@ mock that says so, as payments and SMS already are.
 | Item | What it is | Why it matters |
 |---|---|---|
 | Split "offered no ride" | Record whether a search failed for want of a ride at that time or want of seats | Section 8 of EXPERIMENT_PROTOCOL.md points here; needs approval for a new payload key |
-| Time-tolerance sweep | Do early releases convert if passengers accept a wider window? | The likeliest way the central idea could still work in this simulator |
+| ~~Time-tolerance sweep~~ | Done: a wider window does not help (EXPERIMENT_PROTOCOL.md section 9) | |
+| Publishing-lead sweep | Do searches find nothing because rides are not published yet? | Tests the remaining explanation without a payload change |
 | B5 with random choice | Same budget, requests chosen at random | Says whether the scheduler beats chance |
 | Survival-threshold sweep; B4 with the no-feature model; component removal | Robustness | Planned since section 7 |
 | Variants B6 to B11 | Not defined anywhere in the repository | Need their definitions |

@@ -310,13 +310,66 @@ That last point is the most useful thing the project has learnt about its own id
 in this simulator an early release fails to add rides not because nobody wants a seat,
 but because the people who want one mostly want a different departure.
 
+**Corrected by section 9.** The paragraph above was a guess, and the sweep run to test
+it does not support it: with an 8-hour window, which covers nearly every departure of
+the day, 52% of searches are still offered nothing and early releases add no rides. It
+is kept here so the record shows what was believed and why it changed.
+
 ### Still to run
 
 - Split "offered no ride" into no ride in the time window and no seats on the rides in
   it. This needs the simulator to say which, and so a payload change that needs
   approval under the frozen vocabulary.
 - B5 with requests chosen at random within the same limits.
-- The time-tolerance sweep the finding above points to: if passengers accept a wider
-  window, do early releases start to convert?
+- ~~The time-tolerance sweep the finding above points to.~~ Run: section 9.
 - Still open from section 7: a sweep of the survival threshold, B4 with `h1-km`, and
   B4's intervention with B0's ranking.
+
+## 9. A wider departure window
+
+Run on 2026-10-15. Synthetic data; 30 seeds per cell; model `h2-cox`; repeat search on.
+Report: `experiments/reports/sweep-departure-tolerance-5eeb0000-0000-4000-8000-000000000004.md`
+
+The question, from section 8: if passengers accept a departure further from the time they
+asked for, do the seats B4 frees early start to add completed rides? Tolerance changes
+what everyone is offered, so each cell compares B4 with its own B3 on the same world.
+
+| Window (hours either side) | B3 completed per 100 | B4 − B3 | B4 − B3, late share | Searches offered no ride (B3) | Extra refills by passengers with no other ride |
+|---|---|---|---|---|---|
+| 1 | 29.07 | +0.00 (−0.04 to +0.04) | −0.052 | 0.585 | +2.0 (−0.2 to +4.1) |
+| 2 (the world's value) | 31.11 | −0.01 (−0.04 to +0.03) | −0.056 | 0.545 | +0.1 (−2.3 to +2.4) |
+| 4 | 31.87 | −0.00 (−0.04 to +0.04) | −0.056 | 0.534 | −1.2 (−3.3 to +1.0) |
+| 8 | 33.11 | −0.05 (−0.10 to −0.01) | −0.058 | 0.519 | −2.9 (−4.9 to −0.8) |
+
+### What this shows
+
+- **A wider window does not make early release pay.** At every width B4 adds nothing to
+  completed rides, and at 8 hours it costs a little (−0.05, interval excluding zero; 20
+  seeds down, 7 up).
+- **B4 still moves cancellations earlier** by about the same amount at every width.
+- **A wider window helps everyone**, with or without intervention: B3 rises from 29.07 to
+  33.11 completed per 100 searches. That is the effect of passengers being more flexible,
+  not of anything the platform does.
+- **The guess in section 8 was wrong.** With 8 hours either side, 52% of searches are
+  still offered no ride. Departure times cannot be what is missing for most of them.
+
+### What is left to explain
+
+Over half of all searches find no ride even when almost any departure would do, and yet
+seats freed early do not reach the people who found nothing. Two explanations remain, and
+neither has been tested:
+
+- **The rides are full.** Then an early release should help someone who found nothing,
+  unless those searches happened before the seat was freed and the passenger did not come
+  back. Repeat search is on, but only some passengers retry.
+- **The ride did not exist yet.** Rides are published 1 to 7 days ahead. A search for a
+  day whose rides have not been published finds nothing, however many seats will exist.
+
+Telling these apart needs `candidates_returned` to say why a search found nothing, the
+payload change already awaiting the team's approval.
+
+### Still to run
+
+- The split above, once approved.
+- A sweep of how far ahead rides are published, which tests the second explanation
+  without any payload change.

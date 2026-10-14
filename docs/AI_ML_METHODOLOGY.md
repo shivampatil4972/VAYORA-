@@ -138,6 +138,17 @@ caller supplies the features.
 The exported model holds the baseline cumulative hazard as a step function. lifelines
 interpolates between event times; the difference is about 0.001 in probability.
 
+## 6a. Explaining a score
+
+Every score intel returns carries each feature's share of the log relative risk,
+`coef × (x − mean)`. The shares add up to the log relative risk exactly, so for a Cox
+model they are the whole explanation and SHAP is unnecessary: SHAP would approximate what
+is here computed. A test checks that the shares reproduce the survival estimate. core-api
+logs the shares with each `hazard_scored` event, and the administrators' durability page
+names the two features that moved each estimate most, and in which direction. Scores
+logged before this existed show no reasons rather than invented ones. For the
+Kaplan-Meier baseline every share is zero.
+
 ## 7. The contact scheduler
 
 `intel/app/scheduler` chooses which bookings to ask to reconfirm when not all of them
@@ -181,8 +192,9 @@ drives any result in EXPERIMENT_PROTOCOL.md. It never recommends cancelling anyt
   support a time-to-event validation at all; that check is still to be done.
 - Features are fixed at the request. Nothing that happens after it (a reconfirmation,
   a message, a changed profile) updates them; only elapsed time does.
-- No SHAP explanations yet. For a Cox model the per-feature contribution to the log
-  hazard is `coef * (x - mean)` and can be reported exactly without SHAP.
+- Explanations describe the model, not the person. "How far ahead it was booked makes
+  a cancellation likelier" says what the fitted coefficients do with that value; it does
+  not say why anyone cancels.
 - One model version, trained once. There is no drift monitoring or retraining schedule.
 - The model is trained on B0 behaviour. Once interventions change when people cancel,
   the data it was trained on no longer describes the world it is used in.

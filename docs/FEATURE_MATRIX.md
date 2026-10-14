@@ -148,7 +148,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 80 | CP-SAT contact-budget scheduler | TBD | TBD | Partial: built and tested in intel (`POST /v1/scheduler/plan`) and used by simulator variant B5; the platform does not call it, because the platform sends no interventions |
 | 81 | Hazard-informed passenger flexibility tiers | TBD | TBD | Not started |
 | 84 | Mid-route vacant-seat allocation | TBD | TBD | Not started |
-| 86 | Per-booking SHAP explanations | TBD | TBD | Not started |
+| 86 | Per-booking SHAP explanations | TBD | TBD | Verified (model, API and UI tests): exact per-feature shares of the log relative risk, which for Cox are the full explanation, so SHAP is not used. Administrators only |
 | 88 | Cascade-aware recovery | TBD | TBD | Not started |
 | 89 | Corridor demand calibration | TBD | TBD | Not started |
 | 93 | Supply-gap detection and nudging | TBD | TBD | Not started |
