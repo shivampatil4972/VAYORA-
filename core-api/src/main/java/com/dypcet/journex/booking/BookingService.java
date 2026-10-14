@@ -161,18 +161,20 @@ public class BookingService {
     private final ObjectMapper mapper;
     private final Clock clock;
     private final SeatHolds holds;
+    private final BoardingService boardingCodes;
     private final Duration answerWithin;
     private final Duration closeBeforeBoarding;
 
     public BookingService(JdbcTemplate jdbc, EventLogService events,
             HazardFeatures hazardFeatures, PaymentService payments,
             NotificationService notifications, ObjectMapper mapper, Clock clock,
-            SeatHolds holds,
+            SeatHolds holds, BoardingService boardingCodes,
             @Value("${journex.booking.answer-within}") Duration answerWithin,
             @Value("${journex.booking.close-before-boarding}") Duration closeBeforeBoarding) {
         this.answerWithin = answerWithin;
         this.closeBeforeBoarding = closeBeforeBoarding;
         this.holds = holds;
+        this.boardingCodes = boardingCodes;
         this.jdbc = jdbc;
         this.events = events;
         this.hazardFeatures = hazardFeatures;
@@ -274,13 +276,14 @@ public class BookingService {
         try {
             bookingId = jdbc.queryForObject("""
                     INSERT INTO bookings (ride_id, passenger_id, from_seq, to_seq, seats, price,
-                                          status, hazard_features, accepted_at, idempotency_key)
-                    SELECT ?, ?, ?, ?, ?, SUM(price) * ?, ?, CAST(? AS jsonb), ?, ?
+                                          status, hazard_features, accepted_at, idempotency_key,
+                                          boarding_code)
+                    SELECT ?, ?, ?, ?, ?, SUM(price) * ?, ?, CAST(? AS jsonb), ?, ?, ?
                     FROM ride_segments WHERE ride_id = ? AND seq >= ? AND seq < ?
                     RETURNING id""",
                     Long.class, rideId, passengerId, fromSeq, toSeq, seats, seats, status.name(),
                     features, status == BookingStatus.CONFIRMED ? utc(now) : null, idempotencyKey,
-                    rideId, fromSeq, toSeq);
+                    boardingCodes.newCode(), rideId, fromSeq, toSeq);
         } catch (DuplicateKeyException e) {
             // The same key, sent for a different ride at the same moment.
             throw conflict("This request was already submitted");

@@ -1,5 +1,6 @@
 package com.dypcet.journex.booking;
 
+import com.dypcet.journex.booking.BoardingService.BoardingPass;
 import com.dypcet.journex.booking.BookingService.Booking;
 import com.dypcet.journex.booking.BookingService.RequestTerms;
 import com.dypcet.journex.identity.CurrentUser;
@@ -7,7 +8,9 @@ import com.dypcet.journex.payment.PaymentChoice;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -40,10 +43,33 @@ public class BookingController {
 
     private static final int MAX_IDEMPOTENCY_KEY_LENGTH = 100;
 
-    private final BookingService bookings;
+    public record CodeCheck(@NotBlank @Pattern(regexp = "^[0-9]{4}$") String code) {
+    }
 
-    public BookingController(BookingService bookings) {
+    public record CodeResult(boolean matches) {
+    }
+
+    private final BookingService bookings;
+    private final BoardingService boarding;
+
+    public BookingController(BookingService bookings, BoardingService boarding) {
         this.bookings = bookings;
+        this.boarding = boarding;
+    }
+
+    /** The passenger's own reference and boarding code. Never shown to the driver. */
+    @GetMapping("/bookings/{id}/boarding-pass")
+    @PreAuthorize("hasRole('PASSENGER')")
+    public BoardingPass boardingPass(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
+        return boarding.pass(CurrentUser.id(jwt), id);
+    }
+
+    /** Whether the code a passenger showed belongs to this booking. Changes nothing. */
+    @PostMapping("/bookings/{id}/check-code")
+    @PreAuthorize("hasRole('DRIVER')")
+    public CodeResult checkCode(@AuthenticationPrincipal Jwt jwt, @PathVariable long id,
+            @Valid @RequestBody CodeCheck request) {
+        return new CodeResult(boarding.check(CurrentUser.id(jwt), id, request.code()));
     }
 
     @PostMapping("/bookings")
