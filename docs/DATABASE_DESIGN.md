@@ -25,6 +25,7 @@ Access is through `JdbcTemplate` with hand-written SQL. There is no ORM.
 | V11 | On rides: `notes`, `max_two_in_back`, `series_id` |
 | V12 | On vehicles: comfort, luggage, electric, battery, consumption |
 | V13 | On rides: `women_only` |
+| V14 | `passes` |
 
 ### Tables
 
@@ -56,6 +57,7 @@ Access is through `JdbcTemplate` with hand-written SQL. There is no ORM.
 | `ledger_entries` | One movement of money | Append-only: a trigger refuses `UPDATE` and `DELETE` |
 | `refunds` | What went back to a passenger | At most one per booking |
 | `settlements` | What was paid to a driver | At most one per booking, with the reason |
+| `passes` | A travel pass a passenger bought | Kind, price, when it starts and ends, the provider. While one runs, that passenger's bookings carry no service fee |
 
 **Trust**
 

@@ -723,4 +723,37 @@ export const mr: Record<string, string> = {
     'फक्त महिलांसाठी आहेत',
   'Not shown on your profile. Choosing Woman lets you offer and book women-only rides; nobody checks it.':
     'तुमच्या प्रोफाइलवर दाखवले जात नाही. स्त्री निवडल्यास तुम्ही फक्त-महिला प्रवास देऊ आणि बुक करू शकता; याची कोणी तपासणी करत नाही.',
+  // Travel passes
+  'Weekly pass':
+    'साप्ताहिक पास',
+  'Monthly pass':
+    'मासिक पास',
+  'Annual pass':
+    'वार्षिक पास',
+  'Travel passes':
+    'प्रवास पास',
+  'Passes':
+    'पास',
+  'While a pass runs, you pay no service fee on the rides you book. Drivers are paid the same fare either way.':
+    'पास चालू असेपर्यंत तुम्ही बुक केलेल्या प्रवासांवर सेवा शुल्क भरत नाही. चालकांना दोन्ही बाबतीत तेवढेच भाडे मिळते.',
+  'Your passes':
+    'तुमचे पास',
+  'You have no pass.':
+    'तुमच्याकडे कोणताही पास नाही.',
+  'Starts {start}, runs until {end}':
+    '{start} पासून सुरू, {end} पर्यंत चालू',
+  'Running until {end}':
+    '{end} पर्यंत चालू',
+  'Ended {end}':
+    '{end} रोजी संपला',
+  'Buy a pass':
+    'पास खरेदी करा',
+  'A pass bought while another runs starts when that one ends.':
+    'एखादा पास चालू असताना घेतलेला पास तो संपल्यावर सुरू होतो.',
+  'Your pass is bought.':
+    'तुमचा पास खरेदी झाला.',
+  '{n} days':
+    '{n} दिवस',
+  'Buy {pass}':
+    '{pass} खरेदी करा',
 };

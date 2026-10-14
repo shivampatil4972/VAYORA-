@@ -326,6 +326,26 @@ export interface PaymentTerms {
   refundTiers: { atLeastHoursBefore: number; fareShare: number }[];
 }
 
+export type PassKind = 'WEEKLY' | 'MONTHLY' | 'ANNUAL';
+
+/** A pass on sale. */
+export interface PassOffer {
+  kind: PassKind;
+  days: number;
+  price: number;
+}
+
+/** A pass a passenger bought. While it runs, their bookings carry no service fee. */
+export interface TravelPass {
+  id: number;
+  kind: PassKind;
+  price: number;
+  startsAt: string;
+  endsAt: string;
+  /** `MOCK` means no money moved. */
+  provider: string;
+}
+
 /** One of a passenger's payments, with what came back. */
 export interface PassengerPayment {
   bookingId: number;

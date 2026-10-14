@@ -1,5 +1,20 @@
 # Progress
 
+## 2026-10-15 (later) — travel passes
+
+Committed on `stage-2-3-booking-core-and-simulator`.
+
+Passengers can buy a weekly (₹99), monthly (₹299) or annual (₹2,499) pass through the
+mock provider. While it runs, search prices and bookings carry no service fee. Verified by
+`PassIntegrationTest`, `App.test.tsx` and a live run.
+
+- **A pass waives only the service fee.** Drivers set their fares, so a platform discount
+  can only come out of what the platform charges. The driver is paid the same either way.
+- Whether a pass applies is decided when the booking is requested, and is not revisited.
+- A pass bought while another runs starts when that one ends, so buying early wastes no
+  days.
+- Prices are in `application.yml` and are the authors' assumptions.
+
 ## 2026-10-15 — women-only rides
 
 Committed on `stage-2-3-booking-core-and-simulator`.

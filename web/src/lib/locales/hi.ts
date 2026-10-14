@@ -723,4 +723,37 @@ export const hi: Record<string, string> = {
     'केवल महिलाओं के लिए हैं',
   'Not shown on your profile. Choosing Woman lets you offer and book women-only rides; nobody checks it.':
     'आपकी प्रोफ़ाइल पर नहीं दिखाया जाता। महिला चुनने पर आप केवल-महिला सवारियाँ दे और बुक कर सकती हैं; इसकी कोई जाँच नहीं करता।',
+  // Travel passes
+  'Weekly pass':
+    'साप्ताहिक पास',
+  'Monthly pass':
+    'मासिक पास',
+  'Annual pass':
+    'वार्षिक पास',
+  'Travel passes':
+    'यात्रा पास',
+  'Passes':
+    'पास',
+  'While a pass runs, you pay no service fee on the rides you book. Drivers are paid the same fare either way.':
+    'पास चालू रहने तक आप बुक की गई सवारियों पर कोई सेवा शुल्क नहीं देते। चालकों को दोनों ही स्थितियों में उतना ही किराया मिलता है।',
+  'Your passes':
+    'आपके पास',
+  'You have no pass.':
+    'आपके पास कोई पास नहीं है।',
+  'Starts {start}, runs until {end}':
+    '{start} से शुरू, {end} तक चालू',
+  'Running until {end}':
+    '{end} तक चालू',
+  'Ended {end}':
+    '{end} को समाप्त',
+  'Buy a pass':
+    'पास खरीदें',
+  'A pass bought while another runs starts when that one ends.':
+    'किसी पास के चालू रहते खरीदा गया पास उसके खत्म होने पर शुरू होता है।',
+  'Your pass is bought.':
+    'आपका पास खरीद लिया गया है।',
+  '{n} days':
+    '{n} दिन',
+  'Buy {pass}':
+    '{pass} खरीदें',
 };

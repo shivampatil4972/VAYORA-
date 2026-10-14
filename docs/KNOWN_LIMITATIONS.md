@@ -96,7 +96,11 @@ mistake for more. Updated 2026-10-13.
 - Chat messages are kept indefinitely; only GPS points expire (after 7 days).
 - Trip state is not pushed. A passenger's screen does not change when the driver starts
   the ride until they reload or reopen the chat.
-- No travel passes or referral.
+- **Travel passes only waive the service fee**, because that is the only part of a price
+  the platform owns. Pass prices are assumptions. A pass cannot be cancelled or
+  refunded, and a pass purchase is not in the money ledger, which records booking
+  payments only.
+- No referral scheme.
 - **Women-only rides rest on what members say about themselves.** Anyone can choose
   "Woman" on their profile, and nothing checks it. Changing the profile later changes
   what they can see and book, but does not touch a booking already made.

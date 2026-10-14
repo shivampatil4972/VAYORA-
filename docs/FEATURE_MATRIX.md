@@ -160,7 +160,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 |---|---|---|---|---|
 | 82 | Driver rest-stop planning | TBD | TBD | Not started |
 | 83 | Fuel and EV charging stops | TBD | TBD | Not started |
-| 85 | Weekly, monthly, and annual travel passes | TBD | TBD | Not started |
+| 85 | Weekly, monthly, and annual travel passes | TBD | TBD | Verified (API and UI tests, live run), mock provider, no money moves: a running pass waives the service fee; the driver's fare is untouched. Prices are assumptions |
 | 87 | Live what-if simulator | TBD | TBD | Not started |
 | 90 | Reproducibility capsule (`make reproduce` or equivalent) | TBD | TBD | Partial: every result reproduces from documented commands; no single `make reproduce` |
 | 91 | Last-mile rickshaw, bus, and walking access | TBD | TBD | Not started |

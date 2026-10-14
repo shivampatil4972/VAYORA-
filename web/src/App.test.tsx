@@ -1596,3 +1596,70 @@ describe('women-only rides', () => {
     expect(screen.queryByLabelText('Are for women only')).not.toBeInTheDocument();
   });
 });
+
+describe('travel passes', () => {
+  const offers = [
+    { kind: 'WEEKLY', days: 7, price: 99 },
+    { kind: 'MONTHLY', days: 30, price: 299 },
+    { kind: 'ANNUAL', days: 365, price: 2499 },
+  ];
+  const day = 24 * 3600 * 1000;
+  const iso = (offset: number) => new Date(Date.now() + offset).toISOString();
+
+  it('buys a pass with the chosen method and shows it running', async () => {
+    signIn('PASSENGER');
+    let owned: unknown[] = [];
+    const bought = { id: 1, kind: 'MONTHLY', price: 299, startsAt: iso(-1000), endsAt: iso(30 * day), provider: 'MOCK' };
+    const fetchMock = serve({
+      'GET /passes/offers': () => json(offers),
+      'GET /passes': () => json(owned),
+      'POST /passes': () => {
+        owned = [bought];
+        return json(bought, 201);
+      },
+    });
+    open('/passes');
+
+    expect(await screen.findByText('You have no pass.')).toBeInTheDocument();
+    expect(screen.getByText('₹2,499')).toBeInTheDocument();
+    expect(await screen.findByText(/Payments here are simulated/)).toBeInTheDocument();
+    await userEvent.selectOptions(screen.getByLabelText('Pay with'), 'Card');
+    await userEvent.click(screen.getByRole('button', { name: 'Buy Monthly pass' }));
+
+    expect(await screen.findByText('Your pass is bought.')).toBeInTheDocument();
+    expect(await screen.findByText(/Running until/)).toBeInTheDocument();
+    const sent = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
+    expect(JSON.parse(String(sent?.[1]?.body))).toEqual({ kind: 'MONTHLY', paymentMethod: 'CARD' });
+  });
+
+  it('tells a running, a waiting and an ended pass apart', async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /passes/offers': () => json(offers),
+      'GET /passes': () =>
+        json([
+          { id: 3, kind: 'WEEKLY', price: 99, startsAt: iso(5 * day), endsAt: iso(12 * day), provider: 'MOCK' },
+          { id: 2, kind: 'WEEKLY', price: 99, startsAt: iso(-2 * day), endsAt: iso(5 * day), provider: 'MOCK' },
+          { id: 1, kind: 'ANNUAL', price: 2499, startsAt: iso(-400 * day), endsAt: iso(-35 * day), provider: 'MOCK' },
+        ]),
+    });
+    open('/passes');
+
+    expect(await screen.findByText(/^Starts .*, runs until/)).toBeInTheDocument();
+    expect(screen.getByText(/^Running until/)).toBeInTheDocument();
+    expect(screen.getByText(/^Ended/)).toBeInTheDocument();
+  });
+
+  it("shows the server's reason when the payment is declined", async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /passes/offers': () => json(offers),
+      'GET /passes': () => json([]),
+      'POST /passes': () => json({ detail: 'The payment was declined. No pass was bought.' }, 402),
+    });
+    open('/passes');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Buy Weekly pass' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('The payment was declined. No pass was bought.');
+  });
+});

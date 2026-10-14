@@ -93,6 +93,9 @@ returns the booking the first request made instead of making another.
 | `GET /api/v1/payment-terms` | any | The provider (`MOCK`), the service fee rate, and the refund tiers |
 | `GET /api/v1/payments` | P | Own payments |
 | `GET /api/v1/settlements` | D | Own payouts |
+| `GET /api/v1/passes/offers` | any | Passes on sale |
+| `GET /api/v1/passes` | P | Own passes |
+| `POST /api/v1/passes` | P | Buy a pass; one bought while another runs starts when it ends |
 
 ### After the trip, and safety
 
