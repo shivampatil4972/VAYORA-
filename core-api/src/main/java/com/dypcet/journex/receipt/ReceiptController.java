@@ -1,0 +1,44 @@
+package com.dypcet.journex.receipt;
+
+import com.dypcet.journex.identity.CurrentUser;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/v1")
+@PreAuthorize("hasRole('PASSENGER')")
+public class ReceiptController {
+
+    private final ReceiptService receipts;
+
+    public ReceiptController(ReceiptService receipts) {
+        this.receipts = receipts;
+    }
+
+    @GetMapping("/bookings/{id}/receipt")
+    public ResponseEntity<byte[]> booking(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
+        return pdf(receipts.forBooking(CurrentUser.id(jwt), id), "journex-booking-" + id + ".pdf");
+    }
+
+    @GetMapping("/passes/{id}/receipt")
+    public ResponseEntity<byte[]> pass(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
+        return pdf(receipts.forPass(CurrentUser.id(jwt), id), "journex-pass-" + id + ".pdf");
+    }
+
+    private static ResponseEntity<byte[]> pdf(byte[] body, String filename) {
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment().filename(filename).build().toString())
+                .body(body);
+    }
+}
