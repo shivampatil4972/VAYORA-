@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 
+import { levelLabels } from '../lib/levels';
 import { RatingSummary } from '../components/rating';
 import { ReportMember } from '../components/report';
 import { Card, Page, QueryState } from '../components/ui';
@@ -56,6 +57,12 @@ export function ProfilePage() {
                   <RatingSummary average={member.averageStars} count={member.ratingCount} />
                 </dd>
               </div>
+              {member.level && (
+                <div>
+                  <dt className="text-slate-500">{t('Level')}</dt>
+                  <dd className="mt-1 font-medium">{levelLabels[member.level] ? t(levelLabels[member.level]) : member.level}</dd>
+                </div>
+              )}
               {member.role === 'DRIVER' && (
                 <div>
                   <dt className="text-slate-500">{t('Answers requests')}</dt>

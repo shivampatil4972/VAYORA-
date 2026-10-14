@@ -29,7 +29,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 6 | Phone OTP verification | TBD | TBD | Partial: API verified, simulated sender, nothing is sent: the code is read from an administrator-only outbox; the screen is the email one, tested for email only |
 | 7 | Government ID verification | TBD | TBD | Not started |
 | 8 | Verified-profile badge | TBD | TBD | Partial: "Email confirmed" and "Phone confirmed" on the profile, which also says no identity document was checked |
-| 9 | Experience levels from Newcomer to Ambassador | TBD | TBD | Not started |
+| 9 | Experience levels from Newcomer to Ambassador | TBD | TBD | Verified (API and UI tests): five levels from completed trips, ratings and confirmed contact details, shown on profiles. The thresholds are the authors' assumptions, in `application.yml` |
 | 10 | Smoking, pets, music, and travel preferences | TBD | TBD | Verified (API and UI tests): shown on the profile; smoking and pets can filter a search |
 | 11 | Chattiness level | TBD | TBD | Verified (API and UI tests): shown on the profile; not yet used by search |
 
@@ -165,7 +165,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 90 | Reproducibility capsule (`make reproduce` or equivalent) | TBD | TBD | Verified: `scripts/reproduce.sh` rebuilds the tests, model, ladder and current sweeps and fails unless every file matches the committed one. Run in full on 2026-10-16: every committed number reproduced exactly |
 | 91 | Last-mile rickshaw, bus, and walking access | TBD | TBD | Not started |
 | 92 | Bus alternative after recovery failure | TBD | TBD | Not started |
-| 95 | Driver reliability self-view | TBD | TBD | Not started |
+| 95 | Driver reliability self-view | TBD | TBD | Verified (API and UI tests): rides completed and withdrawn, passengers carried, cancelled and marked absent, rating, response rate and level, for the driver only |
 
 ## Infrastructure that exists but is not a backlog feature
 

@@ -250,6 +250,22 @@ export interface Profile {
   responseRate?: number | null;
   /** Drivers only: median minutes from a request to their answer. */
   responseMinutes?: number | null;
+  /** NEWCOMER up to AMBASSADOR; see levelLabels. */
+  level?: string;
+}
+
+/** A driver's own record, for them alone. */
+export interface Reliability {
+  ridesCompleted: number;
+  ridesWithdrawn: number;
+  passengersCarried: number;
+  passengersCancelled: number;
+  noShowsMarked: number;
+  averageStars: number | null;
+  ratingCount: number;
+  responseRate: number | null;
+  responseMinutes: number | null;
+  level: string;
 }
 
 export type Chattiness = 'QUIET' | 'MODERATE' | 'TALKATIVE';

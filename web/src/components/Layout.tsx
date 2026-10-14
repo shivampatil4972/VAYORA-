@@ -21,6 +21,7 @@ const links: Record<Role, { to: string; label: string }[]> = {
     { to: '/rides/new', label: msg('Publish a ride') },
     { to: '/vehicles', label: msg('My vehicles') },
     { to: '/earnings', label: msg('Earnings') },
+    { to: '/record', label: msg('My record') },
   ],
   ADMIN: [
     { to: '/admin', label: msg('Overview') },

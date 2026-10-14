@@ -16,6 +16,7 @@ import { PassesPage } from './pages/PassesPage';
 import { PaymentsPage } from './pages/PaymentsPage';
 import { BookingsPage, SearchPage } from './pages/PassengerPages';
 import { ProfilePage } from './pages/ProfilePage';
+import { ReliabilityPage } from './pages/ReliabilityPage';
 import { EmergenciesPage } from './pages/SafetyAdminPages';
 
 function Home() {
@@ -50,6 +51,7 @@ export function AppRoutes() {
           <Route path="rides/new" element={<PublishRidePage />} />
           <Route path="vehicles" element={<VehiclesPage />} />
           <Route path="earnings" element={<EarningsPage />} />
+          <Route path="record" element={<ReliabilityPage />} />
         </Route>
         <Route element={<RequireRole />}>
           <Route path="users/:id" element={<ProfilePage />} />

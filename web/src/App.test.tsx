@@ -1846,3 +1846,32 @@ describe('more search filters', () => {
     expect(sent.searchParams.has('musicWelcome')).toBe(false);
   });
 });
+
+describe('levels and the driver record', () => {
+  it("shows a member's level on their profile", async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /users/7/profile': () =>
+        json({ id: 7, fullName: 'Ravi Jadhav', role: 'DRIVER', memberSince: '2026-01-05T00:00:00Z', completedTrips: 12,
+          averageStars: 4.3, ratingCount: 5, reviews: [], emailVerified: true, phoneVerified: false, bio: null, age: null,
+          smoking: null, pets: null, music: null, chattiness: null, level: 'EXPERIENCED' }),
+    });
+    open('/users/7');
+    expect(await screen.findByText('Experienced')).toBeInTheDocument();
+  });
+
+  it('shows a driver their own record', async () => {
+    signIn('DRIVER');
+    serve({
+      'GET /me/reliability': () =>
+        json({ ridesCompleted: 4, ridesWithdrawn: 1, passengersCarried: 9, passengersCancelled: 2, noShowsMarked: 1,
+          averageStars: null, ratingCount: 0, responseRate: null, responseMinutes: null, level: 'NEWCOMER' }),
+    });
+    open('/record');
+
+    expect(await screen.findByText('Rides you withdrew')).toBeInTheDocument();
+    expect(screen.getByText('Newcomer')).toBeInTheDocument();
+    expect(screen.getByText('9')).toBeInTheDocument();
+    expect(screen.getByText(/Only you see this page/)).toBeInTheDocument();
+  });
+});

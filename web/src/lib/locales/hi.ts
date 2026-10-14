@@ -850,4 +850,31 @@ export const hi: Record<string, string> = {
     'जिनके चालक को रास्ते में संगीत पसंद है',
   'Have a driver who prefers a quiet ride':
     'जिनके चालक को शांत सफर पसंद है',
+  // Levels and the driver record
+  'Newcomer':
+    'नया सदस्य',
+  'Intermediate':
+    'मध्यम',
+  'Experienced':
+    'अनुभवी',
+  'Expert':
+    'विशेषज्ञ',
+  'Ambassador':
+    'राजदूत',
+  'Level':
+    'स्तर',
+  'My record':
+    'मेरा रिकॉर्ड',
+  'Rides completed':
+    'पूरी की गई सवारियाँ',
+  'Rides you withdrew':
+    'आपके द्वारा वापस ली गई सवारियाँ',
+  'Passengers carried':
+    'ले जाए गए यात्री',
+  'Passengers whose booking you cancelled':
+    'यात्री जिनकी बुकिंग आपने रद्द की',
+  'Passengers you marked as not boarding':
+    'यात्री जिन्हें आपने न पहुँचा बताया',
+  'Only you see this page. Passengers see your level, rating, completed trips and how you answer requests.':
+    'यह पेज केवल आप देखते हैं। यात्री आपका स्तर, रेटिंग, पूरी यात्राएँ और अनुरोधों का जवाब देना देखते हैं।',
 };
