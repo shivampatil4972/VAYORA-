@@ -1,5 +1,21 @@
 # Progress
 
+## 2026-10-15 — women-only rides
+
+Committed on `stage-2-3-booking-core-and-simulator`.
+
+A driver whose profile says she is a woman can offer a ride to women passengers only.
+It is shown to, and can be booked or held by, passengers whose profile says the same,
+and nobody else; a search filter lets a woman see only such rides. Verified by
+`WomenOnlyRideIntegrationTest`, `App.test.tsx` and a live run.
+
+- **The rule rests on a self-declaration.** Gender is what members choose on their
+  profile, and nothing checks it. The account page now says so where the choice is made.
+  A stronger rule needs identity checks the project does not have.
+- The rule is enforced on the server three times: in search, booking and holds. The
+  screens only decide what to offer.
+- Gender is still never shown to anyone.
+
 ## 2026-10-14 (late night) — the driver's pages tested, and a payments page
 
 Committed on `stage-2-3-booking-core-and-simulator`.

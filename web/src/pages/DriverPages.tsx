@@ -15,7 +15,7 @@ import { formatDateTime, formatRupees, formatTime } from '../lib/format';
 import { msg, useT, useUnits } from '../lib/i18n';
 import { rideSchema, toPublishRequest, vehicleSchema, type RideForm, type VehicleForm, MAX_REPEAT_WEEKS, ridesPublished, toVehicleRequest } from '../lib/schemas';
 import { comfortLabels, luggageLabels, vehiclePhrases } from '../lib/vehicle';
-import type { Booking, Comfort, Luggage, Ride, RoutePreview, Settlement, Vehicle } from '../lib/types';
+import type { Booking, Comfort, Luggage, MyProfile, Ride, RoutePreview, Settlement, Vehicle } from '../lib/types';
 
 const useVehicles = () => useQuery({ queryKey: ['vehicles'], queryFn: () => api<Vehicle[]>('/vehicles') });
 
@@ -240,6 +240,8 @@ export function PublishRidePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const vehicles = useVehicles();
+  // Only a driver whose profile says she is a woman may offer a women-only ride.
+  const me = useQuery({ queryKey: ['me', 'profile'], queryFn: () => api<MyProfile>('/me/profile') });
   const { register, handleSubmit, formState, watch, setValue } = useForm<RideForm>({
     resolver: zodResolver(rideSchema),
     defaultValues: {
@@ -247,6 +249,7 @@ export function PublishRidePage() {
       seatsOffered: 3,
       instantBooking: true,
       maxTwoInBack: false,
+      womenOnly: false,
       notes: '',
       returnDeparture: '',
       repeatWeeks: 0,
@@ -325,6 +328,16 @@ export function PublishRidePage() {
                 <input type="checkbox" className="h-4 w-4 rounded border-slate-300" {...register('maxTwoInBack')} />
                 {t('I promise at most two passengers on the back seat')}
               </label>
+              {me.data?.gender === 'FEMALE' ? (
+                <label className="flex items-center gap-2 text-sm text-slate-700 sm:col-span-2">
+                  <input type="checkbox" className="h-4 w-4 rounded border-slate-300" {...register('womenOnly')} />
+                  {t('Women passengers only')}
+                </label>
+              ) : (
+                <p className="text-sm text-slate-500 sm:col-span-2">
+                  {t('A ride for women passengers only can be offered by a driver whose profile says she is a woman.')}
+                </p>
+              )}
               <div className="sm:col-span-2">
                 <label htmlFor="ride-notes" className="block text-sm font-medium text-slate-700">
                   {t('Notes for passengers (optional)')}
@@ -468,6 +481,7 @@ export function RidesPage() {
                 </p>
               )}
               {ride.maxTwoInBack && <p className="mt-1 text-sm text-slate-600">{t('At most two in the back')}</p>}
+              {ride.womenOnly && <p className="mt-1 text-sm font-medium text-teal-800">{t('Women only')}</p>}
               {/* Rendered as text: notes are whatever the driver typed. */}
               {ride.notes && <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600">{ride.notes}</p>}
               <p className="mt-2">

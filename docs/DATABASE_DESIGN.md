@@ -24,6 +24,7 @@ Access is through `JdbcTemplate` with hand-written SQL. There is no ORM.
 | V10 | On users: phone and confirmation times; `profiles`, `verification_codes`, `emergency_contacts`, `sos_alerts` |
 | V11 | On rides: `notes`, `max_two_in_back`, `series_id` |
 | V12 | On vehicles: comfort, luggage, electric, battery, consumption |
+| V13 | On rides: `women_only` |
 
 ### Tables
 

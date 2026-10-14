@@ -15,7 +15,7 @@ import { answerBy, formatDateTime, formatRupees, formatTime, todayInCorridor } f
 import { msg, useT, useUnits } from '../lib/i18n';
 import { vehiclePhrases } from '../lib/vehicle';
 import { searchSchema, type SearchForm } from '../lib/schemas';
-import type { Booking, Candidate, PaymentMethod, RequestTerms, Ride, SearchSort, SeatHold } from '../lib/types';
+import type { Booking, Candidate, MyProfile, PaymentMethod, RequestTerms, Ride, SearchSort, SeatHold } from '../lib/types';
 
 interface LatLon {
   lat: number;
@@ -37,6 +37,7 @@ interface Filters {
   instantOnly: boolean;
   confirmedDriver: boolean;
   maxTwoInBack: boolean;
+  womenOnly: boolean;
   smokeFree: boolean;
   petsWelcome: boolean;
 }
@@ -47,6 +48,7 @@ const NO_FILTERS: Filters = {
   instantOnly: false,
   confirmedDriver: false,
   maxTwoInBack: false,
+  womenOnly: false,
   smokeFree: false,
   petsWelcome: false,
 };
@@ -58,7 +60,7 @@ function filterParams(filters: Filters): Record<string, string> {
   if (earliestHour !== null) params.earliestHour = String(earliestHour);
   if (latestHour !== null) params.latestHour = String(latestHour);
   if (filters.maxPrice.trim() !== '' && Number(filters.maxPrice) >= 0) params.maxPrice = String(Number(filters.maxPrice));
-  for (const flag of ['instantOnly', 'confirmedDriver', 'maxTwoInBack', 'smokeFree', 'petsWelcome'] as const) {
+  for (const flag of ['instantOnly', 'confirmedDriver', 'maxTwoInBack', 'womenOnly', 'smokeFree', 'petsWelcome'] as const) {
     if (filters[flag]) params[flag] = 'true';
   }
   return params;
@@ -130,6 +132,8 @@ export function SearchPage() {
   const units = useUnits();
   const queryClient = useQueryClient();
   const [criteria, setCriteria] = useState<Criteria | null>(null);
+  // Women-only rides are offered only to passengers whose profile says they are a woman.
+  const me = useQuery({ queryKey: ['me', 'profile'], queryFn: () => api<MyProfile>('/me/profile') });
   const [booked, setBooked] = useState<Booking | null>(null);
   const [method, setMethod] = useState<PaymentMethod>('UPI');
   const [sort, setSort] = useState<SearchSort>('TIME');
@@ -334,6 +338,12 @@ export function SearchPage() {
                     {t(label)}
                   </label>
                 ))}
+                {me.data?.gender === 'FEMALE' && (
+                  <label className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={filters.womenOnly} onChange={(event) => setFilters({ ...filters, womenOnly: event.target.checked })} />
+                    {t('Are for women only')}
+                  </label>
+                )}
                 <p className="text-sm text-slate-600 sm:col-span-2">
                   {t('The last two leave out drivers who have not said either way. Filters apply when you press Search.')}
                 </p>
@@ -421,6 +431,7 @@ export function SearchPage() {
                       · <RatingSummary average={candidate.driverRating} count={candidate.driverRatingCount} />
                       {candidate.driverConfirmed && ` · ${t('Contact confirmed')}`}
                       {candidate.maxTwoInBack && ` · ${t('At most two in the back')}`}
+                      {candidate.womenOnly && ` · ${t('Women only')}`}
                     </p>
                     <p className="mt-1 text-sm text-slate-600">
                       {candidate.seatsAvailable === 1

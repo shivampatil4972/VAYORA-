@@ -97,6 +97,9 @@ mistake for more. Updated 2026-10-13.
 - Trip state is not pushed. A passenger's screen does not change when the driver starts
   the ride until they reload or reopen the chat.
 - No travel passes or referral.
+- **Women-only rides rest on what members say about themselves.** Anyone can choose
+  "Woman" on their profile, and nothing checks it. Changing the profile later changes
+  what they can see and book, but does not touch a booking already made.
 - **Everything about a vehicle is the driver's word**: comfort, luggage, battery and
   consumption. The range shown is those two figures divided, not a measurement, and
   no ride is checked against it. A vehicle cannot be edited or removed, and has no photo.

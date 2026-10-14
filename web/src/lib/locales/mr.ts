@@ -490,9 +490,7 @@ export const mr: Record<string, string> = {
     'इतर सदस्यांना फक्त तुमचे अंदाजे वय दिसते.',
   'Gender':
     'लिंग',
-  'Not shown on your profile.':
-    'तुमच्या प्रोफाइलवर दाखवले जात नाही.',
-  'Woman':
+    'Woman':
     'स्त्री',
   'Man':
     'पुरुष',
@@ -714,4 +712,15 @@ export const mr: Record<string, string> = {
     'प्रवास संपेपर्यंत राखून ठेवले',
   'Nothing':
     'काहीही नाही',
+  // Women-only rides
+  'Women passengers only':
+    'फक्त महिला प्रवासी',
+  'A ride for women passengers only can be offered by a driver whose profile says she is a woman.':
+    'फक्त महिला प्रवाशांसाठीचा प्रवास तीच चालक देऊ शकते जिच्या प्रोफाइलमध्ये ती स्त्री असल्याचे लिहिले आहे.',
+  'Women only':
+    'फक्त महिला',
+  'Are for women only':
+    'फक्त महिलांसाठी आहेत',
+  'Not shown on your profile. Choosing Woman lets you offer and book women-only rides; nobody checks it.':
+    'तुमच्या प्रोफाइलवर दाखवले जात नाही. स्त्री निवडल्यास तुम्ही फक्त-महिला प्रवास देऊ आणि बुक करू शकता; याची कोणी तपासणी करत नाही.',
 };

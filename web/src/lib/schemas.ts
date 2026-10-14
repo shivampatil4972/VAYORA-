@@ -84,6 +84,7 @@ export const rideSchema = z
     seatsOffered: z.coerce.number().int().min(1, msg('Offer at least 1 seat')).max(8, msg('At most 8 seats')),
     instantBooking: z.boolean(),
     maxTwoInBack: z.boolean(),
+    womenOnly: z.boolean(),
     notes: z.string().max(500, msg('At most 500 characters')),
     // Empty for no return ride.
     returnDeparture: z.string(),
@@ -165,6 +166,7 @@ export function toPublishRequest(form: RideForm) {
     segmentPrices: included.slice(1).map((stop) => stop.priceFromPrevious),
     notes: form.notes.trim(),
     maxTwoInBack: form.maxTwoInBack,
+    womenOnly: form.womenOnly,
     returnDepartureTime: form.returnDeparture === '' ? null : new Date(form.returnDeparture).toISOString(),
     repeatWeeks: form.repeatWeeks,
   };

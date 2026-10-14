@@ -104,7 +104,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 56 | Admin moderation queue | TBD | TBD | Verified (API and UI tests): dismiss, warn or suspend; suspension is enforced on every request |
 | 57 | SOS and emergency-contact workflow | TBD | TBD | Verified (API and UI tests), simulated: the alert reaches an administrator queue; **emergency contacts are not messaged** and the screen says so and points to 112 |
 | 58 | Insurance coverage badge | TBD | TBD | Not started |
-| 59 | Women-only ride option | TBD | TBD | Not started |
+| 59 | Women-only ride option | TBD | TBD | Verified (API and UI tests, live run): offered, shown, booked and held only by members whose own profile says they are a woman. **Nobody checks that declaration** |
 
 ## Communication
 

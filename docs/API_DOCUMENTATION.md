@@ -56,7 +56,9 @@ territory.
 Search takes `originLat`, `originLon`, `destLat`, `destLon`, `date`, and optionally
 `seats` (default 1), `sort` (`TIME`, `PRICE`, `RATING`, `PROXIMITY`), and filters
 `earliestHour`, `latestHour`, `maxPrice`, `instantOnly`, `confirmedDriver`, `smokeFree`,
-`petsWelcome`, `maxTwoInBack`. A filter only ever narrows the result.
+`petsWelcome`, `maxTwoInBack`, `womenOnly`. A filter only ever narrows the result.
+A women-only ride is never returned to a passenger whose profile does not say she is a
+woman, filter or no filter.
 
 ### Booking
 

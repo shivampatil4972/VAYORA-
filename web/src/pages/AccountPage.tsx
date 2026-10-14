@@ -115,7 +115,7 @@ function ProfileForm({ profile }: { profile: MyProfile }) {
           hint={t('Other members see only your approximate age.')}
           onChange={(event) => set('birthYear', event.target.value)}
         />
-        <SelectField label={t('Gender')} value={draft.gender} hint={t('Not shown on your profile.')} onChange={(event) => set('gender', event.target.value as Gender | '')}>
+        <SelectField label={t('Gender')} value={draft.gender} hint={t('Not shown on your profile. Choosing Woman lets you offer and book women-only rides; nobody checks it.')} onChange={(event) => set('gender', event.target.value as Gender | '')}>
           <option value="">{t('Not said')}</option>
           <option value="FEMALE">{t('Woman')}</option>
           <option value="MALE">{t('Man')}</option>

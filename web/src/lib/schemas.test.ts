@@ -15,6 +15,7 @@ function ride(overrides: Partial<RideForm> = {}): RideForm {
     seatsOffered: 3,
     instantBooking: true,
     maxTwoInBack: false,
+    womenOnly: false,
     notes: '',
     returnDeparture: '',
     repeatWeeks: 0,

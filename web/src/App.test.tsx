@@ -38,6 +38,8 @@ function serve(routes: Record<string, () => Response>) {
     // Any signed-in page may ask for the payment terms.
     if (!match && key === 'GET /payment-terms') return json(terms);
     // And the bookings page for how long a driver has to answer.
+    // And the search and publish pages, for whether women-only rides apply.
+    if (!match && key === 'GET /me/profile') return json({ gender: null });
     if (!match && key === 'GET /booking-terms') return json({ answerWithinMinutes: 720, closesMinutesBeforeBoarding: 120 });
     // The navigation asks for this on every signed-in page.
     if (!match && key === 'GET /notifications/unread-count') return json({ unread: 0 });
@@ -82,6 +84,7 @@ const candidate: Candidate = {
   dropoffDistanceM: 0,
   driverConfirmed: false,
   maxTwoInBack: false,
+  womenOnly: false,
   vehicle: 'Maruti Ertiga',
   comfort: null,
   luggage: null,
@@ -1534,5 +1537,62 @@ describe('payments (passenger)', () => {
     serve({ 'GET /payments': () => json([]) });
     open('/payments');
     expect(await screen.findByText('You have not paid for anything yet.')).toBeInTheDocument();
+  });
+});
+
+describe('women-only rides', () => {
+  const vehicle = { id: 3, make: 'Maruti', model: 'Ertiga', year: 2022, colour: 'Silver', seats: 7 };
+
+  it('lets a driver whose profile says she is a woman offer one, and sends the choice', async () => {
+    signIn('DRIVER');
+    const fetchMock = serve({
+      'GET /me/profile': () => json({ gender: 'FEMALE' }),
+      'GET /vehicles': () => json([vehicle]),
+      'POST /rides': () => json({ ...rideWithRoute, notes: null, maxTwoInBack: false, seriesSize: 1, womenOnly: true }, 201),
+      'GET /rides/mine': () => json([{ ...rideWithRoute, notes: null, maxTwoInBack: false, seriesSize: 1, womenOnly: true }]),
+    });
+    open('/rides/new');
+
+    fireEvent.change(await screen.findByLabelText('Leaving at'), { target: { value: '2030-01-01T07:00' } });
+    await userEvent.click(await screen.findByLabelText('Women passengers only'));
+    await userEvent.click(screen.getByRole('button', { name: 'Publish ride' }));
+
+    expect(await screen.findByText('Women only')).toBeInTheDocument();
+    const sent = fetchMock.mock.calls.find(([url, init]) => init?.method === 'POST' && new URL(String(url)).pathname.endsWith('/rides'));
+    expect(JSON.parse(String(sent?.[1]?.body)).womenOnly).toBe(true);
+  });
+
+  it('explains instead of offering it to any other driver', async () => {
+    signIn('DRIVER');
+    serve({ 'GET /vehicles': () => json([vehicle]) });
+    open('/rides/new');
+
+    expect(await screen.findByText(/can be offered by a driver whose profile says she is a woman/)).toBeInTheDocument();
+    expect(screen.queryByLabelText('Women passengers only')).not.toBeInTheDocument();
+  });
+
+  it('offers a woman passenger the filter and marks women-only results', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({
+      'GET /me/profile': () => json({ gender: 'FEMALE' }),
+      'GET /rides/search': () => json([{ ...candidate, womenOnly: true }]),
+    });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Filters' }));
+    await userEvent.click(await screen.findByLabelText('Are for women only'));
+    await userEvent.click(screen.getByRole('button', { name: 'Search' }));
+
+    expect(await screen.findByText(/Women only/)).toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('womenOnly=true'))).toBe(true);
+  });
+
+  it('does not offer the filter to anyone else', async () => {
+    signIn('PASSENGER');
+    serve({});
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Filters' }));
+    expect(screen.queryByLabelText('Are for women only')).not.toBeInTheDocument();
   });
 });

@@ -80,6 +80,8 @@ export interface Ride {
   maxTwoInBack: boolean;
   /** Rides published together with this one, itself included. */
   seriesSize: number;
+  /** Offered only to passengers whose profile says they are a woman. */
+  womenOnly: boolean;
 }
 
 export type RouteSource = 'OSRM' | 'STRAIGHT_LINE';
@@ -128,6 +130,7 @@ export interface Candidate {
   comfort: Comfort | null;
   luggage: Luggage | null;
   electric: boolean;
+  womenOnly: boolean;
 }
 
 /** The newest durability estimate of one live booking. Administrators only. */
