@@ -4,6 +4,7 @@ import com.dypcet.journex.eventlog.EventLogService;
 import com.dypcet.journex.eventlog.EventType;
 import com.dypcet.journex.eventlog.HasActor;
 import com.dypcet.journex.hold.SeatHolds;
+import com.dypcet.journex.pass.PassService;
 import com.dypcet.journex.payment.ServiceFee;
 import com.dypcet.journex.routing.RouteService;
 import com.dypcet.journex.routing.RouteService.Leg;
@@ -248,12 +249,14 @@ public class RideService {
     private final double maxAccessMetres;
     private final BigDecimal suggestedRupeesPerKm;
     private final SeatHolds holds;
+    private final PassService passes;
 
     public RideService(JdbcTemplate jdbc, VehicleService vehicles, EventLogService events,
             ServiceFee serviceFee, RouteService routes, ObjectMapper mapper, Clock clock,
             @Value("${journex.search.max-access-km}") double maxAccessKm,
             @Value("${journex.pricing.suggested-rupees-per-km}") BigDecimal suggestedRupeesPerKm,
-            SeatHolds holds) {
+            SeatHolds holds, PassService passes) {
+        this.passes = passes;
         this.holds = holds;
         this.jdbc = jdbc;
         this.named = new NamedParameterJdbcTemplate(jdbc);
@@ -525,6 +528,8 @@ public class RideService {
                 + (filters.womenOnly() ? " AND r.women_only" : "")
                 // Not a filter: a women-only ride is never offered to anyone else.
                 + " AND (NOT r.women_only OR " + PASSENGER_SAYS_WOMAN + ")";
+        // What the passenger would pay now: a running pass waives the fee.
+        boolean covered = passes.covers(passengerId, clock.instant());
         // sort.orderBy is one of four constants above, never caller text.
         List<Candidate> candidates = named.query("""
                 WITH want AS (
@@ -576,7 +581,7 @@ public class RideService {
                 params,
                 (rs, n) -> {
                     BigDecimal fare = rs.getBigDecimal("price").multiply(BigDecimal.valueOf(seats));
-                    BigDecimal fee = serviceFee.on(fare);
+                    BigDecimal fee = covered ? BigDecimal.ZERO.setScale(2) : serviceFee.on(fare);
                     return new Candidate(rs.getLong("id"), rs.getString("full_name"),
                             rs.getBoolean("instant_booking"), rs.getInt("from_seq"),
                             rs.getInt("to_seq"), rs.getString("from_stop"), rs.getString("to_stop"),

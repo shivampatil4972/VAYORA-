@@ -43,6 +43,19 @@ journex:
   payment:
     # The platform's fee, as a fraction of the fare, charged on top of it.
     service-fee-rate: 0.10
+  pass:
+    # On sale to passengers. A pass waives the service fee on bookings requested while it
+    # runs. Prices are the authors' assumptions, not market research.
+    offers:
+      - kind: WEEKLY
+        days: 7
+        price: 99
+      - kind: MONTHLY
+        days: 30
+        price: 299
+      - kind: ANNUAL
+        days: 365
+        price: 2499
   refund:
     # A passenger cancelling a booking the driver had accepted gets this share of the
     # fare back, by how long before boarding they cancel. Later than the last tier: none.

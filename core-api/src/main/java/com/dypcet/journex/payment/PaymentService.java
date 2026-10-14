@@ -1,7 +1,9 @@
 package com.dypcet.journex.payment;
 
+import com.dypcet.journex.pass.PassService;
 import com.dypcet.journex.refund.RefundPolicy;
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -54,10 +56,15 @@ public class PaymentService {
     private final JdbcTemplate jdbc;
     private final PaymentProvider provider;
     private final ServiceFee serviceFee;
+    private final PassService passes;
+    private final Clock clock;
     private final RefundPolicy refundPolicy;
 
     public PaymentService(JdbcTemplate jdbc, PaymentProvider provider, ServiceFee serviceFee,
-            RefundPolicy refundPolicy) {
+            RefundPolicy refundPolicy,
+            PassService passes, Clock clock) {
+        this.passes = passes;
+        this.clock = clock;
         this.jdbc = jdbc;
         this.provider = provider;
         this.serviceFee = serviceFee;
@@ -65,11 +72,12 @@ public class PaymentService {
     }
 
     /**
-     * Reserves the fare plus the service fee. If the provider declines, throws 402 and the
-     * caller's transaction rolls back, so no booking and no seat is left behind.
+     * Reserves the fare plus the service fee, or the fare alone if a pass of the passenger's
+     * is running. If the provider declines, throws 402 and the caller's transaction rolls
+     * back, so no booking and no seat is left behind.
      */
     public void hold(long bookingId, long passengerId, BigDecimal fare, PaymentChoice choice) {
-        BigDecimal fee = serviceFee.on(fare);
+        BigDecimal fee = feeFor(passengerId, fare);
         BigDecimal amount = fare.add(fee);
         if (amount.signum() == 0) {
             return; // a free ride: there is nothing to hold
@@ -84,6 +92,11 @@ public class PaymentService {
                 Long.class, bookingId, passengerId, fare, fee, amount, choice.method().name(),
                 provider.name(), reference);
         entry(intentId, "HOLD", amount);
+    }
+
+    /** The service fee this passenger would pay on this fare now: none while a pass runs. */
+    public BigDecimal feeFor(long passengerId, BigDecimal fare) {
+        return passes.covers(passengerId, clock.instant()) ? BigDecimal.ZERO.setScale(2) : serviceFee.on(fare);
     }
 
     /** Returns everything, fee included: the driver declined, never answered, or withdrew. */
