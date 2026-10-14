@@ -6,8 +6,8 @@ import { ReportMember } from '../components/report';
 import { Card, Page, QueryState } from '../components/ui';
 import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
-import { formatDate, formatMonthYear } from '../lib/format';
-import { msg, useT } from '../lib/i18n';
+import { formatDate, formatMonthYear, formatPercent } from '../lib/format';
+import { msg, useT, useUnits } from '../lib/i18n';
 import type { Profile } from '../lib/types';
 
 const chattinessLabels = {
@@ -29,6 +29,7 @@ function preferences(member: Profile): string[] {
 
 export function ProfilePage() {
   const t = useT();
+  const units = useUnits();
   const { id } = useParams();
   const { user } = useAuth();
   const profile = useQuery({ queryKey: ['profile', id], queryFn: () => api<Profile>(`/users/${id}/profile`) });
@@ -55,6 +56,21 @@ export function ProfilePage() {
                   <RatingSummary average={member.averageStars} count={member.ratingCount} />
                 </dd>
               </div>
+              {member.role === 'DRIVER' && (
+                <div>
+                  <dt className="text-slate-500">{t('Answers requests')}</dt>
+                  <dd className="mt-1 font-medium">
+                    {member.responseRate == null
+                      ? t('Not enough requests yet')
+                      : member.responseMinutes == null
+                        ? formatPercent(member.responseRate)
+                        : t('{rate}, usually within {time}', {
+                            rate: formatPercent(member.responseRate),
+                            time: units.duration(member.responseMinutes),
+                          })}
+                  </dd>
+                </div>
+              )}
             </dl>
             {/* Rendered as text: a bio is whatever someone typed. */}
             {member.bio && <p className="mt-4 whitespace-pre-wrap text-sm text-slate-700">{member.bio}</p>}

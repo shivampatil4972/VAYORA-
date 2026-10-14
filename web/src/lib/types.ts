@@ -245,6 +245,10 @@ export interface Profile {
   pets: boolean | null;
   music: boolean | null;
   chattiness: Chattiness | null;
+  /** Drivers only: the share of requests they answered themselves. Null with too few. */
+  responseRate?: number | null;
+  /** Drivers only: median minutes from a request to their answer. */
+  responseMinutes?: number | null;
 }
 
 export type Chattiness = 'QUIET' | 'MODERATE' | 'TALKATIVE';

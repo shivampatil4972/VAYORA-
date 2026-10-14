@@ -1726,3 +1726,27 @@ describe('receipts', () => {
     expect(await screen.findByText('The receipt could not be downloaded. Try again.')).toBeInTheDocument();
   });
 });
+
+describe("a driver's response rate", () => {
+  const driverProfile = {
+    id: 7, fullName: 'Ravi Jadhav', role: 'DRIVER', memberSince: '2026-01-05T00:00:00Z', completedTrips: 4,
+    averageStars: null, ratingCount: 0, reviews: [], emailVerified: false, phoneVerified: false, bio: null,
+    age: null, smoking: null, pets: null, music: null, chattiness: null,
+  };
+
+  it('shows the share answered and the typical time', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /users/7/profile': () => json({ ...driverProfile, responseRate: 0.6667, responseMinutes: 45 }) });
+    open('/users/7');
+    expect(await screen.findByText('67%, usually within 45 min')).toBeInTheDocument();
+  });
+
+  it('says when there are too few requests to tell, and shows nothing of the kind for a passenger', async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /users/7/profile': () => json({ ...driverProfile, responseRate: null, responseMinutes: null }),
+    });
+    open('/users/7');
+    expect(await screen.findByText('Not enough requests yet')).toBeInTheDocument();
+  });
+});

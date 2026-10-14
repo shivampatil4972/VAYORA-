@@ -788,4 +788,11 @@ export const hi: Record<string, string> = {
     '{factor} से रद्द होने की संभावना बढ़ती है',
   '{factor} makes a cancellation less likely':
     '{factor} से रद्द होने की संभावना घटती है',
+  // Driver response rate
+  'Answers requests':
+    'अनुरोधों का जवाब देता है',
+  'Not enough requests yet':
+    'अभी पर्याप्त अनुरोध नहीं',
+  '{rate}, usually within {time}':
+    '{rate}, आमतौर पर {time} के भीतर',
 };
