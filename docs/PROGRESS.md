@@ -1,5 +1,22 @@
 # Progress
 
+## 2026-10-15 (night) — publishing lead, and driver response rate
+
+Committed on `stage-2-3-booking-core-and-simulator`.
+
+**Research, synthetic data.** A publishing-lead sweep (rides published at least 1, 4 or 7
+days ahead) tested the other explanation left by section 9. Publishing everything a week
+ahead lowers empty searches only from 54.5% to 50%, so most are full rides, which the
+configuration's own numbers predict (about 31 seats a day offered, 84 wanted). Early
+release still adds nothing, which in a seat-scarce world is the real puzzle. Section 10
+lists three candidate reasons; the first can be measured from the existing log.
+
+**Driver response rate (feature 53).** A driver's profile shows the share of requests
+they answered themselves and their median time to answer. A new column records whether a
+request was declined by the driver or closed by the platform, so lapsed requests and those
+closed when the ride started count against the driver rather than as answers. Nothing is
+shown below three settled requests.
+
 ## 2026-10-15 (late) — a wider departure window, and explained scores
 
 Committed on `stage-2-3-booking-core-and-simulator`.

@@ -98,7 +98,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 |---|---|---|---|---|
 | 51 | Two-way star ratings | TBD | TBD | Verified (API and UI tests): each side rates the other once after a completed trip |
 | 52 | Written reviews | TBD | TBD | Verified (API and UI tests): optional comment, shown on the profile as plain text; no moderation |
-| 53 | Driver response rate and time | TBD | TBD | Not started |
+| 53 | Driver response rate and time | TBD | TBD | Verified (API and UI tests): share of requests answered by the driver, and the median time, on the public profile; only the driver's own answers count, and nothing is shown below three requests |
 | 54 | Membership duration and completed rides | TBD | TBD | Verified (API and UI tests): member-since and completed trips on the profile |
 | 55 | Report a user | TBD | TBD | Verified (API and UI tests): only someone you shared a booking with; one open report per pair |
 | 56 | Admin moderation queue | TBD | TBD | Verified (API and UI tests): dismiss, warn or suspend; suspension is enforced on every request |

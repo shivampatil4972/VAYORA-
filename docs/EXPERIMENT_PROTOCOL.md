@@ -373,3 +373,50 @@ payload change already awaiting the team's approval.
 - The split above, once approved.
 - A sweep of how far ahead rides are published, which tests the second explanation
   without any payload change.
+
+## 10. How far ahead rides are published
+
+Run on 2026-10-15. Synthetic data; 30 seeds per cell; model `h2-cox`; repeat search on.
+Report: `experiments/reports/sweep-publish-lead-5eeb0000-0000-4000-8000-000000000005.md`
+
+Section 9 left two explanations for why over half of all searches find no ride. This
+sweep tests one: that the ride wanted had not been published yet. Rides are published
+between `publish_lead_days_min` and 7 days ahead; at 7, every ride is visible for the
+whole booking horizon.
+
+| Rides published at least | Searches offered no ride (B3) | B3 completed per 100 | B4 − B3 | Extra refills by passengers with no other ride |
+|---|---|---|---|---|
+| 1 day ahead (the world's value) | 0.545 | 31.11 | −0.01 (−0.04 to +0.03) | +0.1 |
+| 4 days ahead | 0.525 | 31.31 | −0.03 (−0.07 to +0.00) | −9.4 |
+| 7 days ahead | 0.501 | 31.53 | −0.05 (−0.09 to −0.01) | −13.5 |
+
+### What this shows
+
+- **Late publishing explains little.** Publishing every ride a full week ahead lowers the
+  share of searches finding nothing by under 5 points, from 54.5% to 50%.
+- **So most empty searches are full rides.** The configuration agrees, by arithmetic on
+  its own assumptions rather than by measurement: 12 rides a day at an average of 2.56
+  seats offer about 31 seats a day, while 60 searches a day at an average party of 1.4 ask
+  for about 84.
+- **Early release still adds nothing, and costs a little where everything is published
+  early** (−0.05 at 7 days). It moves cancellations earlier at every setting.
+
+### The question this leaves
+
+Seats are scarce in this world, which is the condition under which an early release
+ought to pay: someone is always waiting. It does not. B4 produces about 11 to 14 more
+refills per seed than B3, yet no more completed rides, and with early publishing the
+refills by passengers who had no other option go *down*.
+
+The candidates, none yet measured:
+
+- **Late releases are refilled too.** If seats are scarce, a seat freed a few hours
+  before departure may still be taken, so freeing it days earlier gains little. This is
+  measurable from the existing log: the share of released seats refilled, split by how
+  long before departure they were released.
+- **Asking costs travellers.** Some passengers asked to reconfirm cancel because they were
+  asked (the "annoyed" response in `world.yaml`), losing trips that would have run.
+- **Refills move passengers between rides.** An early release lets one passenger take a
+  seat another would have taken a little later.
+
+The first is the one to measure next; it needs only a new metric query.

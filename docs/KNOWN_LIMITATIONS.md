@@ -27,9 +27,10 @@ mistake for more. Updated 2026-10-13.
 - The likeliest reason refills add no rides: the extra seats B4 frees are all taken by
   passengers who were offered another ride as well. That is an upper-bound argument
   from means, not a paired test.
-- Over half of all searches are offered no ride, even with an 8-hour departure window,
-  and the event log cannot say why. A wider window does not make early release add rides
-  (EXPERIMENT_PROTOCOL.md section 9).
+- Over half of all searches are offered no ride. Neither a wider window nor earlier
+  publishing changes that much, so in this world most are full rides: about 31 seats a day
+  are offered against about 84 wanted. Even so, early release adds no completed rides
+  (EXPERIMENT_PROTOCOL.md sections 9 and 10), and why is not yet known.
 - It is one synthetic corridor. It is not evidence that the idea fails in reality.
 - Variants B1, B2 and B6 to B11 are not built. No component-removal or robustness
   experiment has been run.
