@@ -763,4 +763,29 @@ export const mr: Record<string, string> = {
     'पावती डाउनलोड होऊ शकली नाही. पुन्हा प्रयत्न करा.',
   'Receipt':
     'पावती',
+  // Durability explanations
+  'How far ahead it was booked':
+    'किती आधी बुक केले',
+  'Seats booked':
+    'बुक केलेल्या जागा',
+  'Hour the ride leaves':
+    'प्रवास निघण्याची वेळ',
+  'Gap from the time asked for':
+    'हव्या असलेल्या वेळेपासूनचे अंतर',
+  'Earlier accepted bookings':
+    'आधी स्वीकारलेली बुकिंग',
+  'Earlier cancellations':
+    'आधीचे रद्दीकरण',
+  'Earlier completed trips':
+    'आधी पूर्ण केलेले प्रवास',
+  'Earlier no-shows':
+    'आधी न येणे',
+  'Share of earlier bookings cancelled':
+    'आधीच्या बुकिंगपैकी रद्द केलेला वाटा',
+  'Main reasons':
+    'मुख्य कारणे',
+  '{factor} makes a cancellation likelier':
+    '{factor} मुळे रद्द होण्याची शक्यता वाढते',
+  '{factor} makes a cancellation less likely':
+    '{factor} मुळे रद्द होण्याची शक्यता कमी होते',
 };

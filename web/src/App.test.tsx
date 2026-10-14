@@ -302,7 +302,22 @@ describe('booking durability (administrator)', () => {
     survivalProbability: 0.8107,
     modelVersion: 'h1-cox',
     scoredAt: '2026-10-30T10:00:00Z',
+    contributions: { lead_hours: 0.41, seats: 0.02, prior_cancel_share: -0.18, departure_hour: 0 },
   };
+
+  it('names the two features that moved an estimate most, and which way', async () => {
+    signIn('ADMIN');
+    serve({ 'GET /admin/hazard/scores': () => json([score, { ...score, bookingId: 4, passengerName: 'Sunita Pawar', contributions: {} }]) });
+    open('/admin/durability');
+
+    const row = (await screen.findByText('Meera Kulkarni')).closest('tr')!;
+    expect(within(row).getAllByRole('listitem').map((item) => item.textContent)).toEqual([
+      'How far ahead it was booked makes a cancellation likelier',
+      'Share of earlier bookings cancelled makes a cancellation less likely',
+    ]);
+    // A score logged before explanations existed says so rather than inventing reasons.
+    expect(within(screen.getByText('Sunita Pawar').closest('tr')!).getByText('None given')).toBeInTheDocument();
+  });
 
   it('shows each estimate as a percentage with its model and a warning about what it is', async () => {
     signIn('ADMIN');

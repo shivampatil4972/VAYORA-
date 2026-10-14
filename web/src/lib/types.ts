@@ -144,6 +144,11 @@ export interface HazardScore {
   survivalProbability: number;
   modelVersion: string;
   scoredAt: string;
+  /**
+   * Each feature's share of the log relative risk. Positive raises the estimated chance of
+   * a cancellation. Empty for scores logged before explanations existed.
+   */
+  contributions: Record<string, number>;
 }
 
 export interface ScoringSummary {

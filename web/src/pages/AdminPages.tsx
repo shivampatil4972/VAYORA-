@@ -3,8 +3,29 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Card, Notice, Page, QueryState } from '../components/ui';
 import { api } from '../lib/api';
 import { formatDateTime, formatPercent } from '../lib/format';
-import { useT } from '../lib/i18n';
+import { msg, useT } from '../lib/i18n';
 import type { HazardScore, ScoringSummary } from '../lib/types';
+
+// The model's features (version f1), in words.
+const factorLabels: Record<string, string> = {
+  lead_hours: msg('How far ahead it was booked'),
+  seats: msg('Seats booked'),
+  departure_hour: msg('Hour the ride leaves'),
+  desired_gap_hours: msg('Gap from the time asked for'),
+  prior_accepted: msg('Earlier accepted bookings'),
+  prior_cancellations: msg('Earlier cancellations'),
+  prior_completed: msg('Earlier completed trips'),
+  prior_no_shows: msg('Earlier no-shows'),
+  prior_cancel_share: msg('Share of earlier bookings cancelled'),
+};
+
+/** The two features that moved the estimate most, largest first. */
+export function mainFactors(contributions: Record<string, number>): [string, number][] {
+  return Object.entries(contributions)
+    .filter(([, value]) => value !== 0)
+    .sort(([, a], [, b]) => Math.abs(b) - Math.abs(a))
+    .slice(0, 2);
+}
 
 export function DurabilityPage() {
   const t = useT();
@@ -65,6 +86,7 @@ export function DurabilityPage() {
                   <th scope="col" className="py-2 pr-4 font-medium">{t('Trip')}</th>
                   <th scope="col" className="py-2 pr-4 font-medium">{t('Leaves')}</th>
                   <th scope="col" className="py-2 pr-4 font-medium">{t('Estimate')}</th>
+                  <th scope="col" className="py-2 pr-4 font-medium">{t('Main reasons')}</th>
                   <th scope="col" className="py-2 pr-4 font-medium">{t('Model')}</th>
                   <th scope="col" className="py-2 font-medium">{t('Scored')}</th>
                 </tr>
@@ -79,6 +101,22 @@ export function DurabilityPage() {
                     </td>
                     <td className="py-2 pr-4">{formatDateTime(score.boardingTime)}</td>
                     <td className="py-2 pr-4 font-medium">{formatPercent(score.survivalProbability)}</td>
+                    <td className="py-2 pr-4">
+                      {mainFactors(score.contributions ?? {}).length === 0 ? (
+                        <span className="text-slate-500">{t('None given')}</span>
+                      ) : (
+                        <ul>
+                          {mainFactors(score.contributions).map(([factor, value]) => {
+                            const name = factorLabels[factor] ? t(factorLabels[factor]) : factor;
+                            return (
+                              <li key={factor}>
+                                {value > 0 ? t('{factor} makes a cancellation likelier', { factor: name }) : t('{factor} makes a cancellation less likely', { factor: name })}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </td>
                     <td className="py-2 pr-4">{score.modelVersion}</td>
                     <td className="py-2">{formatDateTime(score.scoredAt)}</td>
                   </tr>

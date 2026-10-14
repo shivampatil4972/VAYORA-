@@ -763,4 +763,29 @@ export const hi: Record<string, string> = {
     'रसीद डाउनलोड नहीं हो सकी। फिर से कोशिश करें।',
   'Receipt':
     'रसीद',
+  // Durability explanations
+  'How far ahead it was booked':
+    'कितने पहले बुक किया गया',
+  'Seats booked':
+    'बुक की गई सीटें',
+  'Hour the ride leaves':
+    'सवारी निकलने का समय',
+  'Gap from the time asked for':
+    'चाहे गए समय से अंतर',
+  'Earlier accepted bookings':
+    'पहले स्वीकार की गई बुकिंग',
+  'Earlier cancellations':
+    'पहले के रद्दीकरण',
+  'Earlier completed trips':
+    'पहले पूरी की गई यात्राएँ',
+  'Earlier no-shows':
+    'पहले न पहुँचना',
+  'Share of earlier bookings cancelled':
+    'पहले की बुकिंग में रद्द का हिस्सा',
+  'Main reasons':
+    'मुख्य कारण',
+  '{factor} makes a cancellation likelier':
+    '{factor} से रद्द होने की संभावना बढ़ती है',
+  '{factor} makes a cancellation less likely':
+    '{factor} से रद्द होने की संभावना घटती है',
 };
