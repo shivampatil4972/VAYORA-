@@ -323,6 +323,7 @@ public class BookingService {
     public Booking reject(long driverId, long bookingId) {
         Booking booking = lockForDriver(driverId, bookingId);
         move(booking, BookingStatus.REJECTED);
+        recordRejectedBy(bookingId, "driver");
         payments.releaseInFull(bookingId, RefundReason.NOT_ACCEPTED);
         events.write(EventType.BOOKING_REJECTED,
                 new Decided(bookingId, booking.rideId(), driverId, false));
@@ -371,6 +372,7 @@ public class BookingService {
             return false;
         }
         move(booking, BookingStatus.REJECTED);
+        recordRejectedBy(bookingId, "platform");
         payments.releaseInFull(bookingId, RefundReason.NOT_ACCEPTED);
         events.write(EventType.BOOKING_REJECTED,
                 new Expired(bookingId, rideId, ride.driverId(), "not_answered_in_time"));
@@ -493,6 +495,10 @@ public class BookingService {
     static String seatsOn(Booking booking) {
         return booking.seats() + (booking.seats() == 1 ? " seat, " : " seats, ")
                 + booking.fromStop() + " to " + booking.toStop();
+    }
+
+    void recordRejectedBy(long bookingId, String who) {
+        jdbc.update("UPDATE bookings SET rejected_by = ? WHERE id = ?", who, bookingId);
     }
 
     void recordCancelledBy(long bookingId, String who) {

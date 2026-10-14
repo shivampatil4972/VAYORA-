@@ -100,6 +100,8 @@ public class TripService {
         setStatus(rideId, "IN_PROGRESS");
         for (Booking unanswered : bookings.lockAll(rideId, BookingStatus.PENDING)) {
             bookings.move(unanswered, BookingStatus.REJECTED);
+            // Never answered: not the driver's decision, whoever started the ride.
+            bookings.recordRejectedBy(unanswered.id(), "platform");
             payments.releaseInFull(unanswered.id(), RefundReason.NOT_ACCEPTED);
             bookings.notifyDeclined(unanswered);
             events.write(EventType.BOOKING_REJECTED,

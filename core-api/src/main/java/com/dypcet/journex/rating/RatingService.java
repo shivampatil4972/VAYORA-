@@ -25,11 +25,19 @@ public class RatingService {
      * @param emailVerified  they proved the address with a code; says nothing about who they are
      * @param age            from the birth year they gave, so a year out either way; null if not said
      * @param smoking        what they said about travelling; null, like the next three, if not said
+     * @param responseRate   of the requests a driver had to answer, the share they answered
+     *                       themselves; null for a passenger or until there are enough
+     * @param responseMinutes typical (median) minutes from a request to the driver's answer;
+     *                        null as above
      */
     public record Profile(long id, String fullName, String role, Instant memberSince,
             int completedTrips, Double averageStars, int ratingCount, List<Review> reviews,
             boolean emailVerified, boolean phoneVerified, String bio, Integer age,
-            Boolean smoking, Boolean pets, Boolean music, String chattiness) {
+            Boolean smoking, Boolean pets, Boolean music, String chattiness,
+            Double responseRate, Integer responseMinutes) {
+    }
+
+    private record Responsiveness(Double rate, Integer minutes) {
     }
 
     /** A completed trip the caller has not rated yet. */
@@ -41,6 +49,8 @@ public class RatingService {
     }
 
     private static final int REVIEWS_SHOWN = 10;
+    // Fewer than this and a rate would mostly be noise, so none is shown.
+    private static final int MIN_REQUESTS_FOR_RESPONSE = 3;
 
     private final JdbcTemplate jdbc;
 
@@ -109,12 +119,52 @@ public class RatingService {
                         rs.getBoolean("email_verified"), rs.getBoolean("phone_verified"),
                         rs.getString("bio"), (Integer) rs.getObject("age"),
                         (Boolean) rs.getObject("smoking"), (Boolean) rs.getObject("pets"),
-                        (Boolean) rs.getObject("music"), rs.getString("chattiness")),
+                        (Boolean) rs.getObject("music"), rs.getString("chattiness"),
+                        null, null),
                 userId);
         if (found.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found");
         }
-        return found.get(0);
+        Profile profile = found.get(0);
+        if (!"DRIVER".equals(profile.role())) {
+            return profile;
+        }
+        Responsiveness answers = responsiveness(userId);
+        return new Profile(profile.id(), profile.fullName(), profile.role(), profile.memberSince(),
+                profile.completedTrips(), profile.averageStars(), profile.ratingCount(),
+                profile.reviews(), profile.emailVerified(), profile.phoneVerified(), profile.bio(),
+                profile.age(), profile.smoking(), profile.pets(), profile.music(),
+                profile.chattiness(), answers.rate(), answers.minutes());
+    }
+
+    /**
+     * How a driver answers requests on rides that need approval. A request counts once it
+     * is settled one way or the other: accepted, declined by the driver, or closed by the
+     * platform because the driver did not answer. Requests the passenger withdrew while
+     * waiting, and requests still waiting, do not count either way.
+     */
+    private Responsiveness responsiveness(long driverId) {
+        return jdbc.queryForObject("""
+                WITH asked AS (
+                    SELECT b.created_at,
+                           CASE WHEN b.accepted_at IS NOT NULL THEN b.accepted_at
+                                WHEN COALESCE(b.rejected_by, 'driver') = 'driver' THEN b.updated_at
+                           END AS answered_at
+                    FROM bookings b JOIN rides r ON r.id = b.ride_id
+                    WHERE r.driver_id = ? AND NOT r.instant_booking
+                      AND (b.accepted_at IS NOT NULL OR b.status = 'REJECTED')
+                )
+                SELECT COUNT(*) AS asked,
+                       1.0 * COUNT(answered_at) / NULLIF(COUNT(*), 0) AS rate,
+                       percentile_cont(0.5) WITHIN GROUP (
+                           ORDER BY EXTRACT(EPOCH FROM answered_at - created_at) / 60)
+                           FILTER (WHERE answered_at IS NOT NULL) AS minutes
+                FROM asked""",
+                (rs, n) -> rs.getInt("asked") < MIN_REQUESTS_FOR_RESPONSE ? new Responsiveness(null, null)
+                        : new Responsiveness(rs.getDouble("rate"),
+                                rs.getObject("minutes") == null ? null
+                                        : (int) Math.round(rs.getDouble("minutes"))),
+                driverId);
     }
 
     /** The caller's completed trips still waiting for their rating, newest first. */
