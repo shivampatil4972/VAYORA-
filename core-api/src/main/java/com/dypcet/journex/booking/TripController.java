@@ -37,6 +37,15 @@ public class TripController {
         return trips.cancel(CurrentUser.id(jwt), id);
     }
 
+    public record SeriesCancelled(int withdrawn) {
+    }
+
+    /** Withdraws every ride still to run in this ride's series. */
+    @PostMapping("/rides/{id}/cancel-series")
+    public SeriesCancelled cancelSeries(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
+        return new SeriesCancelled(trips.cancelSeries(CurrentUser.id(jwt), id));
+    }
+
     @PostMapping("/bookings/{id}/no-show")
     public Booking noShow(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
         return trips.noShow(CurrentUser.id(jwt), id);

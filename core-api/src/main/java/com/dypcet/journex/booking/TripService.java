@@ -170,8 +170,27 @@ public class TripService {
         return rides.get(rideId);
     }
 
-    /** Withdraws a ride that has not started, cancelling every live booking on it. */
+    /**
+     * Withdraws every ride of this ride's series that has not yet run, each exactly as if
+     * withdrawn on its own: every passenger refunded in full and told of other rides.
+     *
+     * @return how many rides were withdrawn
+     */
     @Transactional
+    public int cancelSeries(long driverId, long rideId) {
+        lockOwned(driverId, rideId);
+        List<Long> scheduled = jdbc.queryForList("""
+                SELECT s.id FROM rides r JOIN rides s ON s.series_id = r.series_id
+                WHERE r.id = ? AND r.series_id IS NOT NULL AND s.status = 'SCHEDULED'
+                ORDER BY s.departure_time""",
+                Long.class, rideId);
+        if (scheduled.isEmpty()) {
+            throw conflict("This ride is not part of a series with rides still to run");
+        }
+        scheduled.forEach(id -> cancel(driverId, id));
+        return scheduled.size();
+    }
+
     /**
      * Up to three other rides that could take this passenger, as one sentence for the
      * notification, or nothing if there are none. A suggestion only: nothing is booked.
@@ -193,6 +212,8 @@ public class TripService {
                 .collect(Collectors.joining("; ")) + ". Search again to book one.";
     }
 
+    /** Withdraws a ride that has not started, cancelling every live booking on it. */
+    @Transactional
     public Ride cancel(long driverId, long rideId) {
         LockedRide ride = lockOwned(driverId, rideId);
         if (!"SCHEDULED".equals(ride.status())) {

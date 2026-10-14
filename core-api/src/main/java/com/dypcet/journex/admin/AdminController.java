@@ -70,6 +70,58 @@ public class AdminController {
                 pattern, pattern, LISTED);
     }
 
+    /** One ride as the back office lists it. */
+    public record RideRow(long id, String driverName, long driverId, Instant departureTime, String status,
+            int seatsOffered, int bookings, String fromStop, String toStop) {
+    }
+
+    /** One booking as the back office lists it. */
+    public record BookingRow(long id, long rideId, String passengerName, long passengerId, String driverName,
+            String fromStop, String toStop, int seats, String status, Instant createdAt) {
+    }
+
+    /** The newest rides, optionally of one status. */
+    @GetMapping("/rides")
+    public List<RideRow> rides(@RequestParam(required = false)
+            @jakarta.validation.constraints.Pattern(regexp = "SCHEDULED|IN_PROGRESS|COMPLETED|CANCELLED") String status) {
+        return jdbc.query("""
+                SELECT r.id, u.full_name, r.driver_id, r.departure_time, r.status, r.seats_offered,
+                       (SELECT COUNT(*) FROM bookings b WHERE b.ride_id = r.id) AS bookings,
+                       (SELECT name FROM ride_stops WHERE ride_id = r.id ORDER BY seq LIMIT 1) AS from_stop,
+                       (SELECT name FROM ride_stops WHERE ride_id = r.id ORDER BY seq DESC LIMIT 1) AS to_stop
+                FROM rides r JOIN users u ON u.id = r.driver_id
+                WHERE ?::text IS NULL OR r.status = ?
+                ORDER BY r.id DESC LIMIT ?""",
+                (rs, n) -> new RideRow(rs.getLong("id"), rs.getString("full_name"), rs.getLong("driver_id"),
+                        rs.getObject("departure_time", OffsetDateTime.class).toInstant(), rs.getString("status"),
+                        rs.getInt("seats_offered"), rs.getInt("bookings"), rs.getString("from_stop"),
+                        rs.getString("to_stop")),
+                status, status, LISTED);
+    }
+
+    /** The newest bookings, optionally of one status. */
+    @GetMapping("/bookings")
+    public List<BookingRow> bookings(@RequestParam(required = false)
+            @jakarta.validation.constraints.Pattern(regexp = "PENDING|CONFIRMED|REJECTED|CANCELLED|COMPLETED|NO_SHOW")
+            String status) {
+        return jdbc.query("""
+                SELECT b.id, b.ride_id, p.full_name AS passenger, b.passenger_id, d.full_name AS driver,
+                       s.name AS from_stop, t.name AS to_stop, b.seats, b.status, b.created_at
+                FROM bookings b
+                JOIN users p ON p.id = b.passenger_id
+                JOIN rides r ON r.id = b.ride_id
+                JOIN users d ON d.id = r.driver_id
+                JOIN ride_stops s ON s.ride_id = b.ride_id AND s.seq = b.from_seq
+                JOIN ride_stops t ON t.ride_id = b.ride_id AND t.seq = b.to_seq
+                WHERE ?::text IS NULL OR b.status = ?
+                ORDER BY b.id DESC LIMIT ?""",
+                (rs, n) -> new BookingRow(rs.getLong("id"), rs.getLong("ride_id"), rs.getString("passenger"),
+                        rs.getLong("passenger_id"), rs.getString("driver"), rs.getString("from_stop"),
+                        rs.getString("to_stop"), rs.getInt("seats"), rs.getString("status"),
+                        rs.getObject("created_at", OffsetDateTime.class).toInstant()),
+                status, status, LISTED);
+    }
+
     @GetMapping("/audit")
     public List<Entry> audit() {
         return audit.latest();
