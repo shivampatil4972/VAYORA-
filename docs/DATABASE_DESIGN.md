@@ -1,0 +1,130 @@
+# Database design
+
+Three stores, each holding different things. The schema of record for PostgreSQL is the
+Flyway migrations in `core-api/src/main/resources/db/migration/`; this document explains
+them and must not be read in place of them.
+
+## PostgreSQL 16 with PostGIS
+
+Access is through `JdbcTemplate` with hand-written SQL. There is no ORM.
+
+### Migrations
+
+| Version | Adds |
+|---|---|
+| V1 | The PostGIS extension |
+| V2 | `events`, the research log |
+| V3 | `users`, `vehicles`, `rides`, `ride_stops`, `ride_segments`, `bookings` |
+| V4 | Ride states `IN_PROGRESS`, `COMPLETED`; booking states `COMPLETED`, `NO_SHOW` |
+| V5 | On bookings: `accepted_at`, `cancelled_by`, `hazard_features` |
+| V6 | `payment_intents`, `ledger_entries`, `refunds`, `settlements`; an idempotency key on bookings |
+| V7 | `ratings` |
+| V8 | Account status on users; `reports`; `audit_log` |
+| V9 | On rides: the route line, its distance, duration and source; a spatial index on stops |
+| V10 | On users: phone and confirmation times; `profiles`, `verification_codes`, `emergency_contacts`, `sos_alerts` |
+| V11 | On rides: `notes`, `max_two_in_back`, `series_id` |
+| V12 | On vehicles: comfort, luggage, electric, battery, consumption |
+
+### Tables
+
+**People**
+
+| Table | One row is | Notes |
+|---|---|---|
+| `users` | An account | Unique email, BCrypt password hash, one role, `ACTIVE` or `SUSPENDED`, optional phone, when email and phone were confirmed |
+| `profiles` | What a member says about themselves | Bio, birth year, gender, smoking, pets, music, chattiness. Every column optional; null means not said |
+| `verification_codes` | A one-time code sent to an address | Only the hash is stored, with the address it was sent to, an expiry, and a count of wrong attempts |
+| `emergency_contacts` | Someone to tell in an emergency | At most three per member, enforced in the service under a row lock |
+| `sos_alerts` | An emergency button press | Optional ride and position; how many contacts a message was handed over for, and by which sender |
+
+**Rides**
+
+| Table | One row is | Notes |
+|---|---|---|
+| `vehicles` | A driver's car | Seats include the driver's. Battery figures only if `electric`, by a check constraint |
+| `rides` | One departure | Driver, vehicle, departure time, seats offered, status, the route as a PostGIS line, optional notes, `series_id` shared by rides published together |
+| `ride_stops` | A stop on a ride | Sequence number, name, position (`geography` point, GiST index), minutes after departure |
+| `ride_segments` | The leg between two consecutive stops | Price per seat, total seats, seats available. **Seat inventory lives here** |
+| `bookings` | A passenger's place on a stretch of a ride | From-stop and to-stop sequence numbers, seats, fare, status, the model features as they stood at the request |
+
+**Money**
+
+| Table | One row is | Notes |
+|---|---|---|
+| `payment_intents` | The amount held for one booking | One per booking. `HELD`, then `SETTLED` once |
+| `ledger_entries` | One movement of money | Append-only: a trigger refuses `UPDATE` and `DELETE` |
+| `refunds` | What went back to a passenger | At most one per booking |
+| `settlements` | What was paid to a driver | At most one per booking, with the reason |
+
+**Trust**
+
+| Table | One row is | Notes |
+|---|---|---|
+| `ratings` | One side's rating of the other after a trip | Unique per booking and rater |
+| `reports` | A member's report about another | One open report per pair, by a partial unique index |
+| `audit_log` | An administrative action | Append-only by trigger |
+
+**Research**
+
+| Table | One row is | Notes |
+|---|---|---|
+| `events` | Something that happened, on the platform or in a simulation | `run_id`, `variant` and `seed` identify an experimental run; rows from ordinary use of the platform have none. Payload is JSONB with snake_case keys |
+
+### Status values
+
+| Column | Values |
+|---|---|
+| `rides.status` | `SCHEDULED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED` |
+| `bookings.status` | `PENDING`, `CONFIRMED`, `REJECTED`, `CANCELLED`, `COMPLETED`, `NO_SHOW` |
+| `users.status` | `ACTIVE`, `SUSPENDED` |
+| `reports.status` | `OPEN`, `RESOLVED`, `DISMISSED` |
+| `sos_alerts.status` | `OPEN`, `ACKNOWLEDGED` |
+
+Allowed booking transitions are defined in one place, `BookingStatus`, and tested.
+
+### Design choices worth knowing
+
+- **Seats per leg, not per ride.** A ride with stops A, B, C, D has three segments. A
+  booking from B to C touches one of them. This is what makes stopover bookings correct.
+- **A booking takes seats with one conditional `UPDATE`** across its legs, under a lock
+  on the ride row. No application-level counting.
+- **Two tables cannot be rewritten**: `ledger_entries` and `audit_log`. The database
+  enforces it, not the application.
+- **Idempotency is a unique index**, on (passenger, key) for bookings that carry a key.
+  A retried request finds the first booking instead of making a second.
+- **Positions are `geography`, not `geometry`.** Distances come back in metres without a
+  projection, and the 5 km search limit is a `ST_DWithin` on an indexed column.
+- **Features are snapshotted on the booking** (`hazard_features`) so a score can be
+  reproduced later from what was known at the time.
+
+### Not in the schema
+
+- No table for seat holds: they live in Redis (below).
+- No table for chat, GPS or notifications: MongoDB.
+- No soft delete. Nothing a user creates can be deleted through the API except an
+  emergency contact, which is deleted outright.
+
+## MongoDB 7
+
+| Collection | Written by | One document is | Kept |
+|---|---|---|---|
+| `notifications` | core-api | A message for one user, with a type, an optional booking, and when it was read | Indefinitely |
+| `chat_messages` | gateway | One chat message on a ride | Indefinitely |
+| `gps_traces` | gateway | One reported driver position | 7 days, by a TTL index |
+
+core-api writes a notification only after the database transaction that caused it
+commits, so nobody is told about something that was rolled back.
+
+## Redis 7
+
+Everything in Redis may be lost at any time without making anything wrong.
+
+| Key | Type | Holds | Expires |
+|---|---|---|---|
+| `osrm:<the stops' coordinates>` | string | A cached road route | 7 days |
+| `holds:<ride id>` | sorted set | Members `passenger:from:to:seats`, scored by when each lapses | With its last member |
+| `hold:of:<passenger id>` | string | That passenger's one hold | 5 minutes |
+
+A seat hold never changes a count in PostgreSQL. Booking and search subtract live holds
+by other passengers from what PostgreSQL says is free; if Redis cannot be reached they
+subtract nothing.

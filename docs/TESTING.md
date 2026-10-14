@@ -105,6 +105,15 @@ Kept here because each is a class of mistake worth remembering.
 - A late 401 for a request made by an earlier session signed out the session that had
   replaced it. Found because a test without a stubbed server reached the running API.
 
+## A bug the tests did not find
+
+- **Saving a profile, removing an emergency contact and releasing a seat hold would have
+  failed in a browser.** The CORS configuration allowed only GET and POST, and those
+  three use PUT and DELETE. Every test passed, because server tests sent no browser
+  preflight for those methods and web tests replace the network. It was found by reading
+  the configuration while writing SECURITY.md. A preflight test for each method now
+  exists. It is the clearest evidence so far for the first item below.
+
 ## Not tested
 
 - Confirming a phone number through the screen. The API path is tested; the screen is

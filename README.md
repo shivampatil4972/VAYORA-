@@ -103,6 +103,22 @@ western-zone India extract, clips it with osmium to the corridor box
 extract / partition / customize (MLD) on the result. Both steps are idempotent. To
 rebuild from scratch: `docker compose down && docker volume rm journex_osrmdata`.
 
+## Documents
+
+| Document | What it answers |
+|---|---|
+| [ARCHITECTURE](docs/ARCHITECTURE.md) | What the parts are and why things live where they do |
+| [DATABASE_DESIGN](docs/DATABASE_DESIGN.md) | Every table, collection and key |
+| [API_DOCUMENTATION](docs/API_DOCUMENTATION.md) | Every endpoint and who may call it |
+| [SECURITY](docs/SECURITY.md) | What is protected, how it is checked, and what is missing |
+| [DEPLOYMENT](docs/DEPLOYMENT.md) | Running it, configuring it, and what breaks |
+| [FEATURE_MATRIX](docs/FEATURE_MATRIX.md) | The state of each of the 95 features |
+| [TESTING](docs/TESTING.md) | What is tested, and what is not |
+| [KNOWN_LIMITATIONS](docs/KNOWN_LIMITATIONS.md) | Everything that does not work or is simulated |
+| [AI_ML_METHODOLOGY](docs/AI_ML_METHODOLOGY.md) | The survival model and the contact scheduler |
+| [EXPERIMENT_PROTOCOL](docs/EXPERIMENT_PROTOCOL.md) | How variants are compared, and every result |
+| [PROGRESS](docs/PROGRESS.md) | What was built when, and the decisions made |
+
 ## Layout
 
 | Path           | What                                                       |

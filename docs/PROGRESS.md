@@ -1,5 +1,20 @@
 # Progress
 
+## 2026-10-14 (evening) — reference documents, and a bug found writing them
+
+Committed on `stage-2-3-booking-core-and-simulator`.
+
+Five documents were written from the code, not from memory: ARCHITECTURE,
+DATABASE_DESIGN, API_DOCUMENTATION, SECURITY and DEPLOYMENT. The README now indexes
+every document.
+
+Writing SECURITY.md turned up a real fault: browsers were allowed only GET and POST, so
+the profile, emergency-contact and seat-hold screens would have failed for every user
+while all tests passed. Fixed, with a test that fails without the fix. See TESTING.md.
+
+Still not written: DECISIONS, IMPLEMENTATION_ROADMAP and DATASET_DOCUMENTATION. The
+roadmap needs the team's stage definitions and feature tiers, which have not been given.
+
 ## 2026-10-14 (later) — seat holds
 
 Committed on `stage-2-3-booking-core-and-simulator`.
