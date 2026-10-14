@@ -812,4 +812,29 @@ export const hi: Record<string, string> = {
     'इस बुकिंग से मेल खाता है',
   'Does not match this booking':
     'इस बुकिंग से मेल नहीं खाता',
+  // After the trip
+  'Thank you for confirming.':
+    'पुष्टि करने के लिए धन्यवाद।',
+  'Thank you. An administrator will look into it; nothing has been changed yet.':
+    'धन्यवाद। एक व्यवस्थापक इसकी जाँच करेगा; अभी कुछ भी बदला नहीं गया है।',
+  'The driver marked this trip completed. Did it happen?':
+    'चालक ने इस यात्रा को पूरा बताया है। क्या यह हुई?',
+  'Yes, I travelled':
+    'हाँ, मैंने यात्रा की',
+  'No, it did not happen':
+    'नहीं, यह नहीं हुई',
+  '{n} completed trips are disputed by their passenger.':
+    '{n} पूरी यात्राओं पर उनके यात्री ने आपत्ति की है।',
+  'See them':
+    'देखें',
+  'Disputed trips':
+    'विवादित यात्राएँ',
+  'Trips a driver marked completed and the passenger says did not happen. Nothing has been reversed: payments are simulated, and each case is for a person to judge.':
+    'वे यात्राएँ जिन्हें चालक ने पूरा बताया और यात्री कहता है कि नहीं हुईं। कुछ भी उलटा नहीं गया है: भुगतान सिम्युलेटेड हैं, और हर मामले का निर्णय किसी व्यक्ति को करना है।',
+  'No trip is disputed.':
+    'कोई यात्रा विवादित नहीं है।',
+  'driver':
+    'चालक',
+  'disputed {time}':
+    '{time} को आपत्ति',
 };

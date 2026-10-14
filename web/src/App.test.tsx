@@ -1785,3 +1785,42 @@ describe('boarding codes', () => {
     expect(JSON.parse(String(sent?.[1]?.body))).toEqual({ code: '4821' });
   });
 });
+
+describe('after a trip', () => {
+  it('asks the passenger whether a completed trip happened, once, and sends the answer', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({
+      'POST /bookings/90/trip-confirmation': () => new Response(null, { status: 204 }),
+      'GET /bookings': () => json([{ ...booking, status: 'COMPLETED', passengerRated: true, passengerConfirmed: null }]),
+    });
+    open('/bookings');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'No, it did not happen' }));
+
+    expect(await screen.findByText(/An administrator will look into it/)).toBeInTheDocument();
+    const sent = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/trip-confirmation'));
+    expect(JSON.parse(String(sent?.[1]?.body))).toEqual({ travelled: false });
+  });
+
+  it('does not ask again once answered', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /bookings': () => json([{ ...booking, status: 'COMPLETED', passengerRated: true, passengerConfirmed: true }]) });
+    open('/bookings');
+
+    expect(await screen.findByText('Completed')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Yes, I travelled' })).not.toBeInTheDocument();
+  });
+
+  it('lists disputed trips for administrators', async () => {
+    signIn('ADMIN');
+    serve({
+      'GET /admin/disputed-trips': () =>
+        json([{ bookingId: 90, passengerId: 1, passengerName: 'Meera Kulkarni', driverId: 7, driverName: 'Ravi Jadhav',
+          fromStop: 'Kolhapur', toStop: 'Pune', boardingTime: '2026-11-02T01:30:00Z', disputedAt: '2026-11-03T08:00:00Z' }]),
+    });
+    open('/admin/disputes');
+
+    expect(await screen.findByRole('link', { name: 'Ravi Jadhav' })).toHaveAttribute('href', '/users/7');
+    expect(screen.getByText(/Nothing has been reversed/)).toBeInTheDocument();
+  });
+});

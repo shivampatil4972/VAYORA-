@@ -812,4 +812,29 @@ export const mr: Record<string, string> = {
     'या बुकिंगशी जुळतो',
   'Does not match this booking':
     'या बुकिंगशी जुळत नाही',
+  // After the trip
+  'Thank you for confirming.':
+    'खात्री केल्याबद्दल धन्यवाद.',
+  'Thank you. An administrator will look into it; nothing has been changed yet.':
+    'धन्यवाद. प्रशासक याची तपासणी करेल; अजून काहीही बदललेले नाही.',
+  'The driver marked this trip completed. Did it happen?':
+    'चालकाने हा प्रवास पूर्ण झाल्याचे नोंदवले आहे. तो झाला का?',
+  'Yes, I travelled':
+    'होय, मी प्रवास केला',
+  'No, it did not happen':
+    'नाही, तो झाला नाही',
+  '{n} completed trips are disputed by their passenger.':
+    '{n} पूर्ण प्रवासांवर त्यांच्या प्रवाशाने आक्षेप घेतला आहे.',
+  'See them':
+    'पहा',
+  'Disputed trips':
+    'विवादित प्रवास',
+  'Trips a driver marked completed and the passenger says did not happen. Nothing has been reversed: payments are simulated, and each case is for a person to judge.':
+    'चालकाने पूर्ण झाल्याचे नोंदवलेले आणि प्रवासी म्हणतो की झाले नाहीत असे प्रवास. काहीही उलटवलेले नाही: देयके सिम्युलेटेड आहेत, आणि प्रत्येक प्रकरणाचा निर्णय एखाद्या व्यक्तीने घ्यायचा आहे.',
+  'No trip is disputed.':
+    'कोणताही प्रवास विवादित नाही.',
+  'driver':
+    'चालक',
+  'disputed {time}':
+    '{time} रोजी आक्षेप',
 };

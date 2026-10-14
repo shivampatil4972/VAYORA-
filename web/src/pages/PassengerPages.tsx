@@ -8,6 +8,7 @@ import { RefundTerms, SimulatedPaymentNotice } from '../components/payment';
 import { RateForm, RatingSummary } from '../components/rating';
 import { RideChat } from '../components/RideChat';
 import { BoardingPassView } from '../components/boarding';
+import { TripConfirmation } from '../components/tripConfirmation';
 import { RouteMap, type MapPoint } from '../components/RouteMap';
 import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, StatusBadge, TextField } from '../components/ui';
 import { api } from '../lib/api';
@@ -585,6 +586,7 @@ export function BookingsPage() {
           </div>
           {meetingShown === booking.id && <RideRoute rideId={booking.rideId} fromSeq={booking.fromSeq} toSeq={booking.toSeq} />}
           {chatShown === booking.id && cancellable(booking) && <RideChat rideId={booking.rideId} />}
+          {booking.status === 'COMPLETED' && booking.passengerConfirmed == null && <TripConfirmation bookingId={booking.id} />}
           {booking.status === 'COMPLETED' && !booking.passengerRated && <RateForm bookingId={booking.id} legend={t('Rate your driver')} />}
         </Card>
       ))}

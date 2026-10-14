@@ -7,7 +7,7 @@ import { Button, Card, ConfirmButton, Notice, Page, QueryState, TextField } from
 import { api } from '../lib/api';
 import { formatDateTime } from '../lib/format';
 import { msg, useT } from '../lib/i18n';
-import type { AdminOverview, AuditEntry, Member, MemberReport, ReportOutcome, Role } from '../lib/types';
+import type { AdminOverview, AuditEntry, DisputedTrip, Member, MemberReport, ReportOutcome, Role } from '../lib/types';
 
 // The server's own codes, in words. A code with no entry here is shown as it is.
 const codeLabels: Record<string, string> = {
@@ -67,6 +67,14 @@ export function OverviewPage() {
                 : t('{n} reports are waiting.', { n: overview.data.openReports })}{' '}
               <Link to="/admin/reports" className="font-medium underline">
                 {t('Open the queue')}
+              </Link>
+            </Notice>
+          )}
+          {overview.data.disputedTrips > 0 && (
+            <Notice tone="info">
+              {t('{n} completed trips are disputed by their passenger.', { n: overview.data.disputedTrips })}{' '}
+              <Link to="/admin/disputes" className="font-medium underline">
+                {t('See them')}
               </Link>
             </Notice>
           )}
@@ -269,6 +277,42 @@ export function AuditPage() {
           </div>
         </Card>
       )}
+    </Page>
+  );
+}
+
+export function DisputesPage() {
+  const t = useT();
+  const disputes = useQuery({ queryKey: ['admin', 'disputes'], queryFn: () => api<DisputedTrip[]>('/admin/disputed-trips') });
+  return (
+    <Page title={t('Disputed trips')}>
+      <p className="text-sm text-slate-600">
+        {t('Trips a driver marked completed and the passenger says did not happen. Nothing has been reversed: payments are simulated, and each case is for a person to judge.')}
+      </p>
+      <QueryState
+        isPending={disputes.isPending}
+        error={disputes.error}
+        isEmpty={disputes.data?.length === 0}
+        empty={t('No trip is disputed.')}
+        onRetry={() => void disputes.refetch()}
+      />
+      {disputes.data?.map((dispute) => (
+        <Card key={dispute.bookingId}>
+          <p className="font-medium">
+            {t(dispute.fromStop)} → {t(dispute.toStop)} · {formatDateTime(dispute.boardingTime)}
+          </p>
+          <p className="mt-1 text-sm text-slate-600">
+            <Link to={`/users/${dispute.passengerId}`} className="text-teal-800 underline">
+              {dispute.passengerName}
+            </Link>{' '}
+            · {t('driver')}{' '}
+            <Link to={`/users/${dispute.driverId}`} className="text-teal-800 underline">
+              {dispute.driverName}
+            </Link>{' '}
+            · {t('disputed {time}', { time: formatDateTime(dispute.disputedAt) })}
+          </p>
+        </Card>
+      ))}
     </Page>
   );
 }

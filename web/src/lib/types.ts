@@ -184,6 +184,7 @@ export interface AdminOverview {
   bookings: Record<string, number>;
   suspendedMembers: number;
   openReports: number;
+  disputedTrips: number;
 }
 
 export interface Member {
@@ -410,4 +411,19 @@ export interface Booking {
   /** Whether each side has rated the other for this trip. */
   passengerRated: boolean;
   driverRated: boolean;
+  /** The passenger's answer to whether a completed trip happened; null until given. */
+  passengerConfirmed?: boolean | null;
+}
+
+/** A completed trip its passenger says did not happen. */
+export interface DisputedTrip {
+  bookingId: number;
+  passengerId: number;
+  passengerName: string;
+  driverId: number;
+  driverName: string;
+  fromStop: string;
+  toStop: string;
+  boardingTime: string;
+  disputedAt: string;
 }
