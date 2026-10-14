@@ -67,6 +67,13 @@ journex:
   trip:
     # How long before the scheduled departure a driver may start the ride.
     early-start: PT1H
+  booking:
+    # A request the driver has not answered is closed, and everything returned, once it
+    # is this old, or once boarding is this near, whichever comes first.
+    answer-within: PT12H
+    close-before-boarding: PT2H
+    # How often unanswered requests are looked for. "-" turns it off.
+    expiry-cron: ${BOOKING_EXPIRY_CRON:0 */5 * * * *}
   hold:
     # How long seats a passenger asked to hold are kept from other passengers.
     ttl: PT5M

@@ -14,12 +14,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -51,6 +53,28 @@ public class BookingService {
             BigDecimal serviceFee, BigDecimal total, BigDecimal refunded,
             BookingStatus status, Instant boardingTime, Instant createdAt,
             boolean passengerRated, boolean driverRated) {
+    }
+
+    /**
+     * How long a driver has to answer a request, for telling passengers.
+     *
+     * @param closesMinutesBeforeBoarding an unanswered request is closed this long before
+     *                                    the passenger would board, however recent it is
+     */
+    public record RequestTerms(long answerWithinMinutes, long closesMinutesBeforeBoarding) {
+    }
+
+    /** A request closed by the platform because the driver did not answer in time. */
+    record Expired(long bookingId, long rideId, long driverId, String reason) implements HasActor {
+        @Override
+        public String actorType() {
+            return "platform";
+        }
+
+        @Override
+        public Long actorId() {
+            return null;
+        }
     }
 
     record Requested(long bookingId, long rideId, long passengerId, int fromSeq, int toSeq,
@@ -137,11 +161,17 @@ public class BookingService {
     private final ObjectMapper mapper;
     private final Clock clock;
     private final SeatHolds holds;
+    private final Duration answerWithin;
+    private final Duration closeBeforeBoarding;
 
     public BookingService(JdbcTemplate jdbc, EventLogService events,
             HazardFeatures hazardFeatures, PaymentService payments,
             NotificationService notifications, ObjectMapper mapper, Clock clock,
-            SeatHolds holds) {
+            SeatHolds holds,
+            @Value("${journex.booking.answer-within}") Duration answerWithin,
+            @Value("${journex.booking.close-before-boarding}") Duration closeBeforeBoarding) {
+        this.answerWithin = answerWithin;
+        this.closeBeforeBoarding = closeBeforeBoarding;
         this.holds = holds;
         this.jdbc = jdbc;
         this.events = events;
@@ -198,6 +228,12 @@ public class BookingService {
         Instant now = clock.instant();
         if (!boarding.isAfter(now)) {
             throw conflict("This ride has already left that stop");
+        }
+
+        // A request that would be closed unanswered at the next check is not taken at all.
+        if (!ride.instantBooking() && !boarding.minus(closeBeforeBoarding).isAfter(now)) {
+            throw conflict("This driver approves each request, and it is too close to "
+                    + "departure for an answer. Choose a ride that confirms instantly.");
         }
 
         // Seats another passenger is holding for a few minutes are left alone. The
@@ -286,6 +322,60 @@ public class BookingService {
                 new Decided(bookingId, booking.rideId(), driverId, false));
         notifyDeclined(booking);
         return load(bookingId);
+    }
+
+    public RequestTerms requestTerms() {
+        return new RequestTerms(answerWithin.toMinutes(), closeBeforeBoarding.toMinutes());
+    }
+
+    /** Pending requests whose time for an answer has run out, oldest first. */
+    public List<Long> unanswered() {
+        Instant now = clock.instant();
+        return jdbc.queryForList("""
+                SELECT b.id
+                FROM bookings b
+                JOIN rides r ON r.id = b.ride_id
+                JOIN ride_stops s ON s.ride_id = b.ride_id AND s.seq = b.from_seq
+                WHERE b.status = 'PENDING'
+                  AND (b.created_at <= ?
+                       OR r.departure_time + make_interval(mins => s.offset_minutes) <= ?)
+                ORDER BY b.id""",
+                Long.class, utc(now.minus(answerWithin)), utc(now.plus(closeBeforeBoarding)));
+    }
+
+    /**
+     * Closes a request the driver has not answered in time: the seats go back and
+     * everything the passenger paid is returned. Checked again under the lock, so a
+     * request the driver answered a moment ago is left alone.
+     *
+     * @return whether the request was closed
+     */
+    @Transactional
+    public boolean expire(long bookingId) {
+        Long rideId = rideOf(bookingId);
+        if (rideId == null) {
+            return false;
+        }
+        LockedRide ride = lockRide(rideId);
+        Booking booking = lockBooking(bookingId);
+        Instant now = clock.instant();
+        boolean due = !booking.createdAt().plus(answerWithin).isAfter(now)
+                || !booking.boardingTime().minus(closeBeforeBoarding).isAfter(now);
+        if (booking.status() != BookingStatus.PENDING || !due) {
+            return false;
+        }
+        move(booking, BookingStatus.REJECTED);
+        payments.releaseInFull(bookingId, RefundReason.NOT_ACCEPTED);
+        events.write(EventType.BOOKING_REJECTED,
+                new Expired(bookingId, rideId, ride.driverId(), "not_answered_in_time"));
+        notifications.send(booking.passengerId(), Type.REQUEST_EXPIRED,
+                "The driver did not answer your request for " + seatsOn(booking)
+                        + " in time, so it has been closed. Everything you paid has been returned.",
+                bookingId);
+        notifications.send(ride.driverId(), Type.REQUEST_EXPIRED,
+                booking.passengerName() + "'s request for " + seatsOn(booking)
+                        + " was closed because it was not answered in time.", bookingId);
+        return true;
     }
 
     @Transactional

@@ -1,6 +1,7 @@
 package com.dypcet.journex.booking;
 
 import com.dypcet.journex.booking.BookingService.Booking;
+import com.dypcet.journex.booking.BookingService.RequestTerms;
 import com.dypcet.journex.identity.CurrentUser;
 import com.dypcet.journex.payment.PaymentChoice;
 import jakarta.validation.Valid;
@@ -59,6 +60,12 @@ public class BookingController {
         return bookings.request(CurrentUser.id(jwt), request.rideId(), request.fromSeq(),
                 request.toSeq(), request.seats(),
                 new PaymentChoice(request.paymentMethod(), request.mockOutcome()), idempotencyKey);
+    }
+
+    /** How long a driver has to answer a request. The same for everyone, so open to all. */
+    @GetMapping("/booking-terms")
+    public RequestTerms terms() {
+        return bookings.requestTerms();
     }
 
     @GetMapping("/bookings")
