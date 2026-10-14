@@ -1,0 +1,15 @@
+# Do early releases add completed rides when passengers accept a wider window?
+#
+# Section 8 of EXPERIMENT_PROTOCOL.md found that the extra seats B4 frees go to passengers
+# who had another ride on offer, and that over half of all searches are offered nothing.
+# If that is because a freed seat is usually on the wrong departure for whoever is still
+# looking, a wider window should let more of them take it.
+#
+# Tolerance changes who matches what, for the baseline as much as the variant, so each
+# cell has its own baseline. 2 hours is the world's own value.
+name: departure-tolerance
+baseline: variants/B3.yaml
+variant: variants/B4.yaml
+baseline_per_cell: true
+parameters:
+  demand.departure_tolerance_hours: [1.0, 2.0, 4.0, 8.0]

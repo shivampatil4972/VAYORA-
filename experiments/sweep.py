@@ -41,7 +41,10 @@ REPORTS = ROOT / "experiments" / "reports"
 
 MEASURES = [("per_100", "Completed rides per 100 searches", 2),
             ("late_share", "Late share of cancellations", 3),
-            ("contact_rate", "Reconfirmation requests per accepted booking", 3)]
+            ("contact_rate", "Reconfirmation requests per accepted booking", 3),
+            ("refilled", "Released seats refilled", 1),
+            ("refills_only_option", "Refills by a passenger offered no other ride", 1),
+            ("empty_share", "Searches offered no ride", 3)]
 
 
 VARIANT_PREFIX = "variant."
