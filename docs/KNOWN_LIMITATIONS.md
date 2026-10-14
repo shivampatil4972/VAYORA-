@@ -90,6 +90,9 @@ mistake for more. Updated 2026-10-13.
 - Trip state is not pushed. A passenger's screen does not change when the driver starts
   the ride until they reload or reopen the chat.
 - No travel passes or referral.
+- **Everything about a vehicle is the driver's word**: comfort, luggage, battery and
+  consumption. The range shown is those two figures divided, not a measurement, and
+  no ride is checked against it. A vehicle cannot be edited or removed, and has no photo.
 - **A repeated ride is a batch, not a schedule.** Up to 8 further weeks are published at
   once as separate rides. There is no open-ended repeat, a series cannot be edited or
   withdrawn as a whole, and nothing checks that a vehicle is not on two rides at once.

@@ -1,5 +1,20 @@
 # Progress
 
+## 2026-10-14 — vehicle details
+
+Committed on `stage-2-3-booking-core-and-simulator`.
+
+A driver can say a vehicle's comfort class, the luggage each passenger may bring, and,
+for an electric vehicle, its battery and consumption. Search results name the car and
+show what was said. Verified by `VehicleIntegrationTest`, `App.test.tsx` and
+`schemas.test.ts`; the vehicles page now has a page-level test.
+
+- All of it is self-described and labelled so on the form.
+- The range is battery divided by consumption, rounded down, and is shown to the driver
+  only, with the words "not a measured range". Nothing acts on it.
+- Battery figures are refused on a vehicle not marked electric, by the form, the service
+  and a database constraint.
+
 ## 2026-10-13 (after midnight) — notes, the back-seat promise, return and weekly rides
 
 Committed on `stage-2-3-booking-core-and-simulator`.

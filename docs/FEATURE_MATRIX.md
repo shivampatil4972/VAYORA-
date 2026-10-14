@@ -37,10 +37,10 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
-| 12 | Make, model, year, and colour | TBD | TBD | Partial: API verified; vehicle form built, validation tested, page itself untested |
-| 13 | Seat count and comfort class | TBD | TBD | Partial: seat count as 12; no comfort class |
-| 14 | Luggage allowance | TBD | TBD | Not started |
-| 15 | EV status, battery capacity, and consumption rate | TBD | TBD | Not started |
+| 12 | Make, model, year, and colour | TBD | TBD | Verified (API and UI tests) |
+| 13 | Seat count and comfort class | TBD | TBD | Verified (API and UI tests): comfort is the driver's own description, shown on search results; nothing inspects the car |
+| 14 | Luggage allowance | TBD | TBD | Verified (API and UI tests): the largest bag each passenger may bring, shown on search results; not a search filter |
+| 15 | EV status, battery capacity, and consumption rate | TBD | TBD | Verified (API and UI tests): stored and shown, with the range the two figures imply. Nothing uses them yet: no check of a ride against the range |
 | 16 | Vehicle photo | TBD | TBD | Not started |
 
 ## Driver ride publishing
