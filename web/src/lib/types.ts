@@ -297,6 +297,15 @@ export interface MockMessage {
   at: string;
 }
 
+/** Seats kept from other passengers for a few minutes. Not a booking. */
+export interface SeatHold {
+  rideId: number;
+  fromSeq: number;
+  toSeq: number;
+  seats: number;
+  expiresAt: string;
+}
+
 export type PaymentMethod = 'CARD' | 'UPI' | 'WALLET';
 
 export interface PaymentTerms {

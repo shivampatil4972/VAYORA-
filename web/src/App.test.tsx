@@ -1310,3 +1310,46 @@ describe('my vehicles', () => {
     expect(await screen.findByText('Tata Nexon EV · Comfortable · A small bag each · Electric')).toBeInTheDocument();
   });
 });
+
+describe('holding seats', () => {
+  const placed = { rideId: 12, fromSeq: 0, toSeq: 2, seats: 2, expiresAt: '2026-11-01T10:05:00Z' };
+
+  it('holds the seats searched for, says it is not a booking, and forgets the hold once booked', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({
+      'GET /rides/search': () => json([candidate]),
+      'POST /holds': () => json(placed, 201),
+      'POST /bookings': () => json(booking, 201),
+    });
+    open('/search');
+
+    await userEvent.clear(await screen.findByLabelText('Seats'));
+    await userEvent.type(screen.getByLabelText('Seats'), '2');
+    await userEvent.click(screen.getByRole('button', { name: 'Search' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Hold while I decide' }));
+
+    expect(await screen.findByText(/Held for you until .*This is not a booking/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Hold while I decide' })).not.toBeInTheDocument();
+    const sent = fetchMock.mock.calls.find(([url, init]) => init?.method === 'POST' && String(url).endsWith('/holds'));
+    expect(JSON.parse(String(sent?.[1]?.body))).toEqual({ rideId: 12, fromSeq: 0, toSeq: 2, seats: 2 });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Request' }));
+    await waitFor(() => expect(screen.queryByText(/Held for you until/)).not.toBeInTheDocument());
+  });
+
+  it("shows the server's reason on the result when the seats cannot be held, and can still book", async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /rides/search': () => json([candidate]),
+      'POST /holds': () => json({ detail: 'Seats cannot be held right now. You can still book.' }, 503),
+    });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Hold while I decide' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Seats cannot be held right now. You can still book.');
+    expect(screen.getByRole('button', { name: 'Request' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Hold while I decide' })).toBeEnabled();
+  });
+});

@@ -681,4 +681,9 @@ export const mr: Record<string, string> = {
     'बॅटरी (kWh, ऐच्छिक)',
   'Consumption (kWh per 100 km, optional)':
     'वापर (kWh दर 100 किमी, ऐच्छिक)',
+  // Seat holds
+  'Hold while I decide':
+    'ठरवेपर्यंत राखून ठेवा',
+  'Held for you until {time}. This is not a booking: book before then or the seats go back.':
+    '{time} पर्यंत तुमच्यासाठी राखून ठेवल्या आहेत. हे बुकिंग नाही: त्याआधी बुक करा, नाहीतर जागा परत जातील.',
 };

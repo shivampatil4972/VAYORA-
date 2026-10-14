@@ -15,7 +15,7 @@ import { formatDateTime, formatRupees, formatTime, todayInCorridor } from '../li
 import { msg, useT, useUnits } from '../lib/i18n';
 import { vehiclePhrases } from '../lib/vehicle';
 import { searchSchema, type SearchForm } from '../lib/schemas';
-import type { Booking, Candidate, PaymentMethod, Ride, SearchSort } from '../lib/types';
+import type { Booking, Candidate, PaymentMethod, Ride, SearchSort, SeatHold } from '../lib/types';
 
 interface LatLon {
   lat: number;
@@ -186,10 +186,22 @@ export function SearchPage() {
     onSuccess: (booking, candidate) => {
       idempotencyKeys.current.delete(candidateKey(candidate, criteria!.form.seats));
       setBooked(booking);
+      setHeld(null);
       // Seat counts in the results and the bookings list are both stale now.
       void queryClient.invalidateQueries({ queryKey: ['search'] });
       void queryClient.invalidateQueries({ queryKey: ['bookings'] });
     },
+  });
+
+  // The seats held, and which result they are on. One hold at a time: a new one replaces it.
+  const [held, setHeld] = useState<{ key: string; until: string } | null>(null);
+  const hold = useMutation({
+    mutationFn: (candidate: Candidate) =>
+      api<SeatHold>('/holds', {
+        method: 'POST',
+        body: { rideId: candidate.rideId, fromSeq: candidate.fromSeq, toSeq: candidate.toSeq, seats: criteria!.form.seats },
+      }),
+    onSuccess: (placed, candidate) => setHeld({ key: candidateKey(candidate, criteria!.form.seats), until: placed.expiresAt }),
   });
 
   const mapPoints: MapPoint[] = [
@@ -444,6 +456,23 @@ export function SearchPage() {
                   <Button tone="secondary" aria-expanded={routeShown === key} onClick={() => setRouteShown(routeShown === key ? null : key)}>
                     {routeShown === key ? t('Hide route') : t('Show route')}
                   </Button>
+                  {held?.key !== key && (
+                    <Button tone="secondary" className="ml-2" disabled={hold.isPending} onClick={() => hold.mutate(candidate)}>
+                      {t('Hold while I decide')}
+                    </Button>
+                  )}
+                  {held?.key === key && (
+                    <p role="status" className="mt-2 text-sm font-medium text-emerald-800">
+                      {t('Held for you until {time}. This is not a booking: book before then or the seats go back.', {
+                        time: formatTime(held.until),
+                      })}
+                    </p>
+                  )}
+                  {hold.error && hold.variables && candidateKey(hold.variables, criteria.form.seats) === key && (
+                    <p role="alert" className="mt-2 text-sm text-red-700">
+                      {hold.error.message}
+                    </p>
+                  )}
                   {routeShown === key && <RideRoute rideId={candidate.rideId} fromSeq={candidate.fromSeq} toSeq={candidate.toSeq} />}
                 </div>
               </Card>

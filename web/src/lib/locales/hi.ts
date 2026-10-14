@@ -681,4 +681,9 @@ export const hi: Record<string, string> = {
     'बैटरी (kWh, वैकल्पिक)',
   'Consumption (kWh per 100 km, optional)':
     'खपत (kWh प्रति 100 किमी, वैकल्पिक)',
+  // Seat holds
+  'Hold while I decide':
+    'सोचने तक रोककर रखें',
+  'Held for you until {time}. This is not a booking: book before then or the seats go back.':
+    '{time} तक आपके लिए रोकी गई हैं। यह बुकिंग नहीं है: उससे पहले बुक करें, नहीं तो सीटें वापस चली जाएँगी।',
 };
