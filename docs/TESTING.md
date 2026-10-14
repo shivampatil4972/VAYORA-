@@ -5,7 +5,7 @@ Counts are from the runs on 2026-10-13. Every suite passed with no failures.
 | Suite | Command, from the repository root | Tests |
 |---|---|---|
 | core-api | `docker compose --profile test run --rm core-api-tests` | 158 |
-| Python (events, simulator, model, scheduler, experiments, intel API) | `docker compose --profile research run --rm research` | 162 |
+| Python (events, simulator, model, scheduler, experiments, intel API) | `docker compose --profile research run --rm research` | 165 |
 | web | `cd web && npm ci && npm test` | 146 |
 | gateway | `cd gateway && npm ci && npm test` | 25 |
 
@@ -45,7 +45,7 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 | Path | Tests | Covers |
 |---|---|---|
 | `sim/tests` | 59 | **A contact budget is never exceeded and, when too large to bind, reproduces the threshold policy exactly**, **the scheduler is given no ground truth**, reproducibility by seed, frozen vocabulary, **no latent type in any payload**, legal booking paths, no overselling, paired environments, each variant's rules, repeat search, strict config, the hazard sampler |
-| `intel/tests` | 65 | Feature tracker, model maths, shipped models, scoring API and its validation; the contact scheduler: each limit, **the plan equals the best of every subset on 25 random instances**, ties, order-independence, a 400-booking round, its API |
+| `intel/tests` | 68 | Exact per-feature explanations that reproduce the score, Feature tracker, model maths, shipped models, scoring API and its validation; the contact scheduler: each limit, **the plan equals the best of every subset on 25 random instances**, ties, order-independence, a 400-booking round, its API |
 | `experiments/tests` | 27 | The refill-additionality metric against hand-computed values, sweeps over a variant's parameters, metric queries against hand-computed values, the training set, **disjoint seeds**, exported Cox model against lifelines, paired comparison statistics, parameter sweeps |
 | `journex_events/tests` | 11 | Event writer and vocabulary |
 
