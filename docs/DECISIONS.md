@@ -59,6 +59,7 @@ was decided while building within them.
 | "Confirmed", never "verified", for an email or phone proved by code | A code proves an address, not a person | |
 | Confirmation codes are stored as hashes, expire in 10 minutes, work once, die after 5 wrong guesses | Codes are credentials | |
 | Women-only rides rest on the gender a member declares, which nobody checks | It is the only information the platform has | The rule can be got round by anyone willing to lie |
+| Experience levels need a confirmed email from the second level and a confirmed phone from the fourth | Levels should reward what can be checked, however weakly | The thresholds are assumptions |
 | Gender is used but never shown | It decides women-only access; it is not other members' business | |
 | The emergency panel puts calling 112 before alerting JOURNEX | JOURNEX is not an emergency service, and its messages are simulated | |
 | Durability scores are shown to administrators only | A prediction about a person must not change how they are treated by other members | |

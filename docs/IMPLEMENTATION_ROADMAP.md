@@ -35,8 +35,6 @@ Ordered by value to the research question first, then by size.
 | 93 | Supply-gap detection and nudging | Three event types already reserved (`nudge_*`, `supply_gap_detected`); nudge conversion must stay a swept parameter, never a result | Medium |
 | 88 | Cascade-aware recovery | Re-offer a cancelled ride's passengers another ride | Medium |
 | 89 | Corridor demand calibration | Needs real demand figures to calibrate against, which do not exist | Blocked on data |
-| 95 | Driver reliability self-view | Computed from data already kept | Small |
-| 9 | Experience levels | Needs the levels defined | Small |
 | 26 | Recurring rides as a schedule | Edit or withdraw a whole series | Medium |
 | 74 | Admin ride and booking browser | Screens over data that exists | Medium |
 | 84, 76 | Mid-route seat allocation; two-sided match scoring | Need geography the simulator does not have (see B1, B2 below) | Large |

@@ -38,7 +38,8 @@ territory.
 | `PUT /api/v1/me/profile` | any | Replace own profile. A changed phone must be confirmed again |
 | `POST /api/v1/me/verification/{email\|phone}/request` | any | Send a 6-digit code (simulated sender) |
 | `POST /api/v1/me/verification/{email\|phone}/confirm` | any | Confirm with the code |
-| `GET /api/v1/users/{id}/profile` | any | What anyone may know about a member: no contact details |
+| `GET /api/v1/users/{id}/profile` | any | What anyone may know about a member: no contact details. Includes the experience level |
+| `GET /api/v1/me/reliability` | D | The driver's own record |
 
 ### Vehicles and rides
 
