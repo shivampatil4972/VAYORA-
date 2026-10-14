@@ -4,9 +4,9 @@ Counts are from the runs on 2026-10-13. Every suite passed with no failures.
 
 | Suite | Command, from the repository root | Tests |
 |---|---|---|
-| core-api | `docker compose --profile test run --rm core-api-tests` | 137 |
+| core-api | `docker compose --profile test run --rm core-api-tests` | 142 |
 | Python (events, simulator, model, scheduler, experiments, intel API) | `docker compose --profile research run --rm research` | 162 |
-| web | `cd web && npm ci && npm test` | 127 |
+| web | `cd web && npm ci && npm test` | 130 |
 | gateway | `cd gateway && npm ci && npm test` | 25 |
 
 The first two need only Docker. The Python suite also needs PostgreSQL running:
@@ -29,6 +29,7 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 | `AccountIntegrationTest` | 11 | Profile replace and clear, **the public profile never shows phone, birth year or gender**, **a code is stored only as a hash, works once, expires, and is spent by wrong guesses**, a changed number undoes its proof, three contacts at most, **an SOS answer says nobody was really messaged**, repeat presses, acknowledgement audited, administrators only |
 | `VehicleIntegrationTest` | 6 | Comfort, luggage and EV figures kept, **the range is the driver's two figures divided and rounded down**, battery figures refused on a non-electric vehicle, a search result names its car, validation, a driver sees only their own |
 | `SeatHoldIntegrationTest` | 8 | Held seats are left alone on the legs held and nowhere else, a hold takes nothing from PostgreSQL, **8 simultaneous holds on the last seat: exactly one is placed**, replacing and releasing, one ride at a time, **a hold lapses on its own**, search shows others only what is not held, **with Redis unreachable nothing is held and nothing is blocked** |
+| `BookingExpiryIntegrationTest` | 5 | An unanswered request closes after 12 hours or 2 hours before boarding, **refunded in full with the fee, logged as the platform's action**, closed once, an answered or instant booking is never closed, a request too late to be answered is refused, the terms endpoint |
 | `RouteServiceTest` | 7 | OSRM request and response, caching, **an outage gives straight lines labelled as such**, great-circle distance |
 | `RoutingIntegrationTest` | 12 | **A ride, its return and their weekly repeats are published together or not at all**, the return reverses stops, intervals and prices, the back-seat promise and its filter, **Each search filter narrows and none widens; a driver who has not said is not assumed smoke-free**, impossible filters are a 400, route stored on a ride, **the access distance is a hard limit**, direction, the four sort orders, coarse positions in the event log, route preview and price suggestion, the Redis cache |
 | `HazardScoringIntegrationTest` | 5 | Feature snapshot and history, one score per booking per day, which bookings are scored, **model outage changes nothing**, administrators only |
@@ -49,7 +50,7 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 
 | File | Tests | Covers |
 |---|---|---|
-| `App.test.tsx` | 60 | Holding seats and being told it is not a booking, Adding a vehicle through the page, the car named on a search result, How many rides a form will publish, driver notes shown as text, Search filters sent only when set and only on Search, the account page, confirmation by code, emergency contacts, **the emergency panel puts 112 first and says the contacts were not messaged**, the administrator emergency queue and simulated outbox, route protection by role, sign-in, search and booking with fee and payment method, idempotency key reuse, refund terms, earnings, ratings and profiles, notifications, reporting and moderation, the back office, maps and location search, the route planner, failure and retry states |
+| `App.test.tsx` | 61 | The deadline shown on a pending request, Holding seats and being told it is not a booking, Adding a vehicle through the page, the car named on a search result, How many rides a form will publish, driver notes shown as text, Search filters sent only when set and only on Search, the account page, confirmation by code, emergency contacts, **the emergency panel puts 112 first and says the contacts were not messaged**, the administrator emergency queue and simulated outbox, route protection by role, sign-in, search and booking with fee and payment method, idempotency key reuse, refund terms, earnings, ratings and profiles, notifications, reporting and moderation, the back office, maps and location search, the route planner, failure and retry states |
 | `lib/schemas.test.ts` | 24 | Vehicle details and their request mapping, A return that leaves before arrival is refused, repeat and notes limits, Form validation and the publish request mapping |
 | `components/RideChat.test.tsx` | 15 | Joining with the session token, history, sending, **a message shown once and only when relayed**, text rendered as text, refusal and outage states, rejoining after a dropped connection, position shown to passengers, sharing offered to the driver only while under way |
 | `lib/i18n.test.tsx` | 21 | **Every marked string has a Hindi and a Marathi entry with the same placeholders**, no unused entries, **no screen has text that bypasses translation**, fallback to English, switching and remembering the language, the same digits for money in every language |
@@ -69,6 +70,9 @@ because Leaflet needs a real browser to draw.
 ## Checked by hand against the running stack
 
 - Flyway migrations V1 to V12 applied to an existing database.
+- **An unanswered request**: aged by 13 hours in the database, it was closed by the
+  scheduled job within five minutes, refunded ₹495 (fare and fee) and logged as the
+  platform's action. A request 90 minutes before an approval ride left was refused.
 - **A seat hold**: one passenger held both seats of a ride; a second was refused a hold
   and refused a booking, each with a reason; the first then booked and the hold was gone.
 - **A vehicle**: an electric vehicle added over HTTP came back with a 270 km range from

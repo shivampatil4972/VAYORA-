@@ -50,8 +50,10 @@ mistake for more. Updated 2026-10-13.
   another passenger's booking arriving in the same instant are not ordered against each
   other: the booking can win. One passenger holds seats on one ride at a time, and
   nothing limits how often a passenger renews a hold.
-- **A pending request still has no expiry.** It holds its seats
-  until the driver answers or the ride starts.
+- **An unanswered request holds its seats for up to 12 hours**, closed by a job that runs
+  every five minutes, so a request can outlive its deadline by up to five minutes. Most
+  tests turn the 2-hour rule off so that rides leaving within the hour can be booked and
+  started; one test class runs with it on.
 - **Search measures access in a straight line**, not by road or on foot, and uses one
   fixed limit of 5 km for everyone.
 - **Passengers board only at a ride's stops.** There is no door pickup, so no detour is

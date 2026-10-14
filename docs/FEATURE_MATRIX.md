@@ -75,7 +75,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 37 | Amenity filters | TBD | TBD | Partial: no-smoking and pets-welcome, from what the driver said about themselves, API and UI tested. Nothing about the vehicle |
 | 38 | Sorting by price, time, rating, and pickup proximity | TBD | TBD | Verified (API and UI tests): by time, price, driver rating or pickup distance |
 | 39 | Pickup-point map | TBD | TBD | Verified: a result's route with the boarding stop marked. UI tested with a stand-in map; the real map has not been seen in a browser |
-| 40 | Booking request and driver approval | TBD | TBD | Partial: request and cancel verified in API and UI tests; driver accept and decline verified in API, screen untested |
+| 40 | Booking request and driver approval | TBD | TBD | Partial: request and cancel verified in API and UI tests; driver accept and decline verified in API, screen untested. An unanswered request closes after 12 hours or 2 hours before boarding, refunded in full (API, UI and live) |
 | 41 | Redis temporary seat holds with TTL | TBD | TBD | Verified (API and UI tests, live run): a passenger holds seats for 5 minutes; other passengers' bookings, holds and searches leave them alone. A pending request still holds its seats in PostgreSQL with no time limit |
 
 ## Payments and pricing

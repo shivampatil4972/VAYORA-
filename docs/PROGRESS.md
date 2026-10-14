@@ -1,5 +1,22 @@
 # Progress
 
+## 2026-10-14 (night) — a time limit on unanswered requests
+
+Committed on `stage-2-3-booking-core-and-simulator`.
+
+A request a driver does not answer is closed after 12 hours, or once boarding is 2 hours
+away, whichever comes first. Its seats go back and the passenger gets everything back,
+fee included. Both sides are told. A request for an approval ride that could not be
+answered in time is refused when it is made. The passenger's bookings page says when a
+pending request will close. Verified by `BookingExpiryIntegrationTest`, `App.test.tsx`
+and a live run in which the scheduled job closed a request by itself.
+
+- The closing is logged as `booking_rejected` with the platform as actor and
+  `reason: not_answered_in_time`, so a driver's refusal and a lapse can be told apart.
+  The vocabulary is unchanged; the payload gains a key.
+- Each request is closed in its own transaction and re-checked under the ride lock, so a
+  driver accepting at the same moment wins.
+
 ## 2026-10-14 (evening) — reference documents, and a bug found writing them
 
 Committed on `stage-2-3-booking-core-and-simulator`.
