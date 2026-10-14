@@ -909,4 +909,15 @@ export const mr: Record<string, string> = {
     '{n} जागा उपलब्ध, {b} बुकिंग',
   'with {driver}, {n} seats':
     '{driver} सोबत, {n} जागा',
+  // Referral
+  'Invitation code (optional)':
+    'आमंत्रण कोड (ऐच्छिक)',
+  'Invite friends':
+    'मित्रांना आमंत्रित करा',
+  'Your invitation code':
+    'तुमचा आमंत्रण कोड',
+  '{n} signed up with it; {q} of them have completed a trip.':
+    'याने {n} जणांनी नोंदणी केली; त्यांपैकी {q} जणांनी प्रवास पूर्ण केला आहे.',
+  'Inviting earns nothing yet: no reward has been decided.':
+    'आमंत्रित केल्याने अजून काही मिळत नाही: कोणतेही बक्षीस ठरलेले नाही.',
 };

@@ -17,6 +17,8 @@ export const registerSchema = z.object({
   email: z.string().trim().min(1, msg('Enter your email')).email(msg('Enter a valid email')).max(254),
   password: z.string().min(8, msg('Use at least 8 characters')).max(72, msg('Use at most 72 characters')),
   role: z.enum(['PASSENGER', 'DRIVER'], { message: msg('Choose how you will use JOURNEX') }),
+  // The code of whoever invited them. Optional; an unknown code is refused by the server.
+  referralCode: z.string().trim().max(20).optional(),
 });
 export type RegisterForm = z.infer<typeof registerSchema>;
 

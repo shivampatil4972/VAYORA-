@@ -41,6 +41,7 @@ function serve(routes: Record<string, () => Response>) {
     // And the search and publish pages, for whether women-only rides apply.
     if (!match && key === 'GET /me/profile') return json({ gender: null });
     if (!match && key === 'GET /notifications/preferences') return json({ email: false, sms: false });
+    if (!match && key === 'GET /me/referral') return json({ code: 'K7QX2M', signedUp: 0, qualified: 0 });
     if (!match && key === 'GET /booking-terms') return json({ answerWithinMinutes: 720, closesMinutesBeforeBoarding: 120 });
     // The navigation asks for this on every signed-in page.
     if (!match && key === 'GET /notifications/unread-count') return json({ unread: 0 });
@@ -1938,5 +1939,23 @@ describe('series and the back-office browser', () => {
     expect(await screen.findByText('3 seats offered, 1 bookings', { exact: false })).toBeInTheDocument();
     await userEvent.selectOptions(screen.getByLabelText('Status'), 'Scheduled');
     await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith('/admin/rides?status=SCHEDULED'))).toBe(true));
+  });
+});
+
+describe('invitations', () => {
+  it('shows the code and who used it, and says no reward is attached', async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /me/profile': () => json({ email: 'user@example.test', emailVerified: false, phone: null, phoneVerified: false,
+        bio: null, birthYear: null, gender: null, smoking: null, pets: null, music: null, chattiness: null }),
+      'GET /me/emergency-contacts': () => json([]),
+      'GET /me/referral': () => json({ code: 'K7QX2M', signedUp: 3, qualified: 1 }),
+    });
+    open('/account');
+
+    const section = within(await screen.findByRole('region', { name: 'Invite friends' }));
+    expect(await section.findByText('K7QX2M')).toBeInTheDocument();
+    expect(section.getByText('3 signed up with it; 1 of them have completed a trip.')).toBeInTheDocument();
+    expect(section.getByText(/no reward has been decided/)).toBeInTheDocument();
   });
 });

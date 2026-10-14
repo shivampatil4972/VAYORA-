@@ -31,9 +31,10 @@ territory.
 
 | Method and path | Who | What |
 |---|---|---|
-| `POST /api/v1/auth/register` | public | Create a passenger or driver account; returns a token |
+| `POST /api/v1/auth/register` | public | Create a passenger or driver account, optionally with an invitation code; returns a token |
 | `POST /api/v1/auth/login` | public | Returns a token valid for 12 hours |
 | `GET /api/v1/me` | any | The signed-in account |
+| `GET /api/v1/me/referral` | any | Own invitation code and how many used it |
 | `GET /api/v1/me/profile` | any | Own profile, including phone and confirmation status |
 | `PUT /api/v1/me/profile` | any | Replace own profile. A changed phone must be confirmed again |
 | `POST /api/v1/me/verification/{email\|phone}/request` | any | Send a 6-digit code (simulated sender) |

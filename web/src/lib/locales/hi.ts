@@ -909,4 +909,15 @@ export const hi: Record<string, string> = {
     '{n} सीटें उपलब्ध, {b} बुकिंग',
   'with {driver}, {n} seats':
     '{driver} के साथ, {n} सीटें',
+  // Referral
+  'Invitation code (optional)':
+    'आमंत्रण कोड (वैकल्पिक)',
+  'Invite friends':
+    'दोस्तों को आमंत्रित करें',
+  'Your invitation code':
+    'आपका आमंत्रण कोड',
+  '{n} signed up with it; {q} of them have completed a trip.':
+    'इससे {n} ने साइन अप किया; उनमें से {q} ने यात्रा पूरी की है।',
+  'Inviting earns nothing yet: no reward has been decided.':
+    'आमंत्रित करने पर अभी कुछ नहीं मिलता: कोई इनाम तय नहीं हुआ है।',
 };

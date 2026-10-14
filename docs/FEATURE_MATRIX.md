@@ -132,7 +132,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
 | 71 | English, Hindi, and Marathi | TBD | TBD | Partial: every screen is in English, Hindi and Marathi and tests enforce completeness. The translations have had no native review, and text the server writes (error explanations, notification messages) stays in English |
-| 72 | Referral programme | TBD | TBD | Not started |
+| 72 | Referral programme | TBD | TBD | Partial: invitation codes, recorded at sign-up and counted once the invited member completes a trip (API and UI tested). **No reward**: none has been decided |
 | 73 | Static/configured MSRTC alternatives | TBD | TBD | Not started |
 | 74 | Admin back office | TBD | TBD | Verified (API and UI tests): overview, reports queue, members, rides and bookings by status, disputed trips, emergencies and simulated outbox, booking durability with reasons, audit log. No experiment screens |
 

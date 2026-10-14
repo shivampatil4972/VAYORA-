@@ -299,6 +299,30 @@ function Contacts() {
   );
 }
 
+/** The member's invitation code and who has used it. No reward is attached. */
+function Invitations() {
+  const t = useT();
+  const referral = useQuery({
+    queryKey: ['me', 'referral'],
+    queryFn: () => api<{ code: string; signedUp: number; qualified: number }>('/me/referral'),
+  });
+  if (!referral.data) {
+    return <QueryState isPending={referral.isPending} error={referral.error} isEmpty={false} empty="" onRetry={() => void referral.refetch()} />;
+  }
+  return (
+    <div className="space-y-2 text-sm">
+      <p>
+        {t('Your invitation code')}{' '}
+        <span className="font-mono text-lg font-semibold tracking-widest">{referral.data.code}</span>
+      </p>
+      <p className="text-slate-600">
+        {t('{n} signed up with it; {q} of them have completed a trip.', { n: referral.data.signedUp, q: referral.data.qualified })}
+      </p>
+      <p className="text-slate-500">{t('Inviting earns nothing yet: no reward has been decided.')}</p>
+    </div>
+  );
+}
+
 /** Whether copies of notifications go by email and SMS. In-app ones are always kept. */
 function NotificationChoices({ emailConfirmed, phoneConfirmed }: { emailConfirmed: boolean; phoneConfirmed: boolean }) {
   const t = useT();
@@ -359,6 +383,12 @@ export function AccountPage() {
                 <Confirm channel="email" label={t('Email')} address={mine.email} confirmed={mine.emailVerified} />
                 <Confirm channel="phone" label={t('Phone')} address={mine.phone} confirmed={mine.phoneVerified} />
               </div>
+            </Card>
+          </section>
+          <section aria-label={t('Invite friends')} className="space-y-3">
+            <h2 className="text-lg font-semibold">{t('Invite friends')}</h2>
+            <Card>
+              <Invitations />
             </Card>
           </section>
           <section aria-label={t('Notifications')} className="space-y-3">

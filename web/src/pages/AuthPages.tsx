@@ -105,6 +105,7 @@ export function RegisterPage() {
             <option value="PASSENGER">{t('Find rides as a passenger')}</option>
             <option value="DRIVER">{t('Offer rides as a driver')}</option>
           </SelectField>
+          <TextField label={t('Invitation code (optional)')} autoComplete="off" {...register('referralCode')} />
           <Button type="submit" disabled={formState.isSubmitting}>
             {formState.isSubmitting ? t('Creating…') : t('Create account')}
           </Button>
