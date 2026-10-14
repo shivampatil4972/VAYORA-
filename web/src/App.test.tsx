@@ -1663,3 +1663,51 @@ describe('travel passes', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('The payment was declined. No pass was bought.');
   });
 });
+
+describe('receipts', () => {
+  it('downloads a receipt with the session token and saves it under its name', async () => {
+    signIn('PASSENGER');
+    const payment = {
+      bookingId: 90, fromStop: 'Kolhapur', toStop: 'Pune', fare: 520, serviceFee: 52, amount: 572,
+      method: 'UPI', provider: 'MOCK', status: 'SETTLED', refunded: 0, refundReason: null, createdAt: '2026-10-30T10:00:00Z',
+    };
+    const fetchMock = serve({
+      'GET /payments': () => json([payment]),
+      'GET /bookings/90/receipt': () => new Response(new Blob(['%PDF-1.4']), { status: 200, headers: { 'Content-Type': 'application/pdf' } }),
+    });
+    // jsdom has neither, so they are put in for this test and taken out after it.
+    const revoked = vi.fn();
+    Object.assign(URL, { createObjectURL: vi.fn(() => 'blob:receipt'), revokeObjectURL: revoked });
+    const clicked: string[] = [];
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      clicked.push(this.download);
+    });
+    try {
+      open('/payments');
+      await userEvent.click(await screen.findByRole('button', { name: 'Download receipt (PDF, in English)' }));
+
+      await waitFor(() => expect(clicked).toEqual(['journex-booking-90.pdf']));
+      const asked = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/bookings/90/receipt'));
+      expect((asked?.[1]?.headers as Record<string, string>).Authorization).toBe('Bearer token');
+      expect(revoked).toHaveBeenCalledWith('blob:receipt');
+    } finally {
+      click.mockRestore();
+      Reflect.deleteProperty(URL, 'createObjectURL');
+      Reflect.deleteProperty(URL, 'revokeObjectURL');
+    }
+  });
+
+  it('says so when the receipt cannot be downloaded', async () => {
+    signIn('PASSENGER');
+    serve({
+      // Most specific first: routes match by prefix.
+      'GET /passes/4/receipt': () => json({ detail: 'No receipt for that pass' }, 404),
+      'GET /passes/offers': () => json([]),
+      'GET /passes': () => json([{ id: 4, kind: 'WEEKLY', price: 99, startsAt: '2026-10-01T00:00:00Z', endsAt: '2026-10-08T00:00:00Z', provider: 'MOCK' }]),
+    });
+    open('/passes');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Download receipt (PDF, in English)' }));
+    expect(await screen.findByText('The receipt could not be downloaded. Try again.')).toBeInTheDocument();
+  });
+});

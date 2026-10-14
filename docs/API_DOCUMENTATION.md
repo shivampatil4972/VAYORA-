@@ -96,6 +96,8 @@ returns the booking the first request made instead of making another.
 | `GET /api/v1/passes/offers` | any | Passes on sale |
 | `GET /api/v1/passes` | P | Own passes |
 | `POST /api/v1/passes` | P | Buy a pass; one bought while another runs starts when it ends |
+| `GET /api/v1/bookings/{id}/receipt` | P | PDF receipt for the payment on own booking |
+| `GET /api/v1/passes/{id}/receipt` | P | PDF receipt for own pass |
 
 ### After the trip, and safety
 

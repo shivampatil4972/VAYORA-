@@ -34,6 +34,30 @@ export async function api<T>(
   path: string,
   options: { method?: string; body?: unknown; headers?: Record<string, string> } = {},
 ): Promise<T> {
+  const response = await send(path, options);
+  return response.status === 204 ? (undefined as T) : ((await response.json()) as T);
+}
+
+/**
+ * Fetches a file with the session token and hands it to the browser to save. A plain link
+ * cannot do this: it would go without the token.
+ */
+export async function download(path: string, filename: string): Promise<void> {
+  const blob = await (await send(path, {})).blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function send(
+  path: string,
+  options: { method?: string; body?: unknown; headers?: Record<string, string> },
+): Promise<Response> {
   const headers: Record<string, string> = { ...options.headers };
   if (options.body !== undefined) headers['Content-Type'] = 'application/json';
   const sentToken = token;
@@ -54,7 +78,7 @@ export async function api<T>(
   // by an earlier session must not sign out the one that replaced it.
   if (response.status === 401 && sentToken && sentToken === token) onUnauthorized();
   if (!response.ok) throw new ApiError(response.status, await problemDetail(response));
-  return response.status === 204 ? (undefined as T) : ((await response.json()) as T);
+  return response;
 }
 
 // core-api answers errors with an RFC 7807 problem document.

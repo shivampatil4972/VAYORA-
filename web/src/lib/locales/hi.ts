@@ -756,4 +756,11 @@ export const hi: Record<string, string> = {
     '{n} दिन',
   'Buy {pass}':
     '{pass} खरीदें',
+  // Receipts
+  'Download receipt (PDF, in English)':
+    'रसीद डाउनलोड करें (PDF, अंग्रेज़ी में)',
+  'The receipt could not be downloaded. Try again.':
+    'रसीद डाउनलोड नहीं हो सकी। फिर से कोशिश करें।',
+  'Receipt':
+    'रसीद',
 };

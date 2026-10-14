@@ -1,5 +1,20 @@
 # Progress
 
+## 2026-10-15 (evening) — PDF receipts
+
+Committed on `stage-2-3-booking-core-and-simulator`.
+
+A passenger can download a PDF receipt for each booking payment and each pass, from the
+payments and passes pages. Verified by `ReceiptIntegrationTest`, which reads each PDF
+back as text, `App.test.tsx`, and a receipt downloaded from the running API and opened.
+
+- Apache PDFBox is the one new dependency: Apache-2.0, pure Java, and able to read PDFs
+  back, which is how the tests check what a receipt says.
+- Every receipt states the provider and, while it is the mock, that no money moved. None
+  is a tax invoice.
+- The download goes through the API client with the session token; a plain link would go
+  without it and be refused.
+
 ## 2026-10-15 (later) — travel passes
 
 Committed on `stage-2-3-booking-core-and-simulator`.

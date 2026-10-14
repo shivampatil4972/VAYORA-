@@ -101,6 +101,9 @@ mistake for more. Updated 2026-10-13.
   refunded, and a pass purchase is not in the money ledger, which records booking
   payments only.
 - No referral scheme.
+- **Receipts are in English and in Latin script only.** The PDF's built-in fonts cannot
+  draw Devanagari, so such a character in a name or stop prints as "?". They are not
+  tax invoices: the platform handles no GST. Drivers get no payout statement.
 - **Women-only rides rest on what members say about themselves.** Anyone can choose
   "Woman" on their profile, and nothing checks it. Changing the profile later changes
   what they can see and book, but does not touch a booking already made.

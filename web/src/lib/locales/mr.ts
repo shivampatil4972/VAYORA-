@@ -756,4 +756,11 @@ export const mr: Record<string, string> = {
     '{n} दिवस',
   'Buy {pass}':
     '{pass} खरेदी करा',
+  // Receipts
+  'Download receipt (PDF, in English)':
+    'पावती डाउनलोड करा (PDF, इंग्रजीत)',
+  'The receipt could not be downloaded. Try again.':
+    'पावती डाउनलोड होऊ शकली नाही. पुन्हा प्रयत्न करा.',
+  'Receipt':
+    'पावती',
 };

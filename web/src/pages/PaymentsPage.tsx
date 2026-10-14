@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { SimulatedPaymentNotice } from '../components/payment';
+import { ReceiptButton } from '../components/receipt';
 import { Card, Page, QueryState } from '../components/ui';
 import { api } from '../lib/api';
 import { formatDateTime, formatRupees } from '../lib/format';
@@ -48,7 +49,10 @@ export function PaymentsPage() {
                   <th scope="col" className="py-2 pr-4 font-medium">{t('Trip')}</th>
                   <th scope="col" className="py-2 pr-4 font-medium">{t('Paid with')}</th>
                   <th scope="col" className="py-2 pr-4 text-right font-medium">{t('Amount')}</th>
-                  <th scope="col" className="py-2 font-medium">{t('Came back')}</th>
+                  <th scope="col" className="py-2 pr-4 font-medium">{t('Came back')}</th>
+                  <th scope="col" className="py-2 font-medium">
+                    <span className="sr-only">{t('Receipt')}</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -65,12 +69,15 @@ export function PaymentsPage() {
                         {t('{fare} fare + {fee} service fee', { fare: formatRupees(payment.fare), fee: formatRupees(payment.serviceFee) })}
                       </span>
                     </td>
-                    <td className="py-2">
+                    <td className="py-2 pr-4">
                       {payment.refunded > 0 && payment.refundReason
                         ? `${formatRupees(payment.refunded)}: ${t(refundReasons[payment.refundReason])}`
                         : payment.status === 'HELD'
                           ? t('Held until the trip ends')
                           : t('Nothing')}
+                    </td>
+                    <td className="py-2">
+                      <ReceiptButton path={`/bookings/${payment.bookingId}/receipt`} filename={`journex-booking-${payment.bookingId}.pdf`} />
                     </td>
                   </tr>
                 ))}
