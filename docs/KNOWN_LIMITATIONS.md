@@ -33,6 +33,9 @@ mistake for more. Updated 2026-10-13.
   late ones (94% against 68%), but B4 moves only about 10 of 67 late releases per seed,
   worth at most about 0.07 completed rides per 100 searches before losses
   (EXPERIMENT_PROTOCOL.md sections 9 to 11).
+- Even an oracle that asks exactly the bookings that will cancel late gains only +0.10
+  completed rides per 100 searches (section 12). The ceiling depends on assumed passenger
+  responses.
 - It is one synthetic corridor. It is not evidence that the idea fails in reality.
 - Variants B1, B2 and B6 to B11 are not built. No component-removal or robustness
   experiment has been run.

@@ -1,5 +1,15 @@
 # Progress
 
+## 2026-10-16 — the oracle ceiling
+
+Committed on `stage-2-3-booking-core-and-simulator`.
+
+An `ORACLE` variant asks exactly the bookings the simulator knows will be cancelled late:
+an upper bound for any reconfirmation policy, labelled as not a method. Against B3 it gains
++0.10 completed rides per 100 searches (+0.07 to +0.13, 30 seeds), against B4's −0.01.
+Section 12 of EXPERIMENT_PROTOCOL.md states the research conclusion so far: the premise
+holds, the lever is weak even when aimed perfectly, and the model cannot aim it.
+
 ## 2026-10-15 (late night) — why early release adds so little
 
 Committed on `stage-2-3-booking-core-and-simulator`.

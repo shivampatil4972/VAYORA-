@@ -469,6 +469,143 @@
           "seeds_worsened": 10
         }
       }
+    },
+    "ORACLE": {
+      "per_100": {
+        "label": "Completed rides per 100 searches",
+        "seeds": 30,
+        "mean": 31.211851126224715,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 0.4387921928914409,
+          "ci_low": 0.3544235076232474,
+          "ci_high": 0.5231608781596343,
+          "confidence": 0.95,
+          "wilcoxon_p": 2.5630832507250074e-06,
+          "seeds_improved": 29,
+          "seeds_worsened": 0
+        }
+      },
+      "late_share": {
+        "label": "Late share of cancellations",
+        "seeds": 30,
+        "mean": 0.26425287551849874,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": -0.10885646084719161,
+          "ci_low": -0.11929713914388392,
+          "ci_high": -0.0984157825504993,
+          "confidence": 0.95,
+          "wilcoxon_p": 1.862645149230957e-09,
+          "seeds_improved": 0,
+          "seeds_worsened": 30
+        }
+      },
+      "booking_rate": {
+        "label": "Booking requests per search",
+        "seeds": 30,
+        "mean": 0.4524128075037682,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 0.0053222392739714795,
+          "ci_low": 0.004154529169081796,
+          "ci_high": 0.006489949378861163,
+          "confidence": 0.95,
+          "wilcoxon_p": 2.60770320892334e-08,
+          "seeds_improved": 27,
+          "seeds_worsened": 3
+        }
+      },
+      "contact_rate": {
+        "label": "Reconfirmation requests per accepted booking",
+        "seeds": 30,
+        "mean": 0.03717538833607016,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 0.03717538833607016,
+          "ci_low": 0.035460805809440936,
+          "ci_high": 0.03888997086269939,
+          "confidence": 0.95,
+          "wilcoxon_p": 1.862645149230957e-09,
+          "seeds_improved": 30,
+          "seeds_worsened": 0
+        }
+      },
+      "refilled": {
+        "label": "Released seats refilled",
+        "seeds": 30,
+        "mean": 194.43333333333334,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 11.466666666666667,
+          "ci_low": 8.89878456372693,
+          "ci_high": 14.034548769606404,
+          "confidence": 0.95,
+          "wilcoxon_p": 2.808110744235231e-06,
+          "seeds_improved": 29,
+          "seeds_worsened": 1
+        }
+      },
+      "refills_only_option": {
+        "label": "Refills by a passenger offered no other ride",
+        "seeds": 30,
+        "mean": 73.9,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": -3.8,
+          "ci_low": -6.93090409485602,
+          "ci_high": -0.6690959051439798,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.026803981103603814,
+          "seeds_improved": 5,
+          "seeds_worsened": 21
+        }
+      },
+      "empty_share": {
+        "label": "Searches offered no ride",
+        "seeds": 30,
+        "mean": 0.5427293423310847,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": -0.007700180708810844,
+          "ci_low": -0.009258848005044543,
+          "ci_high": -0.0061415134125771455,
+          "confidence": 0.95,
+          "wilcoxon_p": 9.313225746154785e-09,
+          "seeds_improved": 1,
+          "seeds_worsened": 29
+        }
+      },
+      "early_refill_share": {
+        "label": "Share of seats refilled, rides with only early releases",
+        "seeds": 30,
+        "mean": 0.9365776149397274,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 0.008422435323576182,
+          "ci_low": -0.0017713573221528126,
+          "ci_high": 0.018616227969305177,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.09809198334063142,
+          "seeds_improved": 19,
+          "seeds_worsened": 10
+        }
+      },
+      "late_refill_share": {
+        "label": "Share of seats refilled, rides with only late releases",
+        "seeds": 30,
+        "mean": 0.6915153705327018,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 0.026559675214865092,
+          "ci_low": -0.004373283055453876,
+          "ci_high": 0.05749263348518406,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.11695534472429554,
+          "seeds_improved": 17,
+          "seeds_worsened": 12
+        }
+      }
     }
   }
 }

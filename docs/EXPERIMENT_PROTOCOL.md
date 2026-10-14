@@ -486,3 +486,51 @@ going to cancel would say so.
 - The lever that matters is how many late releases can be found and moved. A better model
   is the obvious one; an oracle variant that asks exactly the passengers who will cancel
   late would show the most any reconfirmation policy could gain in this world.
+
+## 12. The ceiling: an oracle that knows who will cancel late
+
+Run on 2026-10-15, added to the ladder run of section 8 (same world and seeds).
+Synthetic data, 30 seeds. Variant `ORACLE` (`experiments/configs/variants/ORACLE.yaml`).
+
+**ORACLE is an upper bound, not a method.** It is B4 with one change: instead of asking
+the bookings the model scores as risky, it asks exactly the bookings the simulator knows
+will be cancelled less than a day before departure. No platform could know this. It reads
+the hidden cancellation time, never a latent type, and writes no event B4 would not.
+
+| Against B3, seed by seed | B4 | ORACLE |
+|---|---|---|
+| Completed rides per 100 searches | −0.01 (−0.04 to +0.03) | **+0.10 (+0.07 to +0.13)**, 26 seeds up, 4 down |
+| Late share of cancellations | −0.055 | −0.112 |
+| Requests per accepted booking | 0.207 | 0.037 |
+
+### What this shows
+
+- **Perfect targeting does help, and measurably.** With 30 seeds the oracle's gain is
+  clear of zero.
+- **But the ceiling is low: +0.10 completed rides per 100 searches**, about a third of one
+  percent, while asking only 4 in every 100 bookings. That is the most a reconfirmation
+  request can do in this world, given the assumed responses: half of those asked who would
+  cancel do so straight away, and 2% of those who would travel are put off.
+- B4 reaches none of it. It asks five times as many bookings as the oracle and moves half
+  as many late cancellations, because the model cannot pick the late cancellers out
+  (concordance 0.59).
+
+### Conclusion of the research so far
+
+In this simulated corridor:
+
+1. An early release is worth more than a late one: early releases are refilled about 94%
+   of the time, late ones about 68% (section 11). The project's premise is right.
+2. Asking bookings to reconfirm is a weak lever even when aimed perfectly: at best +0.10
+   completed rides per 100 searches (this section).
+3. Aimed with the model that exists, it gains nothing measurable (sections 5 to 8).
+4. Ranking rides by predicted durability (B3) is the only variant that has helped by
+   itself: about +0.34 per 100 searches over B0, three times the oracle's ceiling.
+
+Every number is from one synthetic corridor whose parameters are the authors'
+assumptions. None is evidence about real passengers.
+
+### Still to run
+
+- The oracle across `early_release_probability`: the ceiling scales with how readily
+  passengers who will cancel say so when asked, which is an assumption.
