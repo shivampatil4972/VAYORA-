@@ -126,6 +126,8 @@ returns the booking the first request made instead of making another.
 | `GET /api/v1/notifications/unread-count` | any | How many are unread |
 | `POST /api/v1/notifications/{id}/read` | any | Mark one read |
 | `POST /api/v1/notifications/read-all` | any | Mark all read |
+| `GET /api/v1/notifications/preferences` | any | Whether copies go by email and SMS |
+| `PUT /api/v1/notifications/preferences` | any | Change that |
 
 ### Administration
 

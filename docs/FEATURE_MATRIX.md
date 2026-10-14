@@ -113,9 +113,9 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 60 | Socket.IO chat | TBD | TBD | Verified (gateway and UI tests, live run): one chat per ride for its driver and booked passengers, stored in MongoDB |
 | 61 | Masked calling | TBD | TBD | Not started |
 | 62 | Web push | TBD | TBD | Not started |
-| 63 | Email notifications | TBD | TBD | Not started |
-| 64 | SMS notifications | TBD | TBD | Not started |
-| 65 | Notification preferences | TBD | TBD | Not started |
+| 63 | Email notifications | TBD | TBD | Partial: a copy of each notification to a confirmed email address when the member asks, API and UI tested; **through the simulated sender, so nothing is really emailed** |
+| 64 | SMS notifications | TBD | TBD | Partial: as for email, to a confirmed phone; **simulated, nothing is really sent** |
+| 65 | Notification preferences | TBD | TBD | Verified (API and UI tests): email and SMS copies on or off; in-app always kept; copies only to confirmed addresses and never for a rolled-back change |
 
 ## Trip execution
 

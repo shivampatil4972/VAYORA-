@@ -877,4 +877,15 @@ export const hi: Record<string, string> = {
     'यात्री जिन्हें आपने न पहुँचा बताया',
   'Only you see this page. Passengers see your level, rating, completed trips and how you answer requests.':
     'यह पेज केवल आप देखते हैं। यात्री आपका स्तर, रेटिंग, पूरी यात्राएँ और अनुरोधों का जवाब देना देखते हैं।',
+  // Notification preferences
+  'You always see notifications here. You can also have a copy sent to a confirmed email address or phone. In this project no email or SMS is really sent: copies go to the simulated outbox.':
+    'आप सूचनाएँ हमेशा यहाँ देखते हैं। आप पुष्ट ईमेल पते या फ़ोन पर इनकी प्रति भी मँगा सकते हैं। इस प्रोजेक्ट में कोई ईमेल या SMS सच में नहीं भेजा जाता: प्रतियाँ सिम्युलेटेड आउटबॉक्स में जाती हैं।',
+  'Email me a copy':
+    'मुझे ईमेल पर प्रति भेजें',
+  'Text me a copy':
+    'मुझे SMS पर प्रति भेजें',
+  'Confirm your email address above, or no copy can be sent.':
+    'ऊपर अपने ईमेल पते की पुष्टि करें, नहीं तो कोई प्रति नहीं भेजी जा सकती।',
+  'Confirm your phone number above, or no copy can be sent.':
+    'ऊपर अपने फ़ोन नंबर की पुष्टि करें, नहीं तो कोई प्रति नहीं भेजी जा सकती।',
 };

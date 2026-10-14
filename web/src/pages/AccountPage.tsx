@@ -299,6 +299,42 @@ function Contacts() {
   );
 }
 
+/** Whether copies of notifications go by email and SMS. In-app ones are always kept. */
+function NotificationChoices({ emailConfirmed, phoneConfirmed }: { emailConfirmed: boolean; phoneConfirmed: boolean }) {
+  const t = useT();
+  const queryClient = useQueryClient();
+  const choices = useQuery({
+    queryKey: ['notification-preferences'],
+    queryFn: () => api<{ email: boolean; sms: boolean }>('/notifications/preferences'),
+  });
+  const save = useMutation({
+    mutationFn: (next: { email: boolean; sms: boolean }) => api<{ email: boolean; sms: boolean }>('/notifications/preferences', { method: 'PUT', body: next }),
+    onSuccess: (saved) => queryClient.setQueryData(['notification-preferences'], saved),
+  });
+  if (!choices.data) {
+    return <QueryState isPending={choices.isPending} error={choices.error} isEmpty={false} empty="" onRetry={() => void choices.refetch()} />;
+  }
+  const current = choices.data;
+  return (
+    <div className="space-y-3 text-sm">
+      <p className="text-slate-600">
+        {t('You always see notifications here. You can also have a copy sent to a confirmed email address or phone. In this project no email or SMS is really sent: copies go to the simulated outbox.')}
+      </p>
+      {save.error && <Notice tone="error">{save.error.message}</Notice>}
+      <label className="flex items-center gap-2">
+        <input type="checkbox" checked={current.email} disabled={save.isPending} onChange={(event) => save.mutate({ ...current, email: event.target.checked })} />
+        {t('Email me a copy')}
+      </label>
+      {current.email && !emailConfirmed && <p className="text-amber-800">{t('Confirm your email address above, or no copy can be sent.')}</p>}
+      <label className="flex items-center gap-2">
+        <input type="checkbox" checked={current.sms} disabled={save.isPending} onChange={(event) => save.mutate({ ...current, sms: event.target.checked })} />
+        {t('Text me a copy')}
+      </label>
+      {current.sms && !phoneConfirmed && <p className="text-amber-800">{t('Confirm your phone number above, or no copy can be sent.')}</p>}
+    </div>
+  );
+}
+
 export function AccountPage() {
   const t = useT();
   const { user } = useAuth();
@@ -323,6 +359,12 @@ export function AccountPage() {
                 <Confirm channel="email" label={t('Email')} address={mine.email} confirmed={mine.emailVerified} />
                 <Confirm channel="phone" label={t('Phone')} address={mine.phone} confirmed={mine.phoneVerified} />
               </div>
+            </Card>
+          </section>
+          <section aria-label={t('Notifications')} className="space-y-3">
+            <h2 className="text-lg font-semibold">{t('Notifications')}</h2>
+            <Card>
+              <NotificationChoices emailConfirmed={mine.emailVerified} phoneConfirmed={mine.phoneVerified} />
             </Card>
           </section>
           {user?.role !== 'ADMIN' && (

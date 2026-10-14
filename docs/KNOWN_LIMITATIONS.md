@@ -79,7 +79,8 @@ mistake for more. Updated 2026-10-13.
 - A suspended member's future rides and bookings are left as they are; nobody is told.
 - A reporter is never told what was decided.
 - Ratings are visible at once; one side can see the other's rating before giving theirs.
-- Notifications are in-app only. No email, SMS or push, and no preferences.
+- Notification copies by email and SMS go through the simulated sender: nothing is really
+  sent. There is no web push.
 - **No message ever leaves the platform.** Confirmation codes and emergency messages go
   to a mock sender. "Email confirmed" therefore means only that someone read a code out
   of the administrator outbox; it proves nothing about the address.

@@ -40,6 +40,7 @@ function serve(routes: Record<string, () => Response>) {
     // And the bookings page for how long a driver has to answer.
     // And the search and publish pages, for whether women-only rides apply.
     if (!match && key === 'GET /me/profile') return json({ gender: null });
+    if (!match && key === 'GET /notifications/preferences') return json({ email: false, sms: false });
     if (!match && key === 'GET /booking-terms') return json({ answerWithinMinutes: 720, closesMinutesBeforeBoarding: 120 });
     // The navigation asks for this on every signed-in page.
     if (!match && key === 'GET /notifications/unread-count') return json({ unread: 0 });
@@ -1873,5 +1874,30 @@ describe('levels and the driver record', () => {
     expect(screen.getByText('Newcomer')).toBeInTheDocument();
     expect(screen.getByText('9')).toBeInTheDocument();
     expect(screen.getByText(/Only you see this page/)).toBeInTheDocument();
+  });
+});
+
+describe('notification preferences', () => {
+  const mine = {
+    email: 'user@example.test', emailVerified: true, phone: null, phoneVerified: false, bio: null, birthYear: null,
+    gender: null, smoking: null, pets: null, music: null, chattiness: null,
+  };
+
+  it('saves a choice, says copies are simulated, and warns about an unconfirmed phone', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({
+      'GET /me/profile': () => json(mine),
+      'GET /me/emergency-contacts': () => json([]),
+      'PUT /notifications/preferences': () => json({ email: false, sms: true }),
+    });
+    open('/account');
+
+    const section = within(await screen.findByRole('region', { name: 'Notifications' }));
+    expect(await section.findByText(/no email or SMS is really sent/)).toBeInTheDocument();
+    await userEvent.click(section.getByLabelText('Text me a copy'));
+
+    expect(await section.findByText('Confirm your phone number above, or no copy can be sent.')).toBeInTheDocument();
+    const sent = fetchMock.mock.calls.find(([, init]) => init?.method === 'PUT' && true);
+    expect(JSON.parse(String(sent?.[1]?.body))).toEqual({ email: false, sms: true });
   });
 });
