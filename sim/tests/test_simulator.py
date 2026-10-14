@@ -565,3 +565,33 @@ def test_the_scheduler_is_given_no_ground_truth():
     source = inspect.getsource(Simulation._within_budget)
     for hidden in ("cancel_at", "kind", "release_draw", "annoyed_draw", "_passenger_of"):
         assert hidden not in source
+
+
+# ---- the oracle upper bound -----------------------------------------------------
+
+ORACLE = load_variant(CONFIGS / "variants" / "ORACLE.yaml")
+
+
+def test_the_oracle_asks_only_bookings_that_would_cancel_late_and_leaks_nothing():
+    sim, events = _run(variant=ORACLE)
+    booking = {b.id: b for b in sim.bookings}
+    asked = [e for e in events if e.event_type == "intervention_issued"]
+    forbidden = set(LATENT_TYPES) | {"kind", "latent", "type", "passenger_type", "cancel_at"}
+
+    assert asked
+    for event in asked:
+        b = booking[event.payload["booking_id"]]
+        assert b.cancel_at is not None and b.ride.departure - b.cancel_at < 24
+        assert not forbidden & set(event.payload)
+    # Every booking that would have cancelled late, and could still be asked in time, was.
+    for b in sim.bookings:
+        if b.accepted_at is not None and b.cancel_at is not None and b.ride.departure - b.cancel_at < 24:
+            first_round = (b.accepted_at // 24 + 1) * 24
+            if b.ride.departure - first_round >= 24 and b.cancel_at > first_round:
+                assert b.contacted, b.id
+
+
+def test_the_oracle_faces_the_same_world():
+    _, events = _run(variant=ORACLE)
+    _, baseline = _run(variant=B3)
+    assert [(e.sim_time, e.payload) for e in events if e.event_type == "search_issued"] ==         [(e.sim_time, e.payload) for e in baseline if e.event_type == "search_issued"]

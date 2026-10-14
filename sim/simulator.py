@@ -466,12 +466,20 @@ class Simulation:
                     "model_version": self.model.version,
                     "feature_version": self.model.feature_version,
                 }, "platform", None)
-                if (survival < policy.survival_threshold and not booking.contacted
+                if (self._should_ask(booking, survival, policy) and not booking.contacted
                         and remaining >= policy.min_hours_before_departure):
                     risky.append((booking, survival))
             for booking, survival in self._within_budget(risky):
                 booking.contacted = True
                 self.env.process(self._ask_to_reconfirm(booking, survival))
+
+    def _should_ask(self, booking: Booking, survival: float, policy) -> bool:
+        if policy.selector == "oracle":
+            # Ground truth: this booking will be cancelled, and less than a day before
+            # departure. Only the upper-bound variant may look; see config.Intervention.
+            return (booking.cancel_at is not None
+                    and booking.ride.departure - booking.cancel_at < HOURS_PER_DAY)
+        return survival < policy.survival_threshold
 
     def _within_budget(self, risky: list[tuple[Booking, float]]) -> list[tuple[Booking, float]]:
         """The risky bookings to ask this round. The scheduler sees what a platform would

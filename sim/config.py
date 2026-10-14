@@ -114,6 +114,11 @@ class Intervention:
     # None: everyone below the threshold is asked. Otherwise the scheduler chooses
     # among them within these limits.
     budget: ContactBudget | None = None
+    # Who is asked. "model": bookings the model scores below the threshold. "oracle":
+    # exactly the bookings the simulator knows will be cancelled late. The oracle reads
+    # ground truth no platform could have; it exists only to measure the most any
+    # reconfirmation policy could gain, and must never be reported as a method.
+    selector: str = "model"
 
 
 @dataclass(frozen=True)
@@ -165,8 +170,10 @@ def load_variant(path: Path) -> Variant:
         if not isinstance(intervention, Mapping):
             raise ConfigError(f"{path.name}: intervention must be a mapping")
         budget = intervention.get("budget")
-        intervention = _build(Intervention, {**intervention, "budget": None},
+        intervention = _build(Intervention, {"selector": "model", **intervention, "budget": None},
                               f"{path.name}: intervention")
+        if intervention.selector not in ("model", "oracle"):
+            raise ConfigError("intervention.selector must be model or oracle")
         if budget is not None:
             budget = _build(ContactBudget, budget, f"{path.name}: intervention.budget")
             if min(budget.contacts_per_round, budget.max_contacts_per_ride,
