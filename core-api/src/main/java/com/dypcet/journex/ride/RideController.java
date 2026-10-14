@@ -60,7 +60,8 @@ public class RideController {
             @Size(max = 500) String notes,
             boolean maxTwoInBack,
             Instant returnDepartureTime,
-            @Min(0) @Max(8) int repeatWeeks) {
+            @Min(0) @Max(8) int repeatWeeks,
+            boolean womenOnly) {
     }
 
     public record PointRequest(
@@ -89,7 +90,7 @@ public class RideController {
         return rides.publish(CurrentUser.id(jwt), new PublishRide(request.vehicleId(),
                 request.departureTime(), request.seatsOffered(), request.instantBooking(),
                 stops, request.segmentPrices(), request.notes(), request.maxTwoInBack(),
-                request.returnDepartureTime(), request.repeatWeeks()));
+                request.returnDepartureTime(), request.repeatWeeks(), request.womenOnly()));
     }
 
     /** The road route through some stops and a suggested price per leg, before publishing. */
@@ -116,11 +117,12 @@ public class RideController {
             @RequestParam(defaultValue = "false") boolean confirmedDriver,
             @RequestParam(defaultValue = "false") boolean smokeFree,
             @RequestParam(defaultValue = "false") boolean petsWelcome,
-            @RequestParam(defaultValue = "false") boolean maxTwoInBack) {
+            @RequestParam(defaultValue = "false") boolean maxTwoInBack,
+            @RequestParam(defaultValue = "false") boolean womenOnly) {
         return rides.search(CurrentUser.id(jwt), new Point(originLat, originLon),
                 new Point(destLat, destLon), date, seats, sort,
                 new Filters(earliestHour, latestHour, maxPrice, instantOnly, confirmedDriver,
-                        smokeFree, petsWelcome, maxTwoInBack));
+                        smokeFree, petsWelcome, maxTwoInBack, womenOnly));
     }
 
     @GetMapping("/mine")

@@ -58,9 +58,12 @@ public class SeatHoldController {
                 JOIN ride_stops s ON s.ride_id = r.id AND s.seq = ?
                 WHERE g.ride_id = ? AND g.seq >= ? AND g.seq < ? AND r.status = 'SCHEDULED'
                   AND r.departure_time + make_interval(mins => s.offset_minutes) > ?
+                  AND (NOT r.women_only OR EXISTS (
+                      SELECT 1 FROM profiles w WHERE w.user_id = ? AND w.gender = 'FEMALE'))
                 ORDER BY g.seq""",
                 Integer.class, request.fromSeq(), request.rideId(), request.fromSeq(),
-                request.toSeq(), OffsetDateTime.ofInstant(clock.instant(), java.time.ZoneOffset.UTC));
+                request.toSeq(), OffsetDateTime.ofInstant(clock.instant(), java.time.ZoneOffset.UTC),
+                CurrentUser.id(jwt));
         if (free.size() != request.toSeq() - request.fromSeq()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "No ride open for booking has those stops");

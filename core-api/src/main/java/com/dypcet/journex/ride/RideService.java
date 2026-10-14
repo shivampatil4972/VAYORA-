@@ -46,6 +46,8 @@ public class RideService {
     private static final ZoneId CORRIDOR_ZONE = ZoneId.of("Asia/Kolkata");
     private static final String BOARDING = "r.departure_time + make_interval(mins => o.offset_minutes)";
     private static final int MAX_REPEAT_WEEKS = 8;
+    private static final String PASSENGER_SAYS_WOMAN =
+            "EXISTS (SELECT 1 FROM profiles w WHERE w.user_id = :passenger AND w.gender = 'FEMALE')";
     private static final String DRIVER_CONFIRMED =
             "(u.email_verified_at IS NOT NULL OR u.phone_verified_at IS NOT NULL)";
 
@@ -64,13 +66,22 @@ public class RideService {
      */
     public record PublishRide(long vehicleId, Instant departureTime, int seatsOffered,
             boolean instantBooking, List<StopInput> stops, List<BigDecimal> segmentPrices,
-            String notes, boolean maxTwoInBack, Instant returnDepartureTime, int repeatWeeks) {
+            String notes, boolean maxTwoInBack, Instant returnDepartureTime, int repeatWeeks,
+            boolean womenOnly) {
 
         /** One ride, once, with nothing said about it. */
         public PublishRide(long vehicleId, Instant departureTime, int seatsOffered,
                 boolean instantBooking, List<StopInput> stops, List<BigDecimal> segmentPrices) {
             this(vehicleId, departureTime, seatsOffered, instantBooking, stops, segmentPrices,
-                    null, false, null, 0);
+                    null, false, null, 0, false);
+        }
+
+        /** Open to everyone. */
+        public PublishRide(long vehicleId, Instant departureTime, int seatsOffered,
+                boolean instantBooking, List<StopInput> stops, List<BigDecimal> segmentPrices,
+                String notes, boolean maxTwoInBack, Instant returnDepartureTime, int repeatWeeks) {
+            this(vehicleId, departureTime, seatsOffered, instantBooking, stops, segmentPrices,
+                    notes, maxTwoInBack, returnDepartureTime, repeatWeeks, false);
         }
     }
 
@@ -94,7 +105,7 @@ public class RideService {
             Instant departureTime, int seatsOffered, boolean instantBooking, String status,
             List<Stop> stops, List<Segment> segments, Double distanceKm, Integer durationMinutes,
             String routeSource, List<double[]> path, String notes, boolean maxTwoInBack,
-            int seriesSize) {
+            int seriesSize, boolean womenOnly) {
     }
 
     /**
@@ -121,13 +132,13 @@ public class RideService {
             BigDecimal serviceFee, BigDecimal total, long driverId, Double driverRating,
             int driverRatingCount, long pickupDistanceM, long dropoffDistanceM,
             boolean driverConfirmed, boolean maxTwoInBack, String vehicle, String comfort,
-            String luggage, boolean electric) {
+            String luggage, boolean electric, boolean womenOnly) {
 
         Candidate withSeatsAvailable(int seats) {
             return new Candidate(rideId, driverName, instantBooking, fromSeq, toSeq, fromStop, toStop,
                     boardingTime, arrivalTime, pricePerSeat, seats, fare, serviceFee, total, driverId,
                     driverRating, driverRatingCount, pickupDistanceM, dropoffDistanceM,
-                    driverConfirmed, maxTwoInBack, vehicle, comfort, luggage, electric);
+                    driverConfirmed, maxTwoInBack, vehicle, comfort, luggage, electric, womenOnly);
         }
     }
 
@@ -166,9 +177,16 @@ public class RideService {
      */
     public record Filters(Integer earliestHour, Integer latestHour, BigDecimal maxPricePerSeat,
             boolean instantOnly, boolean confirmedDriver, boolean smokeFree, boolean petsWelcome,
-            boolean maxTwoInBack) {
+            boolean maxTwoInBack, boolean womenOnly) {
 
         public static final Filters NONE = new Filters(null, null, null, false, false, false, false);
+
+        public Filters(Integer earliestHour, Integer latestHour, BigDecimal maxPricePerSeat,
+                boolean instantOnly, boolean confirmedDriver, boolean smokeFree,
+                boolean petsWelcome, boolean maxTwoInBack) {
+            this(earliestHour, latestHour, maxPricePerSeat, instantOnly, confirmedDriver,
+                    smokeFree, petsWelcome, maxTwoInBack, false);
+        }
 
         public Filters(Integer earliestHour, Integer latestHour, BigDecimal maxPricePerSeat,
                 boolean instantOnly, boolean confirmedDriver, boolean smokeFree,
@@ -280,13 +298,13 @@ public class RideService {
         Long rideId = jdbc.queryForObject("""
                 INSERT INTO rides (driver_id, vehicle_id, departure_time, seats_offered,
                                    instant_booking, status, route, distance_m, duration_s,
-                                   route_source, notes, max_two_in_back, series_id)
-                VALUES (?, ?, ?, ?, ?, 'SCHEDULED', ST_GeogFromText(?), ?, ?, ?, ?, ?, ?)
+                                   route_source, notes, max_two_in_back, series_id, women_only)
+                VALUES (?, ?, ?, ?, ?, 'SCHEDULED', ST_GeogFromText(?), ?, ?, ?, ?, ?, ?, ?)
                 RETURNING id""",
                 Long.class, driverId, ride.vehicleId(), utc(departure),
                 ride.seatsOffered(), ride.instantBooking(), lineString(route.path()),
                 route.distanceMetres(), route.durationSeconds(), route.source(), notes,
-                ride.maxTwoInBack(), seriesId);
+                ride.maxTwoInBack(), seriesId, ride.womenOnly());
 
         for (int seq = 0; seq < stops.size(); seq++) {
             StopInput stop = stops.get(seq);
@@ -337,10 +355,21 @@ public class RideService {
                 .divide(BigDecimal.TEN, 0, RoundingMode.HALF_UP).multiply(BigDecimal.TEN);
     }
 
+    /** What the member chose on their profile. Nobody has checked it. */
+    private boolean saysSheIsAWoman(long userId) {
+        return jdbc.queryForObject(
+                "SELECT EXISTS (SELECT 1 FROM profiles WHERE user_id = ? AND gender = 'FEMALE')",
+                Boolean.class, userId);
+    }
+
     private void validate(long driverId, PublishRide ride) {
         Vehicle vehicle = vehicles.findOwned(ride.vehicleId(), driverId);
         if (vehicle == null) {
             throw badRequest("Vehicle not found among your vehicles");
+        }
+        if (ride.womenOnly() && !saysSheIsAWoman(driverId)) {
+            throw badRequest("Only a driver whose profile says she is a woman can offer a "
+                    + "women-only ride. Set your gender on your account page first.");
         }
         if (ride.seatsOffered() > vehicle.seats() - 1) {
             throw badRequest("This vehicle can offer at most " + (vehicle.seats() - 1) + " seats");
@@ -392,7 +421,7 @@ public class RideService {
                 SELECT r.id, r.driver_id, r.vehicle_id, r.departure_time, r.seats_offered,
                        r.instant_booking, r.status, r.distance_m, r.duration_s, r.route_source,
                        ST_AsGeoJSON(r.route::geometry) AS route_json, u.full_name,
-                       r.notes, r.max_two_in_back,
+                       r.notes, r.max_two_in_back, r.women_only,
                        CASE WHEN r.series_id IS NULL THEN 1
                             ELSE (SELECT COUNT(*) FROM rides s WHERE s.series_id = r.series_id)
                        END AS series_size
@@ -407,7 +436,7 @@ public class RideService {
                         rs.getObject("duration_s") == null ? null : minutes(rs.getDouble("duration_s")),
                         rs.getString("route_source"), path(rs.getString("route_json")),
                         rs.getString("notes"), rs.getBoolean("max_two_in_back"),
-                        rs.getInt("series_size")),
+                        rs.getInt("series_size"), rs.getBoolean("women_only")),
                 rideId);
         if (found.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ride not found");
@@ -478,6 +507,7 @@ public class RideService {
                 .addValue("dayEnd", utc(date.plusDays(1).atStartOfDay(CORRIDOR_ZONE).toInstant()))
                 .addValue("now", utc(clock.instant()))
                 .addValue("seats", seats)
+                .addValue("passenger", passengerId)
                 .addValue("zone", CORRIDOR_ZONE.getId())
                 .addValue("earliestHour", filters.earliestHour())
                 .addValue("latestHour", filters.latestHour())
@@ -491,7 +521,10 @@ public class RideService {
                 + (filters.confirmedDriver() ? " AND " + DRIVER_CONFIRMED : "")
                 + (filters.smokeFree() ? " AND p.smoking IS FALSE" : "")
                 + (filters.petsWelcome() ? " AND p.pets IS TRUE" : "")
-                + (filters.maxTwoInBack() ? " AND r.max_two_in_back" : "");
+                + (filters.maxTwoInBack() ? " AND r.max_two_in_back" : "")
+                + (filters.womenOnly() ? " AND r.women_only" : "")
+                // Not a filter: a women-only ride is never offered to anyone else.
+                + " AND (NOT r.women_only OR " + PASSENGER_SAYS_WOMAN + ")";
         // sort.orderBy is one of four constants above, never caller text.
         List<Candidate> candidates = named.query("""
                 WITH want AS (
@@ -501,6 +534,7 @@ public class RideService {
                 SELECT * FROM (
                     SELECT DISTINCT ON (r.id)
                            r.id, u.full_name, r.instant_booking, r.driver_id, r.max_two_in_back,
+                           r.women_only,
                            v.make || ' ' || v.model AS vehicle, v.comfort, v.luggage, v.electric,
                            (SELECT AVG(stars)::float8 FROM ratings WHERE ratee_id = r.driver_id)
                                AS driver_rating,
@@ -554,7 +588,8 @@ public class RideService {
                             Math.round(rs.getDouble("pickup_m")), Math.round(rs.getDouble("dropoff_m")),
                             rs.getBoolean("driver_confirmed"), rs.getBoolean("max_two_in_back"),
                             rs.getString("vehicle"), rs.getString("comfort"),
-                            rs.getString("luggage"), rs.getBoolean("electric"));
+                            rs.getString("luggage"), rs.getBoolean("electric"),
+                            rs.getBoolean("women_only"));
                 });
 
         candidates = candidates.stream()

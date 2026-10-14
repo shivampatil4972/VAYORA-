@@ -122,7 +122,7 @@ public class BookingService {
     }
 
     record LockedRide(long driverId, boolean instantBooking, String status,
-            Instant departureTime) {
+            Instant departureTime, boolean womenOnly) {
     }
 
     private static final String SELECT_BOOKING = """
@@ -211,6 +211,12 @@ public class BookingService {
         }
         if (!"SCHEDULED".equals(ride.status())) {
             throw conflict("This ride is not open for booking");
+        }
+        // As declared on the passenger's own profile; nothing stronger is available.
+        if (ride.womenOnly() && !Boolean.TRUE.equals(jdbc.queryForObject(
+                "SELECT EXISTS (SELECT 1 FROM profiles WHERE user_id = ? AND gender = 'FEMALE')",
+                Boolean.class, passengerId))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This ride is for women only");
         }
         int legs = toSeq - fromSeq;
         Integer legsOnRide = jdbc.queryForObject("""
@@ -516,11 +522,12 @@ public class BookingService {
     /** Returns null when there is no such ride. */
     LockedRide lockRide(long rideId) {
         List<LockedRide> found = jdbc.query("""
-                SELECT driver_id, instant_booking, status, departure_time
+                SELECT driver_id, instant_booking, status, departure_time, women_only
                 FROM rides WHERE id = ? FOR UPDATE""",
                 (rs, n) -> new LockedRide(rs.getLong("driver_id"),
                         rs.getBoolean("instant_booking"), rs.getString("status"),
-                        rs.getObject("departure_time", OffsetDateTime.class).toInstant()),
+                        rs.getObject("departure_time", OffsetDateTime.class).toInstant(),
+                        rs.getBoolean("women_only")),
                 rideId);
         return found.isEmpty() ? null : found.get(0);
     }
