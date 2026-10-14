@@ -67,8 +67,9 @@ because Leaflet needs a real browser to draw.
 
 ## Checked by hand against the running stack
 
-- Flyway migrations V1 to V11 applied to an existing database. V12 has run only in the
-  test suite's own database so far.
+- Flyway migrations V1 to V12 applied to an existing database.
+- **A vehicle**: an electric vehicle added over HTTP came back with a 270 km range from
+  40.5 kWh at 15 kWh per 100 km; battery figures on a non-electric vehicle were refused.
 - **A series**: one request published a ride, its return and next week's pair; the
   return was found by a search in the other direction with the back-seat filter; a
   return leaving before arrival was refused with a reason.
