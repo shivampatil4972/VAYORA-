@@ -686,4 +686,7 @@ export const hi: Record<string, string> = {
     'सोचने तक रोककर रखें',
   'Held for you until {time}. This is not a booking: book before then or the seats go back.':
     '{time} तक आपके लिए रोकी गई हैं। यह बुकिंग नहीं है: उससे पहले बुक करें, नहीं तो सीटें वापस चली जाएँगी।',
+  // Request expiry
+  'The driver has until {time} to answer. After that the request closes and everything you paid is returned.':
+    'चालक के पास जवाब देने के लिए {time} तक का समय है। उसके बाद अनुरोध बंद हो जाएगा और आपका पूरा भुगतान लौटा दिया जाएगा।',
 };

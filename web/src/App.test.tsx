@@ -37,6 +37,8 @@ function serve(routes: Record<string, () => Response>) {
     const match = Object.keys(routes).find((route) => key.startsWith(route));
     // Any signed-in page may ask for the payment terms.
     if (!match && key === 'GET /payment-terms') return json(terms);
+    // And the bookings page for how long a driver has to answer.
+    if (!match && key === 'GET /booking-terms') return json({ answerWithinMinutes: 720, closesMinutesBeforeBoarding: 120 });
     // The navigation asks for this on every signed-in page.
     if (!match && key === 'GET /notifications/unread-count') return json({ unread: 0 });
     if (!match) throw new Error(`unexpected request: ${key}`);
@@ -1351,5 +1353,16 @@ describe('holding seats', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Seats cannot be held right now. You can still book.');
     expect(screen.getByRole('button', { name: 'Request' })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Hold while I decide' })).toBeEnabled();
+  });
+});
+
+describe('a request waiting for the driver', () => {
+  it('says when it will be closed, and says nothing of the kind once it is answered', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /bookings': () => json([booking, { ...booking, id: 91, status: 'CONFIRMED' }]) });
+    open('/bookings');
+
+    const deadlines = await screen.findAllByText(/The driver has until .* to answer\. After that the request closes and everything you paid is returned\./);
+    expect(deadlines).toHaveLength(1); // the pending one only
   });
 });

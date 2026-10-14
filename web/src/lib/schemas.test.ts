@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { answerBy } from './format';
 import { registerSchema, rideSchema, ridesPublished, searchSchema, toPublishRequest, toVehicleRequest, vehicleSchema, type RideForm } from './schemas';
 
 const messages = (result: { success: boolean; error?: { issues: { message: string }[] } }) =>
@@ -212,5 +213,17 @@ describe('vehicle details', () => {
     expect(messages(vehicleSchema.safeParse({ ...base, electric: true, batteryKwh: '0' }))).toEqual(['Between 1 and 300 kWh']);
     expect(messages(vehicleSchema.safeParse({ ...base, electric: true, consumptionKwhPer100Km: '99' }))).toEqual(['Between 5 and 60 kWh per 100 km']);
     expect(vehicleSchema.safeParse({ ...base, comfort: 'LUXURY' }).success).toBe(false);
+  });
+});
+
+describe('answerBy', () => {
+  const terms = { answerWithinMinutes: 720, closesMinutesBeforeBoarding: 120 };
+
+  it('is twelve hours after the request when boarding is far off', () => {
+    expect(answerBy('2026-10-30T10:00:00Z', '2026-11-02T01:30:00Z', terms)).toBe('2026-10-30T22:00:00.000Z');
+  });
+
+  it('is two hours before boarding when that comes first', () => {
+    expect(answerBy('2026-11-01T20:00:00Z', '2026-11-02T01:30:00Z', terms)).toBe('2026-11-01T23:30:00.000Z');
   });
 });

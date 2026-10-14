@@ -75,3 +75,10 @@ export function durationParts(minutes: number): { hours: number; minutes: number
 export function todayInCorridor(now: Date = new Date()): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: ZONE }).format(now);
 }
+
+/** When an unanswered request is closed: so long after it was made, or so long before boarding, whichever is sooner. */
+export function answerBy(createdAt: string, boardingTime: string, terms: { answerWithinMinutes: number; closesMinutesBeforeBoarding: number }): string {
+  const byAge = Date.parse(createdAt) + terms.answerWithinMinutes * 60_000;
+  const byBoarding = Date.parse(boardingTime) - terms.closesMinutesBeforeBoarding * 60_000;
+  return new Date(Math.min(byAge, byBoarding)).toISOString();
+}

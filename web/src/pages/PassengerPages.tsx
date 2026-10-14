@@ -11,11 +11,11 @@ import { RouteMap, type MapPoint } from '../components/RouteMap';
 import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, StatusBadge, TextField } from '../components/ui';
 import { api } from '../lib/api';
 import { CORRIDOR } from '../lib/corridor';
-import { formatDateTime, formatRupees, formatTime, todayInCorridor } from '../lib/format';
+import { answerBy, formatDateTime, formatRupees, formatTime, todayInCorridor } from '../lib/format';
 import { msg, useT, useUnits } from '../lib/i18n';
 import { vehiclePhrases } from '../lib/vehicle';
 import { searchSchema, type SearchForm } from '../lib/schemas';
-import type { Booking, Candidate, PaymentMethod, Ride, SearchSort, SeatHold } from '../lib/types';
+import type { Booking, Candidate, PaymentMethod, RequestTerms, Ride, SearchSort, SeatHold } from '../lib/types';
 
 interface LatLon {
   lat: number;
@@ -488,6 +488,8 @@ export function BookingsPage() {
   const t = useT();
   const queryClient = useQueryClient();
   const bookings = useQuery({ queryKey: ['bookings'], queryFn: () => api<Booking[]>('/bookings') });
+  // The same for every booking and rarely changed, so asked for once.
+  const requestTerms = useQuery({ queryKey: ['booking-terms'], queryFn: () => api<RequestTerms>('/booking-terms'), staleTime: Infinity });
   const [meetingShown, setMeetingShown] = useState<number | null>(null);
   const [chatShown, setChatShown] = useState<number | null>(null);
   const cancel = useMutation({
@@ -533,6 +535,13 @@ export function BookingsPage() {
               <p className="mt-2">
                 <StatusBadge status={booking.status} />
               </p>
+              {booking.status === 'PENDING' && requestTerms.data && (
+                <p className="mt-2 text-sm text-slate-600">
+                  {t('The driver has until {time} to answer. After that the request closes and everything you paid is returned.', {
+                    time: formatDateTime(answerBy(booking.createdAt, booking.boardingTime, requestTerms.data)),
+                  })}
+                </p>
+              )}
             </div>
             <div className="flex flex-wrap gap-2">
               {cancellable(booking) && (

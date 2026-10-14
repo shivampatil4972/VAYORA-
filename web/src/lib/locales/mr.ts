@@ -686,4 +686,7 @@ export const mr: Record<string, string> = {
     'ठरवेपर्यंत राखून ठेवा',
   'Held for you until {time}. This is not a booking: book before then or the seats go back.':
     '{time} पर्यंत तुमच्यासाठी राखून ठेवल्या आहेत. हे बुकिंग नाही: त्याआधी बुक करा, नाहीतर जागा परत जातील.',
+  // Request expiry
+  'The driver has until {time} to answer. After that the request closes and everything you paid is returned.':
+    'चालकाकडे उत्तर देण्यासाठी {time} पर्यंत वेळ आहे. त्यानंतर विनंती बंद होईल आणि तुम्ही भरलेली सर्व रक्कम परत केली जाईल.',
 };

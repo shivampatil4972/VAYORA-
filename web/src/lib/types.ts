@@ -297,6 +297,13 @@ export interface MockMessage {
   at: string;
 }
 
+/** How long a driver has to answer a request before it is closed and refunded. */
+export interface RequestTerms {
+  answerWithinMinutes: number;
+  /** Closed this long before boarding, however recent the request. */
+  closesMinutesBeforeBoarding: number;
+}
+
 /** Seats kept from other passengers for a few minutes. Not a booking. */
 export interface SeatHold {
   rideId: number;
