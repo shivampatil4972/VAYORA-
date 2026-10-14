@@ -3,6 +3,7 @@ package com.dypcet.journex.ride;
 import com.dypcet.journex.eventlog.EventLogService;
 import com.dypcet.journex.eventlog.EventType;
 import com.dypcet.journex.eventlog.HasActor;
+import com.dypcet.journex.hold.SeatHolds;
 import com.dypcet.journex.payment.ServiceFee;
 import com.dypcet.journex.routing.RouteService;
 import com.dypcet.journex.routing.RouteService.Leg;
@@ -27,6 +28,7 @@ import java.util.Collections;
 import java.util.UUID;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -120,6 +122,13 @@ public class RideService {
             int driverRatingCount, long pickupDistanceM, long dropoffDistanceM,
             boolean driverConfirmed, boolean maxTwoInBack, String vehicle, String comfort,
             String luggage, boolean electric) {
+
+        Candidate withSeatsAvailable(int seats) {
+            return new Candidate(rideId, driverName, instantBooking, fromSeq, toSeq, fromStop, toStop,
+                    boardingTime, arrivalTime, pricePerSeat, seats, fare, serviceFee, total, driverId,
+                    driverRating, driverRatingCount, pickupDistanceM, dropoffDistanceM,
+                    driverConfirmed, maxTwoInBack, vehicle, comfort, luggage, electric);
+        }
     }
 
     /**
@@ -220,11 +229,14 @@ public class RideService {
     private final Clock clock;
     private final double maxAccessMetres;
     private final BigDecimal suggestedRupeesPerKm;
+    private final SeatHolds holds;
 
     public RideService(JdbcTemplate jdbc, VehicleService vehicles, EventLogService events,
             ServiceFee serviceFee, RouteService routes, ObjectMapper mapper, Clock clock,
             @Value("${journex.search.max-access-km}") double maxAccessKm,
-            @Value("${journex.pricing.suggested-rupees-per-km}") BigDecimal suggestedRupeesPerKm) {
+            @Value("${journex.pricing.suggested-rupees-per-km}") BigDecimal suggestedRupeesPerKm,
+            SeatHolds holds) {
+        this.holds = holds;
         this.jdbc = jdbc;
         this.named = new NamedParameterJdbcTemplate(jdbc);
         this.vehicles = vehicles;
@@ -545,9 +557,31 @@ public class RideService {
                             rs.getString("luggage"), rs.getBoolean("electric"));
                 });
 
+        candidates = candidates.stream()
+                .map(candidate -> lessHeld(candidate, passengerId)).filter(c -> c.seatsAvailable() >= seats)
+                .toList();
+
         events.write(EventType.CANDIDATES_RETURNED, new CandidatesReturned(passengerId,
                 candidates.size(), candidates.stream().map(Candidate::rideId).toList()));
         return candidates;
+    }
+
+    /**
+     * The candidate with the seats other passengers are holding taken off what it offers.
+     * Most rides have no holds and are returned as they are.
+     */
+    private Candidate lessHeld(Candidate candidate, long passengerId) {
+        Map<Integer, Integer> held = holds.heldByOthers(candidate.rideId(), passengerId);
+        if (held.isEmpty()) {
+            return candidate;
+        }
+        // A hold on one leg does not reduce another, so the count is taken leg by leg.
+        List<Integer> free = jdbc.query("""
+                SELECT seq, seats_available FROM ride_segments
+                WHERE ride_id = ? AND seq >= ? AND seq < ?""",
+                (rs, n) -> rs.getInt("seats_available") - held.getOrDefault(rs.getInt("seq"), 0),
+                candidate.rideId(), candidate.fromSeq(), candidate.toSeq());
+        return candidate.withSeatsAvailable(Math.max(0, Collections.min(free)));
     }
 
     private static List<Point> points(List<StopInput> stops) {

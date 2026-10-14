@@ -67,6 +67,9 @@ journex:
   trip:
     # How long before the scheduled departure a driver may start the ride.
     early-start: PT1H
+  hold:
+    # How long seats a passenger asked to hold are kept from other passengers.
+    ttl: PT5M
   verification:
     # One-time codes proving an email address or a phone number.
     code-ttl: PT10M

@@ -4,6 +4,7 @@ import com.dypcet.journex.eventlog.EventLogService;
 import com.dypcet.journex.eventlog.EventType;
 import com.dypcet.journex.eventlog.HasActor;
 import com.dypcet.journex.hazard.HazardFeatures;
+import com.dypcet.journex.hold.SeatHolds;
 import com.dypcet.journex.notification.NotificationService;
 import com.dypcet.journex.notification.NotificationService.Type;
 import com.dypcet.journex.payment.PaymentChoice;
@@ -17,6 +18,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -134,10 +136,13 @@ public class BookingService {
     private final NotificationService notifications;
     private final ObjectMapper mapper;
     private final Clock clock;
+    private final SeatHolds holds;
 
     public BookingService(JdbcTemplate jdbc, EventLogService events,
             HazardFeatures hazardFeatures, PaymentService payments,
-            NotificationService notifications, ObjectMapper mapper, Clock clock) {
+            NotificationService notifications, ObjectMapper mapper, Clock clock,
+            SeatHolds holds) {
+        this.holds = holds;
         this.jdbc = jdbc;
         this.events = events;
         this.hazardFeatures = hazardFeatures;
@@ -195,6 +200,21 @@ public class BookingService {
             throw conflict("This ride has already left that stop");
         }
 
+        // Seats another passenger is holding for a few minutes are left alone. The
+        // passenger's own hold is not in this count, so it never stands in their way.
+        Map<Integer, Integer> held = holds.heldByOthers(rideId, passengerId);
+        if (!held.isEmpty()) {
+            jdbc.query("""
+                    SELECT seq, seats_available FROM ride_segments
+                    WHERE ride_id = ? AND seq >= ? AND seq < ?""",
+                    rs -> {
+                        if (rs.getInt("seats_available") - held.getOrDefault(rs.getInt("seq"), 0) < seats) {
+                            throw conflict("Not enough seats left on that part of the ride: some are "
+                                    + "being held for another passenger for a few minutes");
+                        }
+                    }, rideId, fromSeq, toSeq);
+        }
+
         // Only legs that still have the seats are decremented. If any leg is short the
         // count comes up short and the rollback puts the others back.
         int taken = jdbc.update("""
@@ -226,6 +246,10 @@ public class BookingService {
         BigDecimal fare = jdbc.queryForObject(
                 "SELECT price FROM bookings WHERE id = ?", BigDecimal.class, bookingId);
         payments.hold(bookingId, passengerId, fare, payment);
+
+        // The seats are theirs now, so a hold on this ride has done its job.
+        holds.of(passengerId).filter(hold -> hold.rideId() == rideId)
+                .ifPresent(hold -> holds.release(passengerId));
 
         events.write(EventType.BOOKING_REQUESTED,
                 new Requested(bookingId, rideId, passengerId, fromSeq, toSeq, seats, boarding));
