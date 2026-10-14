@@ -888,4 +888,25 @@ export const hi: Record<string, string> = {
     'ऊपर अपने ईमेल पते की पुष्टि करें, नहीं तो कोई प्रति नहीं भेजी जा सकती।',
   'Confirm your phone number above, or no copy can be sent.':
     'ऊपर अपने फ़ोन नंबर की पुष्टि करें, नहीं तो कोई प्रति नहीं भेजी जा सकती।',
+  // Series and back-office browsing
+  'Cancel every ride in this series':
+    'इस शृंखला की सभी सवारियाँ रद्द करें',
+  'Yes, cancel them all':
+    'हाँ, सभी रद्द करें',
+  '{n} rides cancelled. Every passenger has been refunded and told.':
+    '{n} सवारियाँ रद्द। हर यात्री को पैसा लौटा दिया गया और सूचित किया गया।',
+  'Rides':
+    'सवारियाँ',
+  'Bookings':
+    'बुकिंग',
+  'Status':
+    'स्थिति',
+  'No rides.':
+    'कोई सवारी नहीं।',
+  'No bookings.':
+    'कोई बुकिंग नहीं।',
+  '{n} seats offered, {b} bookings':
+    '{n} सीटें उपलब्ध, {b} बुकिंग',
+  'with {driver}, {n} seats':
+    '{driver} के साथ, {n} सीटें',
 };

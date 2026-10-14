@@ -4,9 +4,9 @@ Counts are from the runs on 2026-10-13. Every suite passed with no failures.
 
 | Suite | Command, from the repository root | Tests |
 |---|---|---|
-| core-api | `docker compose --profile test run --rm core-api-tests` | 177 |
+| core-api | `docker compose --profile test run --rm core-api-tests` | 182 |
 | Python (events, simulator, model, scheduler, experiments, intel API) | `docker compose --profile research run --rm research` | 168 |
-| web | `cd web && npm ci && npm test` | 157 |
+| web | `cd web && npm ci && npm test` | 160 |
 | gateway | `cd gateway && npm ci && npm test` | 25 |
 
 The first two need only Docker. The Python suite also needs PostgreSQL running:
@@ -39,6 +39,8 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 | `LevelIntegrationTest` | 3 | The highest level whose every condition is met; a profile carries it; **a driver's own record counts each kind of event correctly** |
 | `NotificationPreferenceIntegrationTest` | 3 | **Nothing leaves the app until asked for, and only to confirmed addresses**; no copy for a rolled-back change; the endpoints |
 | `CascadeRecoveryIntegrationTest` | 2 | A withdrawn ride names other rides within 3 hours with seats for the party, not logged as a search; or says there are none |
+| `BackOfficeBrowserIntegrationTest` | 3 | A whole series withdrawn and every passenger refunded; nothing to withdraw twice; rides and bookings by status, administrators only |
+| `TransactionBoundaryTest` | 2 | **Every public trip and booking action is transactional**, added after one was found not to be |
 | `RouteServiceTest` | 7 | OSRM request and response, caching, **an outage gives straight lines labelled as such**, great-circle distance |
 | `RoutingIntegrationTest` | 13 | Price floor, music, quiet ride, comfort and luggage minimums, **A ride, its return and their weekly repeats are published together or not at all**, the return reverses stops, intervals and prices, the back-seat promise and its filter, **Each search filter narrows and none widens; a driver who has not said is not assumed smoke-free**, impossible filters are a 400, route stored on a ride, **the access distance is a hard limit**, direction, the four sort orders, coarse positions in the event log, route preview and price suggestion, the Redis cache |
 | `HazardScoringIntegrationTest` | 5 | Feature snapshot and history, one score per booking per day, which bookings are scored, **model outage changes nothing**, administrators only |
@@ -59,7 +61,7 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 
 | File | Tests | Covers |
 |---|---|---|
-| `App.test.tsx` | 88 | Notification preferences, Levels on profiles, the driver's record page, more search filters, Confirming or disputing a trip, disputed trips for administrators, Boarding codes for passenger and driver, A driver's response rate on the profile, The two main reasons for a durability estimate, Downloading a receipt with the session token, Buying a pass, running, waiting and ended passes, Women-only rides offered and filtered only where the profile allows, A passenger's payments and refunds, Publishing a ride through the page, a driver accepting and declining requests, starting, marking a no-show and completing, each irreversible step only after confirming, The deadline shown on a pending request, Holding seats and being told it is not a booking, Adding a vehicle through the page, the car named on a search result, How many rides a form will publish, driver notes shown as text, Search filters sent only when set and only on Search, the account page, confirmation by code, emergency contacts, **the emergency panel puts 112 first and says the contacts were not messaged**, the administrator emergency queue and simulated outbox, route protection by role, sign-in, search and booking with fee and payment method, idempotency key reuse, refund terms, earnings, ratings and profiles, notifications, reporting and moderation, the back office, maps and location search, the route planner, failure and retry states |
+| `App.test.tsx` | 91 | Withdrawing a series, browsing rides and bookings, Notification preferences, Levels on profiles, the driver's record page, more search filters, Confirming or disputing a trip, disputed trips for administrators, Boarding codes for passenger and driver, A driver's response rate on the profile, The two main reasons for a durability estimate, Downloading a receipt with the session token, Buying a pass, running, waiting and ended passes, Women-only rides offered and filtered only where the profile allows, A passenger's payments and refunds, Publishing a ride through the page, a driver accepting and declining requests, starting, marking a no-show and completing, each irreversible step only after confirming, The deadline shown on a pending request, Holding seats and being told it is not a booking, Adding a vehicle through the page, the car named on a search result, How many rides a form will publish, driver notes shown as text, Search filters sent only when set and only on Search, the account page, confirmation by code, emergency contacts, **the emergency panel puts 112 first and says the contacts were not messaged**, the administrator emergency queue and simulated outbox, route protection by role, sign-in, search and booking with fee and payment method, idempotency key reuse, refund terms, earnings, ratings and profiles, notifications, reporting and moderation, the back office, maps and location search, the route planner, failure and retry states |
 | `lib/schemas.test.ts` | 26 | Vehicle details and their request mapping, A return that leaves before arrival is refused, repeat and notes limits, Form validation and the publish request mapping |
 | `components/RideChat.test.tsx` | 15 | Joining with the session token, history, sending, **a message shown once and only when relayed**, text rendered as text, refusal and outage states, rejoining after a dropped connection, position shown to passengers, sharing offered to the driver only while under way |
 | `lib/i18n.test.tsx` | 21 | **Every marked string has a Hindi and a Marathi entry with the same placeholders**, no unused entries, **no screen has text that bypasses translation**, fallback to English, switching and remembering the language, the same digits for money in every language |
@@ -129,8 +131,14 @@ Kept here because each is a class of mistake worth remembering.
 - A late 401 for a request made by an earlier session signed out the session that had
   replaced it. Found because a test without a stubbed server reached the running API.
 
-## A bug the tests did not find
+## Bugs the tests did not find
 
+- **Withdrawing a ride ran without a transaction for one commit.** A patch inserted a
+  helper method between `cancel()` and its `@Transactional`, so the annotation applied to
+  the helper (where Spring ignores it) and the withdrawal ran statement by statement.
+  Every test passed, because none fails partway through. It was noticed when the next
+  patch put another method in the same place and the compiler objected to two
+  annotations. `TransactionBoundaryTest` now checks every public trip and booking action.
 - **Saving a profile, removing an emergency contact and releasing a seat hold would have
   failed in a browser.** The CORS configuration allowed only GET and POST, and those
   three use PUT and DELETE. Every test passed, because server tests sent no browser

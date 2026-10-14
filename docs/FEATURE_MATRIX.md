@@ -56,7 +56,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 23 | Maximum-two-in-the-back preference | TBD | TBD | Verified (API and UI tests): a promise the driver makes on a ride and passengers see. Nothing enforces it |
 | 24 | Instant booking versus approval | TBD | TBD | Verified (API and UI tests): publishing through the page is tested end to end |
 | 25 | Return trip publishing | TBD | TBD | Verified (API tests, form validation and mapping tested): the same stops reversed, published with the ride out; must leave after it arrives |
-| 26 | Recurring weekly rides | TBD | TBD | Partial: up to 8 further weeks published at once as separate rides, API tested. No open-ended schedule, and a series cannot be changed or withdrawn as a whole |
+| 26 | Recurring weekly rides | TBD | TBD | Verified (API and UI tests): up to 8 further weeks published at once, and a whole series withdrawn at once with every passenger refunded. No open-ended schedule, and a series cannot be edited |
 | 27 | Map-based pickup/drop-off selection | TBD | TBD | Verified: a driver moves each meeting point on a map. UI tested with a stand-in map; the real map has not been seen in a browser |
 | 28 | Detour tolerance | TBD | TBD | Not started. Passengers board at a ride's stops, so a driver never detours; there is nothing to tolerate yet |
 | 29 | Journey description and notes | TBD | TBD | Verified (API and UI tests): up to 500 characters, shown with the route as plain text |
@@ -134,7 +134,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 71 | English, Hindi, and Marathi | TBD | TBD | Partial: every screen is in English, Hindi and Marathi and tests enforce completeness. The translations have had no native review, and text the server writes (error explanations, notification messages) stays in English |
 | 72 | Referral programme | TBD | TBD | Not started |
 | 73 | Static/configured MSRTC alternatives | TBD | TBD | Not started |
-| 74 | Admin back office | TBD | TBD | Partial: overview, reports queue, members, booking durability and audit log, API and UI tested; no ride or booking browser, no experiment screens |
+| 74 | Admin back office | TBD | TBD | Verified (API and UI tests): overview, reports queue, members, rides and bookings by status, disputed trips, emergencies and simulated outbox, booking durability with reasons, audit log. No experiment screens |
 
 ## Research modules
 

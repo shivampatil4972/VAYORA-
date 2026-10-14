@@ -1901,3 +1901,42 @@ describe('notification preferences', () => {
     expect(JSON.parse(String(sent?.[1]?.body))).toEqual({ email: false, sms: true });
   });
 });
+
+describe('series and the back-office browser', () => {
+  it('cancels a whole series only after confirming, and says what happened', async () => {
+    signIn('DRIVER');
+    const fetchMock = serve({
+      'GET /rides/mine': () => json([{ ...rideWithRoute, notes: null, maxTwoInBack: false, seriesSize: 4, womenOnly: false }]),
+      'POST /rides/12/cancel-series': () => json({ withdrawn: 4 }),
+    });
+    open('/rides');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Cancel every ride in this series' }));
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false);
+    await userEvent.click(screen.getByRole('button', { name: 'Yes, cancel them all' }));
+
+    expect(await screen.findByText('4 rides cancelled. Every passenger has been refunded and told.')).toBeInTheDocument();
+  });
+
+  it('offers no series button on a ride published alone', async () => {
+    signIn('DRIVER');
+    serve({ 'GET /rides/mine': () => json([{ ...rideWithRoute, notes: null, maxTwoInBack: false, seriesSize: 1, womenOnly: false }]) });
+    open('/rides');
+    await screen.findByRole('button', { name: 'Cancel ride' });
+    expect(screen.queryByRole('button', { name: 'Cancel every ride in this series' })).not.toBeInTheDocument();
+  });
+
+  it('lets an administrator browse rides and bookings by status', async () => {
+    signIn('ADMIN');
+    const fetchMock = serve({
+      'GET /admin/rides': () =>
+        json([{ id: 12, driverName: 'Ravi Jadhav', driverId: 7, departureTime: '2026-11-02T01:30:00Z', status: 'SCHEDULED',
+          seatsOffered: 3, bookings: 1, fromStop: 'Kolhapur', toStop: 'Pune' }]),
+    });
+    open('/admin/rides');
+
+    expect(await screen.findByText('3 seats offered, 1 bookings', { exact: false })).toBeInTheDocument();
+    await userEvent.selectOptions(screen.getByLabelText('Status'), 'Scheduled');
+    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith('/admin/rides?status=SCHEDULED'))).toBe(true));
+  });
+});

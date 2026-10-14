@@ -454,9 +454,19 @@ export function RidesPage() {
       api<Ride>(`/rides/${ride}/${action}`, { method: 'POST' }),
     onSettled: () => void queryClient.invalidateQueries({ queryKey: ['rides'] }),
   });
+  const series = useMutation({
+    mutationFn: (ride: number) => api<{ withdrawn: number }>(`/rides/${ride}/cancel-series`, { method: 'POST' }),
+    onSettled: () => void queryClient.invalidateQueries({ queryKey: ['rides'] }),
+  });
 
   return (
     <Page title={t('My rides')}>
+      {series.data && (
+        <Notice tone="success">
+          {t('{n} rides cancelled. Every passenger has been refunded and told.', { n: series.data.withdrawn })}
+        </Notice>
+      )}
+      {series.error && <Notice tone="error">{series.error.message}</Notice>}
       {act.error && <Notice tone="error">{act.error.message}</Notice>}
       <QueryState
         isPending={rides.isPending}
@@ -501,6 +511,14 @@ export function RidesPage() {
                     disabled={act.isPending}
                     onConfirm={() => act.mutate({ ride: ride.id, action: 'cancel' })}
                   />
+                  {ride.seriesSize > 1 && (
+                    <ConfirmButton
+                      label={t('Cancel every ride in this series')}
+                      confirmLabel={t('Yes, cancel them all')}
+                      disabled={series.isPending}
+                      onConfirm={() => series.mutate(ride.id)}
+                    />
+                  )}
                 </>
               )}
               {ride.status === 'IN_PROGRESS' && (

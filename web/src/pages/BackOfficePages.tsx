@@ -3,11 +3,11 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { reportReasons } from '../components/report';
-import { Button, Card, ConfirmButton, Notice, Page, QueryState, TextField } from '../components/ui';
+import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, StatusBadge, TextField } from '../components/ui';
 import { api } from '../lib/api';
 import { formatDateTime } from '../lib/format';
 import { msg, useT } from '../lib/i18n';
-import type { AdminOverview, AuditEntry, DisputedTrip, Member, MemberReport, ReportOutcome, Role } from '../lib/types';
+import type { AdminOverview, AuditEntry, BookingStatus, DisputedTrip, Member, MemberReport, ReportOutcome, RideStatus, Role } from '../lib/types';
 
 // The server's own codes, in words. A code with no entry here is shown as it is.
 const codeLabels: Record<string, string> = {
@@ -310,6 +310,116 @@ export function DisputesPage() {
               {dispute.driverName}
             </Link>{' '}
             · {t('disputed {time}', { time: formatDateTime(dispute.disputedAt) })}
+          </p>
+        </Card>
+      ))}
+    </Page>
+  );
+}
+
+interface RideRow {
+  id: number;
+  driverName: string;
+  driverId: number;
+  departureTime: string;
+  status: RideStatus;
+  seatsOffered: number;
+  bookings: number;
+  fromStop: string;
+  toStop: string;
+}
+
+interface BookingRow {
+  id: number;
+  rideId: number;
+  passengerName: string;
+  passengerId: number;
+  driverName: string;
+  fromStop: string;
+  toStop: string;
+  seats: number;
+  status: BookingStatus;
+  createdAt: string;
+}
+
+const RIDE_STATUSES: RideStatus[] = ['SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
+const BOOKING_STATUSES: BookingStatus[] = ['PENDING', 'CONFIRMED', 'REJECTED', 'CANCELLED', 'COMPLETED', 'NO_SHOW'];
+
+/** The newest 100 rides, optionally of one status. */
+export function AdminRidesPage() {
+  const t = useT();
+  const [status, setStatus] = useState('');
+  const rides = useQuery({
+    queryKey: ['admin', 'rides', status],
+    queryFn: () => api<RideRow[]>(`/admin/rides${status ? `?status=${status}` : ''}`),
+  });
+  return (
+    <Page title={t('Rides')}>
+      <div className="max-w-xs">
+        <SelectField label={t('Status')} value={status} onChange={(event) => setStatus(event.target.value)}>
+          <option value="">{t('Any')}</option>
+          {RIDE_STATUSES.map((value) => (
+            <option key={value} value={value}>
+              {t(codeLabels[value] ?? value)}
+            </option>
+          ))}
+        </SelectField>
+      </div>
+      <QueryState isPending={rides.isPending} error={rides.error} isEmpty={rides.data?.length === 0} empty={t('No rides.')} onRetry={() => void rides.refetch()} />
+      {rides.data?.map((ride) => (
+        <Card key={ride.id}>
+          <p className="font-medium">
+            #{ride.id} · {t(ride.fromStop)} → {t(ride.toStop)} · {formatDateTime(ride.departureTime)}
+          </p>
+          <p className="mt-1 text-sm text-slate-600">
+            <Link to={`/users/${ride.driverId}`} className="text-teal-800 underline">
+              {ride.driverName}
+            </Link>{' '}
+            · {t('{n} seats offered, {b} bookings', { n: ride.seatsOffered, b: ride.bookings })}
+          </p>
+          <p className="mt-1">
+            <StatusBadge status={ride.status} />
+          </p>
+        </Card>
+      ))}
+    </Page>
+  );
+}
+
+/** The newest 100 bookings, optionally of one status. */
+export function AdminBookingsPage() {
+  const t = useT();
+  const [status, setStatus] = useState('');
+  const bookings = useQuery({
+    queryKey: ['admin', 'bookings', status],
+    queryFn: () => api<BookingRow[]>(`/admin/bookings${status ? `?status=${status}` : ''}`),
+  });
+  return (
+    <Page title={t('Bookings')}>
+      <div className="max-w-xs">
+        <SelectField label={t('Status')} value={status} onChange={(event) => setStatus(event.target.value)}>
+          <option value="">{t('Any')}</option>
+          {BOOKING_STATUSES.map((value) => (
+            <option key={value} value={value}>
+              {t(codeLabels[value] ?? value)}
+            </option>
+          ))}
+        </SelectField>
+      </div>
+      <QueryState isPending={bookings.isPending} error={bookings.error} isEmpty={bookings.data?.length === 0} empty={t('No bookings.')} onRetry={() => void bookings.refetch()} />
+      {bookings.data?.map((booking) => (
+        <Card key={booking.id}>
+          <p className="font-medium">
+            #{booking.id} · {t(booking.fromStop)} → {t(booking.toStop)} · {formatDateTime(booking.createdAt)}
+          </p>
+          <p className="mt-1 text-sm text-slate-600">
+            <Link to={`/users/${booking.passengerId}`} className="text-teal-800 underline">
+              {booking.passengerName}
+            </Link>{' '}
+            · {t('with {driver}, {n} seats', { driver: booking.driverName, n: booking.seats })}
+          </p>
+          <p className="mt-1">
+            <StatusBadge status={booking.status} />
           </p>
         </Card>
       ))}

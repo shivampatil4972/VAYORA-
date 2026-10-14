@@ -28,6 +28,8 @@ const links: Record<Role, { to: string; label: string }[]> = {
     { to: '/admin/reports', label: msg('Reports') },
     { to: '/admin/emergencies', label: msg('Emergencies') },
     { to: '/admin/users', label: msg('Members') },
+    { to: '/admin/rides', label: msg('Rides') },
+    { to: '/admin/bookings', label: msg('Bookings') },
     { to: '/admin/durability', label: msg('Booking durability') },
     { to: '/admin/audit', label: msg('Audit log') },
   ],

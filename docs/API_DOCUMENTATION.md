@@ -89,7 +89,8 @@ returns the booking the first request made instead of making another.
 | `POST /api/v1/rides/{id}/start` | D | Start the ride, up to an hour early |
 | `POST /api/v1/bookings/{id}/no-show` | D | Mark a passenger who did not board |
 | `POST /api/v1/rides/{id}/complete` | D | Complete the ride and pay out |
-| `POST /api/v1/rides/{id}/cancel` | D | Withdraw the ride; passengers are refunded in full |
+| `POST /api/v1/rides/{id}/cancel` | D | Withdraw the ride; passengers are refunded in full and told of other rides |
+| `POST /api/v1/rides/{id}/cancel-series` | D | Withdraw every ride still to run in this ride's series |
 
 ### Money
 
@@ -144,6 +145,8 @@ returns the booking the first request made instead of making another.
 | `POST /api/v1/admin/hazard/score` | A | Score confirmed bookings now |
 | `GET /api/v1/admin/hazard/scores` | A | The newest durability estimate of each live booking |
 | `GET /api/v1/admin/audit` | A | The newest 100 administrative actions |
+| `GET /api/v1/admin/rides?status=` | A | The newest 100 rides |
+| `GET /api/v1/admin/bookings?status=` | A | The newest 100 bookings |
 
 ### Health
 
