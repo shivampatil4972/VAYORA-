@@ -47,14 +47,14 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
-| 17 | Origin-to-destination ride publishing | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
-| 18 | Intermediate stopovers | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
-| 19 | Per-segment pricing | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
+| 17 | Origin-to-destination ride publishing | TBD | TBD | Verified (API and UI tests): publishing through the page is tested end to end |
+| 18 | Intermediate stopovers | TBD | TBD | Verified (API and UI tests): publishing through the page is tested end to end |
+| 19 | Per-segment pricing | TBD | TBD | Verified (API and UI tests): publishing through the page is tested end to end |
 | 20 | Price suggestion engine | TBD | TBD | Verified (API and UI tests), simplified: road distance times a flat rate, offered to the driver, never applied |
-| 21 | Date and departure time | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
-| 22 | Offered seats | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
+| 21 | Date and departure time | TBD | TBD | Verified (API and UI tests): publishing through the page is tested end to end |
+| 22 | Offered seats | TBD | TBD | Verified (API and UI tests): publishing through the page is tested end to end |
 | 23 | Maximum-two-in-the-back preference | TBD | TBD | Verified (API and UI tests): a promise the driver makes on a ride and passengers see. Nothing enforces it |
-| 24 | Instant booking versus approval | TBD | TBD | Partial: API verified; publish form built, its validation and request mapping tested, page itself untested |
+| 24 | Instant booking versus approval | TBD | TBD | Verified (API and UI tests): publishing through the page is tested end to end |
 | 25 | Return trip publishing | TBD | TBD | Verified (API tests, form validation and mapping tested): the same stops reversed, published with the ride out; must leave after it arrives |
 | 26 | Recurring weekly rides | TBD | TBD | Partial: up to 8 further weeks published at once as separate rides, API tested. No open-ended schedule, and a series cannot be changed or withdrawn as a whole |
 | 27 | Map-based pickup/drop-off selection | TBD | TBD | Verified: a driver moves each meeting point on a map. UI tested with a stand-in map; the real map has not been seen in a browser |
@@ -75,7 +75,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 37 | Amenity filters | TBD | TBD | Partial: no-smoking and pets-welcome, from what the driver said about themselves, API and UI tested. Nothing about the vehicle |
 | 38 | Sorting by price, time, rating, and pickup proximity | TBD | TBD | Verified (API and UI tests): by time, price, driver rating or pickup distance |
 | 39 | Pickup-point map | TBD | TBD | Verified: a result's route with the boarding stop marked. UI tested with a stand-in map; the real map has not been seen in a browser |
-| 40 | Booking request and driver approval | TBD | TBD | Partial: request and cancel verified in API and UI tests; driver accept and decline verified in API, screen untested. An unanswered request closes after 12 hours or 2 hours before boarding, refunded in full (API, UI and live) |
+| 40 | Booking request and driver approval | TBD | TBD | Verified (API and UI tests): request, cancel, and the driver accepting or declining through the page. An unanswered request closes after 12 hours or 2 hours before boarding, refunded in full (API, UI and live) |
 | 41 | Redis temporary seat holds with TTL | TBD | TBD | Verified (API and UI tests, live run): a passenger holds seats for 5 minutes; other passengers' bookings, holds and searches leave them alone. A pending request still holds its seats in PostgreSQL with no time limit |
 
 ## Payments and pricing

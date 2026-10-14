@@ -1366,3 +1366,136 @@ describe('a request waiting for the driver', () => {
     expect(deadlines).toHaveLength(1); // the pending one only
   });
 });
+
+describe('publishing a ride through the page', () => {
+  const vehicle = { id: 3, make: 'Maruti', model: 'Ertiga', year: 2022, colour: 'Silver', seats: 7 };
+  const published = { ...rideWithRoute, notes: null, maxTwoInBack: false, seriesSize: 1 };
+
+  async function fillIn() {
+    fireEvent.change(await screen.findByLabelText('Leaving at'), { target: { value: '2030-01-01T07:00' } });
+    await userEvent.clear(screen.getByLabelText('Seats offered'));
+    await userEvent.type(screen.getByLabelText('Seats offered'), '2');
+    await userEvent.click(screen.getByLabelText('Confirm bookings instantly, without asking me'));
+    await userEvent.click(screen.getByLabelText('Satara'));
+    await userEvent.clear(screen.getByLabelText('Price to Satara (₹)'));
+    await userEvent.type(screen.getByLabelText('Price to Satara (₹)'), '270');
+    await userEvent.clear(screen.getByLabelText('Price to Pune (₹)'));
+    await userEvent.type(screen.getByLabelText('Price to Pune (₹)'), '250');
+  }
+
+  it('sends the stops, prices, seats and approval choice the driver entered, then shows their rides', async () => {
+    signIn('DRIVER');
+    const fetchMock = serve({
+      'GET /vehicles': () => json([vehicle]),
+      'POST /rides': () => json(published, 201),
+      'GET /rides/mine': () => json([published]),
+    });
+    open('/rides/new');
+
+    await fillIn();
+    await userEvent.click(screen.getByRole('button', { name: 'Publish ride' }));
+
+    expect(await screen.findByRole('heading', { name: 'My rides' })).toBeInTheDocument();
+    const sent = fetchMock.mock.calls.find(([url, init]) => init?.method === 'POST' && new URL(String(url)).pathname.endsWith('/rides'));
+    const body = JSON.parse(String(sent?.[1]?.body));
+    expect(body).toMatchObject({
+      vehicleId: 3,
+      departureTime: new Date('2030-01-01T07:00').toISOString(),
+      seatsOffered: 2,
+      instantBooking: false,
+      segmentPrices: [270, 250],
+      returnDepartureTime: null,
+      repeatWeeks: 0,
+    });
+    expect(body.stops.map((stop: { name: string }) => stop.name)).toEqual(['Kolhapur', 'Satara', 'Pune']);
+    expect(body.stops[0].offsetMinutes).toBe(0);
+  });
+
+  it("keeps the form and shows the server's reason when publishing is refused", async () => {
+    signIn('DRIVER');
+    serve({
+      'GET /vehicles': () => json([vehicle]),
+      'POST /rides': () => json({ detail: 'This vehicle can offer at most 6 seats' }, 400),
+    });
+    open('/rides/new');
+
+    await fillIn();
+    await userEvent.click(screen.getByRole('button', { name: 'Publish ride' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('This vehicle can offer at most 6 seats');
+    expect(screen.getByRole('heading', { name: 'Publish a ride' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Price to Satara (₹)')).toHaveValue(270);
+  });
+});
+
+describe('running a ride from my rides', () => {
+  const posted = (fetchMock: ReturnType<typeof serve>) =>
+    fetchMock.mock.calls.filter(([, init]) => init?.method === 'POST').map(([url]) => new URL(String(url)).pathname.replace('/api/v1', ''));
+
+  it('accepts one request and declines another', async () => {
+    signIn('DRIVER');
+    let requests = [booking, { ...booking, id: 91, passengerName: 'Meera Kulkarni', passengerId: 5 }];
+    const decide = (id: number, status: string) => () => {
+      requests = requests.map((b) => (b.id === id ? { ...b, status: status as Booking['status'] } : b));
+      return json(requests.find((b) => b.id === id));
+    };
+    const fetchMock = serve({
+      'GET /rides/mine': () => json([{ ...rideWithRoute, notes: null, maxTwoInBack: false, seriesSize: 1 }]),
+      'GET /rides/12/bookings': () => json(requests),
+      'POST /bookings/90/accept': decide(90, 'CONFIRMED'),
+      'POST /bookings/91/reject': decide(91, 'REJECTED'),
+    });
+    open('/rides');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Show passengers' }));
+    expect(await screen.findByRole('link', { name: 'Asha Patil' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Accept' })).toHaveLength(2);
+
+    await userEvent.click(screen.getAllByRole('button', { name: 'Accept' })[0]);
+    await waitFor(() => expect(screen.getAllByRole('button', { name: 'Accept' })).toHaveLength(1));
+    await userEvent.click(screen.getByRole('button', { name: 'Decline' }));
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Decline' })).not.toBeInTheDocument());
+
+    expect(posted(fetchMock)).toEqual(['/bookings/90/accept', '/bookings/91/reject']);
+    expect(screen.getByText('Confirmed')).toBeInTheDocument();
+    expect(screen.getByText('Declined by the driver')).toBeInTheDocument();
+  });
+
+  it('starts the ride, marks a no-show and completes only after confirming each irreversible step', async () => {
+    signIn('DRIVER');
+    let ride = { ...rideWithRoute, instantBooking: true, notes: null, maxTwoInBack: false, seriesSize: 1 };
+    let aboard = [{ ...booking, status: 'CONFIRMED' as Booking['status'] }];
+    const fetchMock = serve({
+      'GET /rides/mine': () => json([ride]),
+      'GET /rides/12/bookings': () => json(aboard),
+      'POST /rides/12/start': () => {
+        ride = { ...ride, status: 'IN_PROGRESS' };
+        return json(ride);
+      },
+      'POST /bookings/90/no-show': () => {
+        aboard = [{ ...aboard[0], status: 'NO_SHOW' }];
+        return json(aboard[0]);
+      },
+      'POST /rides/12/complete': () => {
+        ride = { ...ride, status: 'COMPLETED' };
+        return json(ride);
+      },
+    });
+    open('/rides');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Start ride' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Show passengers' }));
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Did not board' }));
+    expect(posted(fetchMock)).toEqual(['/rides/12/start']); // asks first
+    await userEvent.click(screen.getByRole('button', { name: 'Yes, mark as no-show' }));
+    expect(await screen.findByText('Did not board')).toBeInTheDocument(); // now the status, not a button
+
+    await userEvent.click(screen.getByRole('button', { name: 'Complete ride' }));
+    expect(posted(fetchMock)).toEqual(['/rides/12/start', '/bookings/90/no-show']);
+    await userEvent.click(screen.getByRole('button', { name: 'Yes, we have arrived' }));
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Complete ride' })).not.toBeInTheDocument());
+
+    expect(posted(fetchMock)).toEqual(['/rides/12/start', '/bookings/90/no-show', '/rides/12/complete']);
+  });
+});
