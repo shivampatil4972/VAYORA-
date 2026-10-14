@@ -7,6 +7,8 @@ import com.dypcet.journex.booking.BookingService.Booking;
 import com.dypcet.journex.booking.BookingService.Cancelled;
 import com.dypcet.journex.booking.BookingService.Decided;
 import com.dypcet.journex.booking.BookingService.LockedRide;
+import com.dypcet.journex.bus.BusService;
+import com.dypcet.journex.bus.BusService.Bus;
 import com.dypcet.journex.eventlog.EventLogService;
 import com.dypcet.journex.eventlog.EventType;
 import com.dypcet.journex.eventlog.HasActor;
@@ -22,6 +24,7 @@ import com.dypcet.journex.ride.RideService.Candidate;
 import com.dypcet.journex.ride.RideService.Ride;
 import java.time.Clock;
 import java.time.Duration;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -76,6 +79,7 @@ public class TripService {
 
     private final JdbcTemplate jdbc;
     private final ReferralService referrals;
+    private final BusService buses;
     private final BookingService bookings;
     private final PaymentService payments;
     private final NotificationService notifications;
@@ -87,8 +91,10 @@ public class TripService {
     public TripService(JdbcTemplate jdbc, BookingService bookings, PaymentService payments,
             NotificationService notifications, RideService rides,
             EventLogService events, Clock clock,
-            @Value("${journex.trip.early-start}") Duration earlyStart, ReferralService referrals) {
+            @Value("${journex.trip.early-start}") Duration earlyStart, ReferralService referrals,
+            BusService buses) {
         this.referrals = referrals;
+        this.buses = buses;
         this.jdbc = jdbc;
         this.bookings = bookings;
         this.payments = payments;
@@ -213,12 +219,32 @@ public class TripService {
         List<Candidate> others = rides.alternatives(booking.passengerId(), rideId, ends.get(0), ends.get(1),
                 booking.boardingTime(), booking.seats(), ALTERNATIVES_WINDOW, 3);
         if (others.isEmpty()) {
-            return " No other ride with seats leaves near that time.";
+            return " No other ride with seats leaves near that time." + buses(rideId, booking);
         }
         DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm", Locale.ENGLISH).withZone(CORRIDOR_ZONE);
         return " Other rides that could take you: " + others.stream()
                 .map(c -> time.format(c.boardingTime()) + " from " + c.fromStop() + " with " + c.driverName())
                 .collect(Collectors.joining("; ")) + ". Search again to book one.";
+    }
+
+    /**
+     * Up to three buses between the passenger's stops leaving from an hour before their
+     * boarding time, as one sentence, or nothing. Administrators enter these; they are not
+     * checked against the operator, and the sentence says so.
+     */
+    private String buses(long rideId, Booking booking) {
+        List<String> names = jdbc.queryForList(
+                "SELECT name FROM ride_stops WHERE ride_id = ? AND seq IN (?, ?) ORDER BY seq",
+                String.class, rideId, booking.fromSeq(), booking.toSeq());
+        LocalTime boarding = booking.boardingTime().atZone(CORRIDOR_ZONE).toLocalTime();
+        LocalTime from = boarding.isBefore(LocalTime.of(1, 0)) ? LocalTime.MIN : boarding.minusHours(1);
+        List<Bus> found = buses.between(names.get(0), names.get(1), from, 3);
+        if (found.isEmpty()) {
+            return "";
+        }
+        return " Buses listed by JOURNEX staff (check with the operator before travelling): " + found.stream()
+                .map(b -> b.departs() + " " + b.operator() + ", Rs " + b.fare().toPlainString())
+                .collect(Collectors.joining("; ")) + ".";
     }
 
     /** Withdraws a ride that has not started, cancelling every live booking on it. */
