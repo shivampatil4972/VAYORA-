@@ -33,7 +33,6 @@ Ordered by value to the research question first, then by size.
 | 78 | Reliability indicator in search results | Show the durability score to passengers, which needs a decision: today scores are shown to administrators only, on purpose | Small, but a policy question first |
 | 81 | Hazard-informed flexibility tiers | Needs the tier rules defined, and two frozen event types (`tier_selected`, `driver_tier_selected`) already reserved for it | Medium |
 | 93 | Supply-gap detection and nudging | Three event types already reserved (`nudge_*`, `supply_gap_detected`); nudge conversion must stay a swept parameter, never a result | Medium |
-| 88 | Cascade-aware recovery | Re-offer a cancelled ride's passengers another ride | Medium |
 | 89 | Corridor demand calibration | Needs real demand figures to calibrate against, which do not exist | Blocked on data |
 | 26 | Recurring rides as a schedule | Edit or withdraw a whole series | Medium |
 | 74 | Admin ride and booking browser | Screens over data that exists | Medium |

@@ -149,7 +149,7 @@ Last updated: 2026-10-13. Test suites and how to run them are in [TESTING.md](TE
 | 81 | Hazard-informed passenger flexibility tiers | TBD | TBD | Not started |
 | 84 | Mid-route vacant-seat allocation | TBD | TBD | Not started |
 | 86 | Per-booking SHAP explanations | TBD | TBD | Verified (model, API and UI tests): exact per-feature shares of the log relative risk, which for Cox are the full explanation, so SHAP is not used. Administrators only |
-| 88 | Cascade-aware recovery | TBD | TBD | Not started |
+| 88 | Cascade-aware recovery | TBD | TBD | Partial: when a driver withdraws a ride, each passenger is told of up to three other rides on the same stretch within 3 hours with seats for their party (API tested). A suggestion only: nothing is rebooked, and the simulator does not model it |
 | 89 | Corridor demand calibration | TBD | TBD | Not started |
 | 93 | Supply-gap detection and nudging | TBD | TBD | Not started |
 | 94 | Driver commitment pricing | TBD | TBD | Not started |

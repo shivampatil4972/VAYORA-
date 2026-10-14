@@ -4,7 +4,7 @@ Counts are from the runs on 2026-10-13. Every suite passed with no failures.
 
 | Suite | Command, from the repository root | Tests |
 |---|---|---|
-| core-api | `docker compose --profile test run --rm core-api-tests` | 175 |
+| core-api | `docker compose --profile test run --rm core-api-tests` | 177 |
 | Python (events, simulator, model, scheduler, experiments, intel API) | `docker compose --profile research run --rm research` | 168 |
 | web | `cd web && npm ci && npm test` | 157 |
 | gateway | `cd gateway && npm ci && npm test` | 25 |
@@ -38,6 +38,7 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 | `AfterTripIntegrationTest` | 3 | A passenger confirms once and a denial reaches the administrators; only the trip's own passenger, only once completed; **one rating reminder per side, however often the job runs** |
 | `LevelIntegrationTest` | 3 | The highest level whose every condition is met; a profile carries it; **a driver's own record counts each kind of event correctly** |
 | `NotificationPreferenceIntegrationTest` | 3 | **Nothing leaves the app until asked for, and only to confirmed addresses**; no copy for a rolled-back change; the endpoints |
+| `CascadeRecoveryIntegrationTest` | 2 | A withdrawn ride names other rides within 3 hours with seats for the party, not logged as a search; or says there are none |
 | `RouteServiceTest` | 7 | OSRM request and response, caching, **an outage gives straight lines labelled as such**, great-circle distance |
 | `RoutingIntegrationTest` | 13 | Price floor, music, quiet ride, comfort and luggage minimums, **A ride, its return and their weekly repeats are published together or not at all**, the return reverses stops, intervals and prices, the back-seat promise and its filter, **Each search filter narrows and none widens; a driver who has not said is not assumed smoke-free**, impossible filters are a 400, route stored on a ride, **the access distance is a hard limit**, direction, the four sort orders, coarse positions in the event log, route preview and price suggestion, the Redis cache |
 | `HazardScoringIntegrationTest` | 5 | Feature snapshot and history, one score per booking per day, which bookings are scored, **model outage changes nothing**, administrators only |

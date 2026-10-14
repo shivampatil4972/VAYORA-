@@ -511,11 +511,33 @@ public class RideService {
     /** As above, narrowed by the filters. A filter never widens what the search returns. */
     public List<Candidate> search(long passengerId, Point origin, Point destination,
             LocalDate date, int seats, Sort sort, Filters filters) {
+        return find(passengerId, origin, destination, date, seats, sort, filters, true);
+    }
+
+    /**
+     * Other rides that could take a passenger whose ride was withdrawn: the same stretch,
+     * leaving within {@code window} of when they were to board, with the seats they had.
+     * Not a search the passenger made, so nothing is written to the research log.
+     */
+    public List<Candidate> alternatives(long passengerId, long withdrawnRideId, Point origin,
+            Point destination, Instant boarding, int seats, Duration window, int most) {
+        return find(passengerId, origin, destination, boarding.atZone(CORRIDOR_ZONE).toLocalDate(),
+                seats, Sort.TIME, Filters.NONE, false).stream()
+                .filter(c -> c.rideId() != withdrawnRideId)
+                .filter(c -> Duration.between(boarding, c.boardingTime()).abs().compareTo(window) <= 0)
+                .limit(most)
+                .toList();
+    }
+
+    private List<Candidate> find(long passengerId, Point origin, Point destination,
+            LocalDate date, int seats, Sort sort, Filters filters, boolean logged) {
         // Three decimals is about a hundred metres: enough for the research log, without
         // recording anyone's doorstep.
-        events.write(EventType.SEARCH_ISSUED, new SearchIssued(passengerId,
-                coarse(origin.lat()), coarse(origin.lon()), coarse(destination.lat()),
-                coarse(destination.lon()), date.toString(), seats));
+        if (logged) {
+            events.write(EventType.SEARCH_ISSUED, new SearchIssued(passengerId,
+                    coarse(origin.lat()), coarse(origin.lon()), coarse(destination.lat()),
+                    coarse(destination.lon()), date.toString(), seats));
+        }
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("olat", origin.lat()).addValue("olon", origin.lon())
@@ -629,8 +651,10 @@ public class RideService {
                 .map(candidate -> lessHeld(candidate, passengerId)).filter(c -> c.seatsAvailable() >= seats)
                 .toList();
 
-        events.write(EventType.CANDIDATES_RETURNED, new CandidatesReturned(passengerId,
-                candidates.size(), candidates.stream().map(Candidate::rideId).toList()));
+        if (logged) {
+            events.write(EventType.CANDIDATES_RETURNED, new CandidatesReturned(passengerId,
+                    candidates.size(), candidates.stream().map(Candidate::rideId).toList()));
+        }
         return candidates;
     }
 

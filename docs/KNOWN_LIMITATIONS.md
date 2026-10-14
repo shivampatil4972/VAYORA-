@@ -73,8 +73,8 @@ mistake for more. Updated 2026-10-13.
 - **The 7-day booking horizon is not enforced** when publishing or booking.
 - **Completion is the driver's word alone.** No boarding code, no passenger
   confirmation.
-- **A driver withdrawing a ride triggers nothing** for the passengers: no notification,
-  no recovery search, no alternative.
+- **A driver withdrawing a ride only suggests alternatives.** Passengers are told and
+  shown up to three other rides; nothing is rebooked for them.
 - Reviews cannot be edited or removed, and a report is about a member, not a review.
 - A suspended member's future rides and bookings are left as they are; nobody is told.
 - A reporter is never told what was decided.

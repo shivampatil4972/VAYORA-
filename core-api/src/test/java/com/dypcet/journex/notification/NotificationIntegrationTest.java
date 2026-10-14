@@ -122,9 +122,14 @@ class NotificationIntegrationTest extends PostgresIntegrationTest {
         Booking cancelled = bookings.request(passengerId, cancelledRide, 0, 1, 1, PaymentChoice.card(), null);
         bookings.cancel(passengerId, cancelled.id());
 
-        assertThat(messages(passengerId)).containsExactly(
+        assertThat(messages(passengerId)).hasSize(2);
+        // The withdrawal also names other rides that could take the passenger, which here
+        // includes the first ride, still scheduled with a seat free.
+        assertThat(messages(passengerId).get(0)).startsWith(
                 "RIDE_CANCELLED: The driver cancelled the ride you booked for 1 seat, Kolhapur to Pune. "
-                        + "Everything you paid has been returned.",
+                        + "Everything you paid has been returned. Other rides that could take you: ")
+                .endsWith(" from Kolhapur with Ravi Jadhav. Search again to book one.");
+        assertThat(messages(passengerId).get(1)).isEqualTo(
                 "BOOKING_DECLINED: The driver did not accept your request for 1 seat, Kolhapur to Pune. "
                         + "Everything you paid has been returned.");
         assertThat(messages(driverId)).first().isEqualTo(

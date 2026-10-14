@@ -16,9 +16,16 @@ import com.dypcet.journex.payment.PaymentService;
 import com.dypcet.journex.payment.PaymentService.RefundReason;
 import com.dypcet.journex.payment.PaymentService.SettlementReason;
 import com.dypcet.journex.ride.RideService;
+import com.dypcet.journex.routing.RouteService.Point;
+import com.dypcet.journex.ride.RideService.Candidate;
 import com.dypcet.journex.ride.RideService.Ride;
 import java.time.Clock;
 import java.time.Duration;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+import java.time.format.DateTimeFormatter;
+import java.time.ZoneId;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -60,6 +67,10 @@ public class TripService {
             return driverId;
         }
     }
+
+    // How far either side of the withdrawn ride an alternative may leave.
+    private static final Duration ALTERNATIVES_WINDOW = Duration.ofHours(3);
+    private static final ZoneId CORRIDOR_ZONE = ZoneId.of("Asia/Kolkata");
 
     private final JdbcTemplate jdbc;
     private final BookingService bookings;
@@ -161,6 +172,27 @@ public class TripService {
 
     /** Withdraws a ride that has not started, cancelling every live booking on it. */
     @Transactional
+    /**
+     * Up to three other rides that could take this passenger, as one sentence for the
+     * notification, or nothing if there are none. A suggestion only: nothing is booked.
+     */
+    private String otherRides(long rideId, Booking booking) {
+        List<Point> ends = jdbc.query("""
+                SELECT ST_Y(location::geometry) AS lat, ST_X(location::geometry) AS lon
+                FROM ride_stops WHERE ride_id = ? AND seq IN (?, ?) ORDER BY seq""",
+                (rs, n) -> new Point(rs.getDouble("lat"), rs.getDouble("lon")),
+                rideId, booking.fromSeq(), booking.toSeq());
+        List<Candidate> others = rides.alternatives(booking.passengerId(), rideId, ends.get(0), ends.get(1),
+                booking.boardingTime(), booking.seats(), ALTERNATIVES_WINDOW, 3);
+        if (others.isEmpty()) {
+            return " No other ride with seats leaves near that time.";
+        }
+        DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm", Locale.ENGLISH).withZone(CORRIDOR_ZONE);
+        return " Other rides that could take you: " + others.stream()
+                .map(c -> time.format(c.boardingTime()) + " from " + c.fromStop() + " with " + c.driverName())
+                .collect(Collectors.joining("; ")) + ". Search again to book one.";
+    }
+
     public Ride cancel(long driverId, long rideId) {
         LockedRide ride = lockOwned(driverId, rideId);
         if (!"SCHEDULED".equals(ride.status())) {
@@ -175,7 +207,8 @@ public class TripService {
                 notifications.send(booking.passengerId(), Type.RIDE_CANCELLED,
                         "The driver cancelled the ride you booked for "
                                 + BookingService.seatsOn(booking)
-                                + ". Everything you paid has been returned.", booking.id());
+                                + ". Everything you paid has been returned." + otherRides(rideId, booking),
+                        booking.id());
                 events.write(EventType.BOOKING_CANCELLED, new Cancelled(booking.id(), rideId,
                         booking.passengerId(), booking.seats(), booking.boardingTime(),
                         "driver", driverId));
