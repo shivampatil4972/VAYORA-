@@ -81,6 +81,8 @@ def test_a_contact_budget_is_loaded_whole_or_not_at_all(tmp_path):
     budget = load_variant(CONFIGS / "variants" / "B5.yaml").intervention.budget
     assert (budget.contacts_per_round, budget.max_contacts_per_ride) == (2, 1)
     assert load_variant(CONFIGS / "variants" / "B4.yaml").intervention.budget is None
+    assert budget.chooser == "scheduler"
+    assert load_variant(CONFIGS / "variants" / "B5-RANDOM.yaml").intervention.budget.chooser == "random"
 
     path = tmp_path / "B5.yaml"
     path.write_text(B5_TEXT.replace("contacts_per_round", "contacts_per_ruond"), encoding="utf-8")

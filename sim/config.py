@@ -100,6 +100,10 @@ class ContactBudget:
     # count for proportionally less. An assumption, not an estimate.
     refill_horizon_hours: float
     solver_time_limit_seconds: float
+    # Who chooses within the limits. "scheduler": the CP-SAT contact scheduler, which
+    # weighs each booking's score and time left. "random": bookings taken in a random
+    # order until a limit stops them, to measure whether the scheduler beats chance.
+    chooser: str = "scheduler"
 
 
 @dataclass(frozen=True)
@@ -175,12 +179,14 @@ def load_variant(path: Path) -> Variant:
         if intervention.selector not in ("model", "oracle"):
             raise ConfigError("intervention.selector must be model or oracle")
         if budget is not None:
-            budget = _build(ContactBudget, budget, f"{path.name}: intervention.budget")
+            budget = _build(ContactBudget, {"chooser": "scheduler", **budget}, f"{path.name}: intervention.budget")
             if min(budget.contacts_per_round, budget.max_contacts_per_ride,
                    budget.max_seats_asked_per_departure_day) < 1:
                 raise ConfigError("intervention.budget limits must be at least 1")
             if budget.refill_horizon_hours <= 0 or budget.solver_time_limit_seconds <= 0:
                 raise ConfigError("intervention.budget durations must be positive")
+            if budget.chooser not in ("scheduler", "random"):
+                raise ConfigError("intervention.budget.chooser must be scheduler or random")
             intervention = dataclasses.replace(intervention, budget=budget)
         if not 0 <= intervention.survival_threshold <= 1:
             raise ConfigError("intervention.survival_threshold must be between 0 and 1")

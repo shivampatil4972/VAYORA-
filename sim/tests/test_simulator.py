@@ -567,6 +567,48 @@ def test_the_scheduler_is_given_no_ground_truth():
         assert hidden not in source
 
 
+# ---- the same budget, chosen at random --------------------------------------------
+
+def test_random_choice_keeps_the_limits_and_the_threshold_and_is_not_the_scheduler(budgeted):
+    random_choice = _budget(chooser="random")
+    sim, events = _run(variant=random_choice)
+    budget = random_choice.intervention.budget
+    booking = {b.id: b for b in sim.bookings}
+    rounds, rides, days = Counter(), Counter(), Counter()
+    for event in _asked(events):
+        asked = booking[event.payload["booking_id"]]
+        rounds[event.sim_time] += 1
+        rides[event.sim_time, asked.ride.id] += 1
+        days[event.sim_time, int(asked.ride.departure // 24)] += asked.seats
+        assert event.payload["survival_probability"] < random_choice.intervention.survival_threshold
+
+    assert rounds
+    assert max(rounds.values()) <= budget.contacts_per_round
+    assert max(rides.values()) <= budget.max_contacts_per_ride
+    assert max(days.values()) <= budget.max_seats_asked_per_departure_day
+    # Same limits, different choices.
+    assert [e.payload["booking_id"] for e in _asked(events)] !=         [e.payload["booking_id"] for e in _asked(budgeted[1])]
+
+
+def test_random_choice_is_the_same_for_the_same_seed():
+    random_choice = _budget(chooser="random")
+
+    def story(events):
+        return [(e.event_type, e.sim_time, e.payload) for e in events]
+
+    assert story(_run(variant=random_choice)[1]) == story(_run(variant=random_choice)[1])
+
+
+def test_random_choice_is_given_no_ground_truth():
+    import inspect
+
+    from sim.simulator import Simulation
+
+    source = inspect.getsource(Simulation._at_random)
+    for hidden in ("cancel_at", "kind", "release_draw", "annoyed_draw", "_passenger_of"):
+        assert hidden not in source
+
+
 # ---- the oracle upper bound -----------------------------------------------------
 
 ORACLE = load_variant(CONFIGS / "variants" / "ORACLE.yaml")

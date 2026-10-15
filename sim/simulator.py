@@ -487,6 +487,8 @@ class Simulation:
         budget = self.variant.intervention.budget
         if budget is None or not risky:
             return risky
+        if budget.chooser == "random":
+            return self._at_random(risky, budget)
         chosen = set(plan(
             [Candidate(booking_id=booking.id, ride_id=booking.ride.id,
                        departure_day=int(booking.ride.departure // HOURS_PER_DAY),
@@ -499,6 +501,27 @@ class Simulation:
                    refill_horizon_hours=budget.refill_horizon_hours,
                    time_limit_seconds=budget.solver_time_limit_seconds)).booking_ids)
         return [(booking, survival) for booking, survival in risky if booking.id in chosen]
+
+    def _at_random(self, risky: list[tuple[Booking, float]], budget) -> list[tuple[Booking, float]]:
+        """The scheduler's limits, filled in a random order instead of by its choice."""
+        order = list(risky)
+        self._stream(f"budget:{self.env.now}").shuffle(order)
+        chosen: list[tuple[Booking, float]] = []
+        per_ride: dict[int, int] = {}
+        seats_per_day: dict[int, int] = {}
+        for booking, survival in order:
+            if len(chosen) == budget.contacts_per_round:
+                break
+            ride = booking.ride.id
+            day = int(booking.ride.departure // HOURS_PER_DAY)
+            if per_ride.get(ride, 0) >= budget.max_contacts_per_ride:
+                continue
+            if seats_per_day.get(day, 0) + booking.seats > budget.max_seats_asked_per_departure_day:
+                continue
+            chosen.append((booking, survival))
+            per_ride[ride] = per_ride.get(ride, 0) + 1
+            seats_per_day[day] = seats_per_day.get(day, 0) + booking.seats
+        return chosen
 
     def _ask_to_reconfirm(self, booking: Booking, survival: float):
         passenger = self._passenger_of[booking.id]

@@ -1,0 +1,17 @@
+# B5-RANDOM: B5 with the same limits, but the requests sent go to eligible bookings taken
+# in a random order rather than chosen by the contact scheduler. If B5 does no better,
+# the scheduler's choice adds nothing over chance.
+name: B5-RANDOM
+ranking: predicted_survival
+hazard_model: h2-cox
+intervention:
+  survival_threshold: 0.8
+  min_hours_before_departure: 24
+  scoring_interval_hours: 24
+  budget:
+    contacts_per_round: 2
+    max_contacts_per_ride: 1
+    max_seats_asked_per_departure_day: 4
+    refill_horizon_hours: 168
+    solver_time_limit_seconds: 5
+    chooser: random
