@@ -66,7 +66,7 @@ mock that says so, as payments and SMS already are.
 | ~~Publishing-lead sweep~~ | Done: late publishing explains little; most empty searches are full rides (EXPERIMENT_PROTOCOL.md section 10) | |
 | ~~Refills by release timing~~ | Done: early releases are refilled 94%, late ones 68%; B4 moves too few (EXPERIMENT_PROTOCOL.md section 11) | |
 | ~~Oracle variant~~ | Done: the ceiling is +0.10 per 100 searches (EXPERIMENT_PROTOCOL.md section 12) | |
-| Oracle across release probability | How the ceiling depends on the assumed response | |
+| ~~Oracle across release probability~~ | Done: the ceiling is +0.05 to +0.22 as the release chance goes from 0.25 to 1.0 (EXPERIMENT_PROTOCOL.md section 15) | |
 | ~~B5 with random choice~~ | Done: random choice does as well; the scheduler does not beat chance (EXPERIMENT_PROTOCOL.md section 14) | |
 | ~~Survival-threshold sweep; B4 with the no-feature model; component removal~~ | Done: no threshold helps, the features add nothing, all the gain is the ranking (EXPERIMENT_PROTOCOL.md section 14) | |
 | Variants B6 to B11 | Not defined anywhere in the repository | Need their definitions |

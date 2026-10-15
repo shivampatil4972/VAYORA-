@@ -612,3 +612,22 @@ corridor, under these assumptions, moving cancellations earlier is real but does
 into completed rides, and the part of the platform that helps is a ranking that needs no
 prediction about the passenger. It says nothing about real passengers, whose behaviour
 the simulator only assumes.
+
+## 15. The ceiling across passengers' response
+
+Sweep `5eeb0000-0000-4000-8000-000000000007`: ORACLE against B3, 30 seeds, with the chance
+that an asked passenger who would cancel late releases the seat at once set to 0.25, 0.5
+(the assumed value) and 1.0.
+
+| Release chance | Completed per 100, ORACLE − B3 (95% CI) | Released seats refilled, vs B3 |
+|---|---|---|
+| 0.25 | +0.05 (+0.02 to +0.07) | +4.0 |
+| 0.5 | +0.10 (+0.07 to +0.13) | +8.2 |
+| 1.0 | +0.22 (+0.17 to +0.27) | +16.2 |
+
+The ceiling grows roughly in proportion to the release chance, and at 0.5 matches section
+12. Even the best case there can be, a policy that knows exactly who will cancel late and
+passengers who all release the moment they are asked, gains under a quarter of a completed
+ride per 100 searches. The chance of putting off a passenger who would have travelled is
+not swept: the oracle asks no such passenger, and a 3 × 3 grid run first gave identical
+rows for every value of it.

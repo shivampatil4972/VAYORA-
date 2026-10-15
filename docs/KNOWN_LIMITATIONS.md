@@ -34,8 +34,9 @@ mistake for more. Updated 2026-10-13.
   worth at most about 0.07 completed rides per 100 searches before losses
   (EXPERIMENT_PROTOCOL.md sections 9 to 11).
 - Even an oracle that asks exactly the bookings that will cancel late gains only +0.10
-  completed rides per 100 searches (section 12). The ceiling depends on assumed passenger
-  responses.
+  completed rides per 100 searches (section 12). The ceiling depends on the assumed
+  response: +0.05 to +0.22 as the chance of releasing at once goes from 0.25 to 1.0
+  (section 15).
 - It is one synthetic corridor. It is not evidence that the idea fails in reality.
 - Variants B1, B2 and B6 to B11 are not built.
 - The one gain found, B3's ranking (+0.34), needs no booking features: a model that knows

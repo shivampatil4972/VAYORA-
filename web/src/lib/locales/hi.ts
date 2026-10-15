@@ -1017,4 +1017,9 @@ export const hi: Record<string, string> = {
     'यात्री से पूछने से पहले बुकिंग कितनी जोखिम भरी दिखनी चाहिए',
   'Ask when the estimated chance of lasting to departure is below':
     'पूछें जब प्रस्थान तक टिकने की अनुमानित संभावना इससे कम हो',
+  // What-if: oracle sweep
+  'The most asking could gain, by how readily passengers release':
+    'पूछने से अधिकतम कितना लाभ, यात्री कितनी आसानी से सीट छोड़ते हैं उसके अनुसार',
+  'Chance an asked passenger releases at once':
+    'पूछे गए यात्री के तुरंत सीट छोड़ने की संभावना',
 };

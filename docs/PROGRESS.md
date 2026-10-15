@@ -1,5 +1,13 @@
 # Progress
 
+## 2026-10-15 — the ceiling across passengers' response
+
+- ORACLE against B3 with the release chance at 0.25, 0.5 and 1.0 (sweep `...007`,
+  EXPERIMENT_PROTOCOL.md section 15): +0.05, +0.10, +0.22. A first 3 × 3 grid also swept the
+  chance of putting off a passenger who would travel; every row was identical, as it must
+  be (the oracle asks no such passenger), so the sweep keeps only the release chance. On the
+  what-if page and in reproduce.sh.
+
 ## 2026-10-15 — robustness
 
 - Four new variants (B3-KM, B4-KM, ASK-ONLY, B5-RANDOM) and a threshold sweep, run against

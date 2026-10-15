@@ -896,6 +896,188 @@
      }
     }
    ]
+  },
+  {
+   "name": "oracle-response",
+   "runId": "5eeb0000-0000-4000-8000-000000000007",
+   "data": "synthetic (simulator)",
+   "variant": "ORACLE",
+   "baseline": "B3",
+   "baselinePerCell": false,
+   "parameters": {
+    "demand.intervention_response.early_release_probability": [
+     0.25,
+     0.5,
+     1.0
+    ]
+   },
+   "cells": [
+    {
+     "parameters": {
+      "demand.intervention_response.early_release_probability": 0.25
+     },
+     "measures": {
+      "per_100": {
+       "mean": 31.1557,
+       "baselineMean": 31.1095,
+       "difference": 0.0463,
+       "ciLow": 0.02,
+       "ciHigh": 0.0725,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.32,
+       "baselineMean": 0.3763,
+       "difference": -0.0563,
+       "ciLow": -0.0627,
+       "ciHigh": -0.0499,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.0371,
+       "baselineMean": 0.0,
+       "difference": 0.0371,
+       "ciLow": 0.0354,
+       "ciHigh": 0.0388,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 190.2667,
+       "baselineMean": 186.2333,
+       "difference": 4.0333,
+       "ciLow": 2.7988,
+       "ciHigh": 5.2678,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 75.0333,
+       "baselineMean": 76.3667,
+       "difference": -1.3333,
+       "ciLow": -2.3493,
+       "ciHigh": -0.3174,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.5437,
+       "baselineMean": 0.5448,
+       "difference": -0.0011,
+       "ciLow": -0.0016,
+       "ciHigh": -0.0007,
+       "seeds": 30
+      }
+     }
+    },
+    {
+     "parameters": {
+      "demand.intervention_response.early_release_probability": 0.5
+     },
+     "measures": {
+      "per_100": {
+       "mean": 31.2119,
+       "baselineMean": 31.1095,
+       "difference": 0.1024,
+       "ciLow": 0.071,
+       "ciHigh": 0.1338,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.2643,
+       "baselineMean": 0.3763,
+       "difference": -0.1121,
+       "ciLow": -0.1199,
+       "ciHigh": -0.1043,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.0372,
+       "baselineMean": 0.0,
+       "difference": 0.0372,
+       "ciLow": 0.0355,
+       "ciHigh": 0.0389,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 194.4333,
+       "baselineMean": 186.2333,
+       "difference": 8.2,
+       "ciLow": 6.8292,
+       "ciHigh": 9.5708,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 73.9,
+       "baselineMean": 76.3667,
+       "difference": -2.4667,
+       "ciLow": -3.7176,
+       "ciHigh": -1.2157,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.5427,
+       "baselineMean": 0.5448,
+       "difference": -0.0021,
+       "ciLow": -0.0028,
+       "ciHigh": -0.0014,
+       "seeds": 30
+      }
+     }
+    },
+    {
+     "parameters": {
+      "demand.intervention_response.early_release_probability": 1.0
+     },
+     "measures": {
+      "per_100": {
+       "mean": 31.3276,
+       "baselineMean": 31.1095,
+       "difference": 0.2182,
+       "ciLow": 0.1699,
+       "ciHigh": 0.2664,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.149,
+       "baselineMean": 0.3763,
+       "difference": -0.2273,
+       "ciLow": -0.2377,
+       "ciHigh": -0.2168,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.0372,
+       "baselineMean": 0.0,
+       "difference": 0.0372,
+       "ciLow": 0.0355,
+       "ciHigh": 0.039,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 202.4667,
+       "baselineMean": 186.2333,
+       "difference": 16.2333,
+       "ciLow": 13.9217,
+       "ciHigh": 18.5449,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 68.4667,
+       "baselineMean": 76.3667,
+       "difference": -7.9,
+       "ciLow": -9.9578,
+       "ciHigh": -5.8422,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.5411,
+       "baselineMean": 0.5448,
+       "difference": -0.0038,
+       "ciLow": -0.0048,
+       "ciHigh": -0.0028,
+       "seeds": 30
+      }
+     }
+    }
+   ]
   }
  ]
 }

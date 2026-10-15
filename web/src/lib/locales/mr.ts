@@ -1017,4 +1017,9 @@ export const mr: Record<string, string> = {
     'प्रवाशाला विचारण्यापूर्वी बुकिंग किती धोकादायक दिसायला हवी',
   'Ask when the estimated chance of lasting to departure is below':
     'प्रस्थानापर्यंत टिकण्याची अंदाजित शक्यता यापेक्षा कमी असेल तेव्हा विचारा',
+  // What-if: oracle sweep
+  'The most asking could gain, by how readily passengers release':
+    'विचारल्याने जास्तीत जास्त किती फायदा, प्रवासी किती सहज जागा सोडतात त्यानुसार',
+  'Chance an asked passenger releases at once':
+    'विचारलेल्या प्रवाशाने लगेच जागा सोडण्याची शक्यता',
 };

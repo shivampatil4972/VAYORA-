@@ -25,6 +25,7 @@ SWEEP_RUNS=(
   "departure_tolerance 5eeb0000-0000-4000-8000-000000000004"
   "publish_lead 5eeb0000-0000-4000-8000-000000000005"
   "survival_threshold 5eeb0000-0000-4000-8000-000000000006"
+  "oracle_response 5eeb0000-0000-4000-8000-000000000007"
 )
 
 echo "== starting the database"

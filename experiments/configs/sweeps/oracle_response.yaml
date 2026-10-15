@@ -1,0 +1,15 @@
+# How does the ceiling depend on how passengers respond?
+#
+# ORACLE asks exactly the bookings that will be cancelled late, so its gain over B3 is the
+# most any reconfirmation policy could achieve, at the assumed response. How readily an
+# asked passenger releases early is an assumption no simulation can estimate; this sweep
+# shows the ceiling across it, up to 1.0, where everyone asked releases at once.
+#
+# The chance of putting off a passenger who would have travelled is not swept: the oracle
+# asks no such passenger, so it cannot matter (a 3 x 3 grid confirmed every row identical).
+name: oracle-response
+# Run once: B3 never contacts anyone, so the swept parameter cannot affect it.
+baseline: variants/B3.yaml
+variant: variants/ORACLE.yaml
+parameters:
+  demand.intervention_response.early_release_probability: [0.25, 0.5, 1.0]
