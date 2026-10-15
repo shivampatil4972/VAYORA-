@@ -50,8 +50,11 @@ if $SWEEPS; then
   done
 fi
 
+echo "== 5. the what-if explorer's copy of the sweeps"
+research python -m experiments.analysis.export_web $(for entry in "${SWEEP_RUNS[@]}"; do echo "${entry#* }"; done) > /dev/null
+
 echo "== checking every rebuilt file against the committed one"
-if git diff --exit-code --stat -- intel/app/hazard/models experiments/reports; then
+if git diff --exit-code --stat -- intel/app/hazard/models experiments/reports web/src/data; then
   echo "Every result reproduced exactly."
 else
   echo "Something came out differently: see the diff above." >&2

@@ -161,7 +161,7 @@ Last updated: 2026-10-15. Test suites and how to run them are in [TESTING.md](TE
 | 82 | Driver rest-stop planning | TBD | TBD | Not started |
 | 83 | Fuel and EV charging stops | TBD | TBD | Not started |
 | 85 | Weekly, monthly, and annual travel passes | TBD | TBD | Verified (API and UI tests, live run), mock provider, no money moves: a running pass waives the service fee; the driver's fare is untouched. Prices are assumptions |
-| 87 | Live what-if simulator | TBD | TBD | Not started |
+| 87 | Live what-if simulator | TBD | TBD | Partial: an administrator page explores the saved sweeps (departure window, publishing lead, contact budget) one setting at a time, with each run's figures against its baseline (Python and UI tests). **Nothing is simulated live**: only settings a sweep was run at can be chosen |
 | 90 | Reproducibility capsule (`make reproduce` or equivalent) | TBD | TBD | Verified: `scripts/reproduce.sh` rebuilds the tests, model, ladder and current sweeps and fails unless every file matches the committed one. Run in full on 2026-10-16: every committed number reproduced exactly |
 | 91 | Last-mile rickshaw, bus, and walking access | TBD | TBD | Not started |
 | 92 | Bus alternative after recovery failure | TBD | TBD | Verified (API test): when a driver withdraws and no other ride fits, the notice names up to three listed buses, with the same warning |

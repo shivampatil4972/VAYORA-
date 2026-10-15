@@ -965,4 +965,51 @@ export const mr: Record<string, string> = {
     'तुम्हाला एका कोडने त्याची पुष्टी करण्यास सांगितले जाईल. या प्रकल्पात कोणताही SMS प्रत्यक्षात पाठवला जात नाही.',
   'Signed up by phone':
     'फोनने नोंदणी केली',
+  // What-if explorer
+  'What if':
+    'काय झाले तर',
+  'Simulator runs on synthetic data, not real passengers. Changing a setting shows another saved run: nothing is simulated on this page, and only the settings a sweep was run at can be chosen.':
+    'कृत्रिम डेटावर सिम्युलेटरचे रन, खऱ्या प्रवाशांवर नाही. सेटिंग बदलल्यावर दुसरा जतन केलेला रन दिसतो: या पानावर काहीही सिम्युलेट होत नाही, आणि ज्या सेटिंगवर स्वीप चालवला होता त्याच निवडता येतात.',
+  'Question':
+    'प्रश्न',
+  'How many reconfirmation requests may go out at once':
+    'एका वेळी किती पुनःपुष्टी विनंत्या पाठवता येतात',
+  'How far from their chosen time passengers will travel':
+    'प्रवासी आपल्या निवडलेल्या वेळेपासून किती दूर प्रवास करतील',
+  'How early drivers publish their rides':
+    'चालक आपल्या राइड किती आधी प्रकाशित करतात',
+  'Requests per round':
+    'प्रत्येक फेरीतील विनंत्या',
+  'Hours either side of the chosen time':
+    'निवडलेल्या वेळेच्या दोन्ही बाजूंचे तास',
+  'Days ahead, at the least, that a ride is published':
+    'राइड किमान किती दिवस आधी प्रकाशित होते',
+  'Completed rides per 100 searches':
+    'प्रत्येक 100 शोधांमागे पूर्ण झालेल्या राइड',
+  'Late share of cancellations':
+    'रद्दीकरणांपैकी उशिराचा वाटा',
+  'Reconfirmation requests per accepted booking':
+    'प्रत्येक स्वीकृत बुकिंगमागे पुनःपुष्टी विनंत्या',
+  'Released seats refilled':
+    'सोडलेल्या जागा पुन्हा भरल्या',
+  'Refills by a passenger offered no other ride':
+    'दुसरी राइड न मिळालेल्या प्रवाशाने भरलेल्या जागा',
+  'Searches offered no ride':
+    'ज्या शोधांत एकही राइड मिळाली नाही',
+  '{variant} compared with {baseline}, {seeds} seeds each, paired by seed.':
+    '{variant} ची तुलना {baseline} शी, प्रत्येकी {seeds} सीड, सीडनुसार जोडलेले.',
+  'The baseline was run on the same changed world.':
+    'आधाररेषा त्याच बदललेल्या जगावर चालवली.',
+  'The baseline was run once, on the unchanged world.':
+    'आधाररेषा एकदाच, न बदललेल्या जगावर चालवली.',
+  'Measure':
+    'माप',
+  'Difference (95% interval)':
+    'फरक (95% मध्यांतर)',
+  'to':
+    'ते',
+  'no clear difference':
+    'स्पष्ट फरक नाही',
+  'Run {run}. Rebuilt and checked by scripts/reproduce.sh.':
+    'रन {run}. scripts/reproduce.sh ने पुन्हा तयार करून तपासला.',
 };

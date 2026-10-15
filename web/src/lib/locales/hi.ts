@@ -965,4 +965,51 @@ export const hi: Record<string, string> = {
     'आपसे एक कोड से इसकी पुष्टि करने को कहा जाएगा। इस परियोजना में कोई SMS वास्तव में नहीं भेजा जाता।',
   'Signed up by phone':
     'फ़ोन से साइन अप किया',
+  // What-if explorer
+  'What if':
+    'क्या होगा अगर',
+  'Simulator runs on synthetic data, not real passengers. Changing a setting shows another saved run: nothing is simulated on this page, and only the settings a sweep was run at can be chosen.':
+    'कृत्रिम डेटा पर सिम्युलेटर के रन, असली यात्रियों पर नहीं। सेटिंग बदलने पर एक और सहेजा गया रन दिखता है: इस पृष्ठ पर कुछ भी सिम्युलेट नहीं होता, और केवल वही सेटिंग चुनी जा सकती हैं जिन पर स्वीप चलाया गया था।',
+  'Question':
+    'प्रश्न',
+  'How many reconfirmation requests may go out at once':
+    'एक बार में कितने पुनःपुष्टि अनुरोध भेजे जा सकते हैं',
+  'How far from their chosen time passengers will travel':
+    'यात्री अपने चुने समय से कितना हटकर यात्रा करेंगे',
+  'How early drivers publish their rides':
+    'चालक अपनी सवारियाँ कितनी पहले प्रकाशित करते हैं',
+  'Requests per round':
+    'प्रति दौर अनुरोध',
+  'Hours either side of the chosen time':
+    'चुने समय के दोनों ओर घंटे',
+  'Days ahead, at the least, that a ride is published':
+    'सवारी कम से कम कितने दिन पहले प्रकाशित होती है',
+  'Completed rides per 100 searches':
+    'प्रति 100 खोजों पर पूरी हुई सवारियाँ',
+  'Late share of cancellations':
+    'रद्दीकरणों में देर से हुए का हिस्सा',
+  'Reconfirmation requests per accepted booking':
+    'प्रति स्वीकृत बुकिंग पुनःपुष्टि अनुरोध',
+  'Released seats refilled':
+    'छोड़ी गई सीटें फिर से भरीं',
+  'Refills by a passenger offered no other ride':
+    'ऐसे यात्री द्वारा भराव जिसे कोई और सवारी नहीं मिली',
+  'Searches offered no ride':
+    'खोजें जिनमें कोई सवारी नहीं मिली',
+  '{variant} compared with {baseline}, {seeds} seeds each, paired by seed.':
+    '{variant} की तुलना {baseline} से, प्रत्येक के {seeds} सीड, सीड के अनुसार जोड़े गए।',
+  'The baseline was run on the same changed world.':
+    'आधार रेखा उसी बदली हुई दुनिया पर चलाई गई।',
+  'The baseline was run once, on the unchanged world.':
+    'आधार रेखा एक बार, बिना बदली दुनिया पर चलाई गई।',
+  'Measure':
+    'माप',
+  'Difference (95% interval)':
+    'अंतर (95% अंतराल)',
+  'to':
+    'से',
+  'no clear difference':
+    'कोई स्पष्ट अंतर नहीं',
+  'Run {run}. Rebuilt and checked by scripts/reproduce.sh.':
+    'रन {run}। scripts/reproduce.sh द्वारा दोबारा बनाया और जाँचा गया।',
 };

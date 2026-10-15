@@ -85,6 +85,7 @@ was decided while building within them.
 | A chat message is shown when the gateway relays it, not when it is typed | What a sender sees is what everyone received | |
 | Irreversible actions need a second, explicit press | Cancelling, completing and marking a no-show cannot be undone | One more click |
 | Receipts are in English | The PDF's built-in fonts cover Latin script only | Devanagari names print as "?" |
+| The what-if page shows saved sweeps; it runs nothing | Running the simulator from a screen needs a service to run it: intel holds no state and core-api owns transactions, and a fourth runtime is ruled out. The web image is built from `web/` alone, so `export_web.py` copies the sweep figures into `web/src/data/whatif.json`, and `reproduce.sh` and a test fail if the copy drifts | Only settings already swept can be chosen; a new question needs a sweep run by hand |
 
 ## Dependencies
 

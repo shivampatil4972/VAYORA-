@@ -7,6 +7,7 @@ import { Notice, Page } from './components/ui';
 import { AuthProvider, useAuth } from './lib/auth';
 import { LanguageProvider, useT } from './lib/i18n';
 import { DurabilityPage } from './pages/AdminPages';
+import { WhatIfPage } from './pages/WhatIfPage';
 import { AccountPage } from './pages/AccountPage';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
 import { AdminBookingsPage, AdminRidesPage, AuditPage, BusServicesPage, DisputesPage, MembersPage, OverviewPage, ReportsPage } from './pages/BackOfficePages';
@@ -64,6 +65,7 @@ export function AppRoutes() {
           <Route path="admin/emergencies" element={<EmergenciesPage />} />
           <Route path="admin/users" element={<MembersPage />} />
           <Route path="admin/durability" element={<DurabilityPage />} />
+          <Route path="admin/what-if" element={<WhatIfPage />} />
           <Route path="admin/audit" element={<AuditPage />} />
           <Route path="admin/disputes" element={<DisputesPage />} />
           <Route path="admin/rides" element={<AdminRidesPage />} />

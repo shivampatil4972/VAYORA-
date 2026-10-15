@@ -1,5 +1,18 @@
 # Progress
 
+## 2026-10-15 — what-if explorer
+
+- **Feature 87** moves from Not started to Partial. An administrator's "What if" page picks
+  a question (passengers' departure window, how early rides are published, the contact
+  budget) and a setting, and shows that saved run's figures against its baseline, with the
+  95% interval and "no clear difference" where it spans zero. Only the three sweeps the
+  current code reproduces are offered. Nothing is simulated on the page: the decision and
+  its cost are in DECISIONS.md.
+- `experiments/analysis/export_web.py` writes the page's data from the committed reports;
+  `scripts/reproduce.sh` now rebuilds it and fails if it differs. Verified by
+  `test_export_web.py` and `App.test.tsx`, which checks the 8-hour window shows
+  −0.05 (−0.10 to −0.01), as in EXPERIMENT_PROTOCOL.md.
+
 ## 2026-10-15 — phone sign-up
 
 - **Feature 1** moves from Partial to Verified. A member signs up with an email address or

@@ -2121,3 +2121,23 @@ describe('phone sign-up', () => {
     expect(body).not.toHaveProperty('method');
   });
 });
+
+describe('what if', () => {
+  it('shows a saved run for the chosen setting, and says nothing is simulated', async () => {
+    signIn('ADMIN');
+    serve({});
+    open('/admin/what-if');
+
+    expect(await screen.findByText(/nothing is simulated on this page/)).toBeInTheDocument();
+    await userEvent.selectOptions(screen.getByLabelText('Question'), 'How far from their chosen time passengers will travel');
+    await userEvent.selectOptions(screen.getByLabelText('Hours either side of the chosen time'), '8');
+
+    const row = screen.getByRole('row', { name: /Completed rides per 100 searches/ });
+    // The committed sweep: B4 against B3 at 8 hours.
+    expect(row).toHaveTextContent('33.06');
+    expect(row).toHaveTextContent('33.11');
+    expect(row).toHaveTextContent('−0.05 (−0.10 to −0.01)');
+    expect(within(row).queryByText('no clear difference')).not.toBeInTheDocument();
+    expect(screen.getByText('B4 compared with B3, 30 seeds each, paired by seed.', { exact: false })).toBeInTheDocument();
+  });
+});
