@@ -1,5 +1,14 @@
 # Progress
 
+## 2026-10-15 — server error messages translated
+
+- Every fixed error message core-api can send (88, with the client's own "cannot reach
+  the server") is now shown in Hindi or Marathi: the error notice translates what it shows,
+  and `web/src/lib/serverMessages.ts` registers them so the translation tests demand both.
+  `ServerMessagesTest` in core-api fails if the server gains a fixed message the app does
+  not list. Messages built from numbers stay in English, as does anything the app does
+  not know. Two messages chosen by a condition were split into plain ones so they count.
+
 ## 2026-10-15 — real email, the driver's record, walking time, flexibility tiers
 
 - **Real email (63)** through any SMTP server, set by configuration; without one nothing

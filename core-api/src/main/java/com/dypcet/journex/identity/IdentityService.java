@@ -54,8 +54,10 @@ public class IdentityService {
                     role.name());
             return new User(id, email, fullName.strip(), role);
         } catch (DuplicateKeyException e) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    email != null ? "Email is already registered" : "Phone number is already registered");
+            if (email != null) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is already registered");
+            }
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Phone number is already registered");
         }
     }
 

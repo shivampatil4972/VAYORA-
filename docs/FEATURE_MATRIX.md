@@ -131,7 +131,7 @@ Last updated: 2026-10-15. Test suites and how to run them are in [TESTING.md](TE
 
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
-| 71 | English, Hindi, and Marathi | TBD | TBD | Partial: every screen is in English, Hindi and Marathi and tests enforce completeness. The translations have had no native review, and error explanations the server writes stay in English. Notifications are now stored as a template and its values and shown in the reader's language (API and UI tests); older ones, and email, SMS and push copies, stay in English |
+| 71 | English, Hindi, and Marathi | TBD | TBD | Partial: every screen, notification and fixed server error message is in English, Hindi and Marathi, and tests enforce completeness on both sides (a core-api test fails if the server gains a message or notification the app cannot translate). Error messages built from numbers stay in English. **The translations have had no native review**, which is all that keeps this partial |
 | 72 | Referral programme | TBD | TBD | Partial: invitation codes, recorded at sign-up and counted once the invited member completes a trip (API and UI tested). **No reward**: none has been decided |
 | 73 | Static/configured MSRTC alternatives | TBD | TBD | Verified (API and UI tests): administrators enter bus services; passengers see them when a search finds no ride. None ship with the platform, nothing checks them against MSRTC, and passengers are told to check with the operator |
 | 74 | Admin back office | TBD | TBD | Verified (API and UI tests): overview, reports queue, members, rides and bookings by status, disputed trips, emergencies and simulated outbox, booking durability with reasons, audit log. No experiment screens |

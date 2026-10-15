@@ -6,7 +6,7 @@ Counts are from the runs on 2026-10-13. Every suite passed with no failures.
 |---|---|---|
 | core-api | `docker compose --profile test run --rm core-api-tests` | 215 |
 | Python (events, simulator, model, scheduler, experiments, intel API) | `docker compose --profile research run --rm research` | 177 |
-| web | `cd web && npm ci && npm test` | 185 |
+| web | `cd web && npm ci && npm test` | 186 |
 | gateway | `cd gateway && npm ci && npm test` | 25 |
 
 The first two need only Docker. The Python suite also needs PostgreSQL running:

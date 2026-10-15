@@ -1176,4 +1176,179 @@ export const hi: Record<string, string> = {
     'आपने लचीली बुकिंग चुनी थी, इसलिए {stop} से {time} की {driver} की सवारी पर आपकी ओर से सीट का अनुरोध किया गया है। चालक उत्तर देंगे।',
   'You chose a flexible booking, but no other ride with seats fits it. Nothing new has been booked.':
     'आपने लचीली बुकिंग चुनी थी, पर सीटों वाली कोई और सवारी इसमें नहीं बैठती। कुछ नया बुक नहीं किया गया है।',
+  // Server messages
+  'A bus must go somewhere else':
+    'बस को किसी दूसरी जगह जाना चाहिए',
+  'A code was sent a moment ago. Wait before asking for another.':
+    'अभी-अभी एक कोड भेजा गया है। दूसरा माँगने से पहले रुकें।',
+  'A no-show can only be recorded while the ride is in progress':
+    'सवार न होना केवल सवारी चलते समय दर्ज किया जा सकता है',
+  'A ride needs exactly one price per leg between stops':
+    'सवारी में स्टॉप के बीच हर हिस्से की ठीक एक कीमत होनी चाहिए',
+  'Add a phone number first':
+    'पहले एक फ़ोन नंबर जोड़ें',
+  'Administrators cannot self-register':
+    'व्यवस्थापक स्वयं पंजीकरण नहीं कर सकते',
+  'Battery and consumption are only for an electric vehicle':
+    'बैटरी और खपत केवल इलेक्ट्रिक वाहन के लिए हैं',
+  'Booking not found':
+    'बुकिंग नहीं मिली',
+  'Contact not found':
+    'संपर्क नहीं मिला',
+  'Departure time must be in the future':
+    'प्रस्थान का समय भविष्य में होना चाहिए',
+  'Email is already registered':
+    'यह ईमेल पहले से पंजीकृत है',
+  'Enter a phone number of 10 to 15 digits':
+    '10 से 15 अंकों का फ़ोन नंबर दर्ज करें',
+  'Give an email address or a phone number':
+    'एक ईमेल पता या फ़ोन नंबर दें',
+  'Invalid email, phone number or password':
+    'ईमेल, फ़ोन नंबर या पासवर्ड गलत है',
+  'It is too early to start this ride':
+    'यह सवारी शुरू करने के लिए अभी बहुत जल्दी है',
+  'Member not found':
+    'सदस्य नहीं मिला',
+  'No boarding pass for that booking':
+    'उस बुकिंग का कोई बोर्डिंग पास नहीं है',
+  'No open alert with that id':
+    'उस आईडी का कोई खुला अलर्ट नहीं है',
+  'No photo':
+    'कोई फ़ोटो नहीं',
+  'No receipt for that booking':
+    'उस बुकिंग की कोई रसीद नहीं है',
+  'No receipt for that pass':
+    'उस पास की कोई रसीद नहीं है',
+  'No ride open for booking has those stops':
+    'बुकिंग के लिए खुली किसी सवारी में ये स्टॉप नहीं हैं',
+  'No such bus service':
+    'ऐसी कोई बस सेवा नहीं है',
+  'No such channel':
+    'ऐसा कोई माध्यम नहीं है',
+  'No such stopover':
+    'ऐसा कोई पड़ाव नहीं है',
+  'Not enough seats left on that part of the ride':
+    'सवारी के उस हिस्से पर पर्याप्त सीटें नहीं बचीं',
+  'Not enough seats left on that part of the ride to hold':
+    'सवारी के उस हिस्से पर रोकने के लिए पर्याप्त सीटें नहीं बचीं',
+  'Not enough seats left on that part of the ride: some are being held for another passenger for a few minutes':
+    'सवारी के उस हिस्से पर पर्याप्त सीटें नहीं बचीं: कुछ सीटें कुछ मिनटों के लिए दूसरे यात्री के लिए रोकी गई हैं',
+  'Notification not found':
+    'सूचना नहीं मिली',
+  'Only a charger has a power rating':
+    'केवल चार्जर की शक्ति दर्ज होती है',
+  'Only a completed trip can be confirmed':
+    'केवल पूरी हुई यात्रा की पुष्टि की जा सकती है',
+  'Only a completed trip can be rated':
+    'केवल पूरी हुई यात्रा को रेटिंग दी जा सकती है',
+  'Only a driver whose profile says she is a woman can offer a women-only ride. Set your gender on your account page first.':
+    'केवल वही चालक महिलाओं के लिए सवारी दे सकती है जिसकी प्रोफ़ाइल में वह महिला हो। पहले अपने खाते के पृष्ठ पर अपना लिंग सेट करें।',
+  'Only a ride in progress can be completed':
+    'केवल चल रही सवारी को पूरा किया जा सकता है',
+  'Only a scheduled ride can be cancelled':
+    'केवल निर्धारित सवारी रद्द की जा सकती है',
+  'Only a scheduled ride can be started':
+    'केवल निर्धारित सवारी शुरू की जा सकती है',
+  'Phone number is already registered':
+    'यह फ़ोन नंबर पहले से पंजीकृत है',
+  'Push notifications are not set up on this server':
+    'इस सर्वर पर पुश सूचनाएँ सेट नहीं हैं',
+  'Report not found':
+    'रिपोर्ट नहीं मिली',
+  'Request a code first':
+    'पहले एक कोड माँगें',
+  'Ride not found':
+    'सवारी नहीं मिली',
+  'Seats cannot be held right now. You can still book.':
+    'अभी सीटें रोकी नहीं जा सकतीं। आप फिर भी बुक कर सकते हैं।',
+  'Stops must be in travel order with increasing offsetMinutes':
+    'स्टॉप यात्रा के क्रम में और बढ़ते offsetMinutes के साथ होने चाहिए',
+  'That code has expired. Request a new one.':
+    'उस कोड की अवधि समाप्त हो गई है। नया कोड माँगें।',
+  'That code is no longer valid. Request a new one.':
+    'वह कोड अब मान्य नहीं है। नया कोड माँगें।',
+  'That code is not right':
+    'वह कोड सही नहीं है',
+  'That is not a photo JOURNEX can read: use a JPEG or PNG':
+    'JOURNEX यह फ़ोटो नहीं पढ़ सकता: JPEG या PNG का उपयोग करें',
+  'That is not a push service JOURNEX sends to':
+    'JOURNEX इस पुश सेवा को नहीं भेजता',
+  'That pass is not on sale':
+    'वह पास बिक्री के लिए नहीं है',
+  'That phone number belongs to another account':
+    'वह फ़ोन नंबर किसी दूसरे खाते का है',
+  'That photo has too many pixels':
+    'उस फ़ोटो में बहुत अधिक पिक्सेल हैं',
+  'That photo is too large':
+    'वह फ़ोटो बहुत बड़ी है',
+  'That referral code does not exist':
+    'वह आमंत्रण कोड मौजूद नहीं है',
+  'The browser\'s keys are not valid':
+    'ब्राउज़र की कुंजियाँ मान्य नहीं हैं',
+  'The earliest hour must be before the latest':
+    'सबसे पहला घंटा सबसे आखिरी से पहले होना चाहिए',
+  'The email could not be sent. Try again later.':
+    'ईमेल नहीं भेजा जा सका। बाद में फिर कोशिश करें।',
+  'The first stop must have offsetMinutes 0':
+    'पहले स्टॉप का offsetMinutes 0 होना चाहिए',
+  'The lowest price must not be above the highest':
+    'सबसे कम कीमत सबसे अधिक से ऊपर नहीं होनी चाहिए',
+  'The payment was declined. No pass was bought.':
+    'भुगतान अस्वीकार हुआ। कोई पास नहीं खरीदा गया।',
+  'The payment was declined. Nothing was booked.':
+    'भुगतान अस्वीकार हुआ। कुछ भी बुक नहीं हुआ।',
+  'The return must leave after the ride out has arrived':
+    'वापसी जाने वाली सवारी के पहुँचने के बाद निकलनी चाहिए',
+  'This account has no email address':
+    'इस खाते में कोई ईमेल पता नहीं है',
+  'This driver approves each request, and it is too close to departure for an answer. Choose a ride that confirms instantly.':
+    'यह चालक हर अनुरोध स्वीकृत करता है, और उत्तर के लिए प्रस्थान बहुत करीब है। ऐसी सवारी चुनें जो तुरंत पुष्टि करती हो।',
+  'This idempotency key was already used for a different booking':
+    'यह idempotency key किसी दूसरी बुकिंग के लिए पहले ही उपयोग हो चुकी है',
+  'This is already verified':
+    'इसकी पुष्टि पहले ही हो चुकी है',
+  'This report is already closed':
+    'यह रिपोर्ट पहले ही बंद हो चुकी है',
+  'This request was already submitted':
+    'यह अनुरोध पहले ही भेजा जा चुका है',
+  'This ride has already left that stop':
+    'यह सवारी उस स्टॉप से पहले ही निकल चुकी है',
+  'This ride has already left; the booking can no longer be cancelled':
+    'यह सवारी निकल चुकी है; बुकिंग अब रद्द नहीं की जा सकती',
+  'This ride is for women only':
+    'यह सवारी केवल महिलाओं के लिए है',
+  'This ride is not open for booking':
+    'यह सवारी बुकिंग के लिए खुली नहीं है',
+  'This ride is not part of a series with rides still to run':
+    'यह सवारी ऐसी शृंखला का हिस्सा नहीं है जिसकी सवारियाँ अभी बाकी हों',
+  'Those stops are not on this ride':
+    'ये स्टॉप इस सवारी पर नहीं हैं',
+  'Too many wrong attempts. Request a new code.':
+    'बहुत अधिक गलत प्रयास। नया कोड माँगें।',
+  'User not found':
+    'उपयोगकर्ता नहीं मिला',
+  'Vehicle not found':
+    'वाहन नहीं मिला',
+  'Vehicle not found among your vehicles':
+    'आपके वाहनों में यह वाहन नहीं मिला',
+  'You already have an open report about this member':
+    'इस सदस्य के बारे में आपकी एक रिपोर्ट पहले से खुली है',
+  'You can only report someone you have booked or driven with':
+    'आप केवल उसी की रिपोर्ट कर सकते हैं जिसके साथ आपने बुकिंग या सवारी की हो',
+  'You cannot report yourself':
+    'आप अपनी ही रिपोर्ट नहीं कर सकते',
+  'You have already answered for this trip':
+    'आप इस यात्रा के लिए पहले ही उत्तर दे चुके हैं',
+  'You have already rated this trip':
+    'आप इस यात्रा को पहले ही रेटिंग दे चुके हैं',
+  'You sign in with your phone number, so it cannot be removed':
+    'आप अपने फ़ोन नंबर से साइन इन करते हैं, इसलिए इसे हटाया नहीं जा सकता',
+  'toSeq must come after fromSeq':
+    'toSeq को fromSeq के बाद आना चाहिए',
+  'This account is suspended':
+    'यह खाता निलंबित है',
+  'Invalid request content.':
+    'अनुरोध की सामग्री अमान्य है।',
+  'Cannot reach the server. Check your connection and try again.':
+    'सर्वर तक नहीं पहुँच पा रहे। अपना कनेक्शन जाँचें और फिर कोशिश करें।',
 };

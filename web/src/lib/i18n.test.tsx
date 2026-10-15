@@ -10,6 +10,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AppRoutes } from '../App';
 import { AuthProvider } from './auth';
 import { formatRupees, setFormatLanguage } from './format';
+import { Notice } from '../components/ui';
 import { LanguageProvider, TABLES, translate, type Language } from './i18n';
 import { translatedNotification } from './notificationText';
 
@@ -112,7 +113,7 @@ describe('translate', () => {
   });
 
   it('falls back to the English for a string it has no entry for, and never returns nothing', () => {
-    expect(translate('hi', 'Not enough seats left on that part of the ride')).toBe('Not enough seats left on that part of the ride');
+    expect(translate('hi', 'A sentence no table has')).toBe('A sentence no table has');
     expect(translate('mr', '')).toBe('');
   });
 
@@ -171,7 +172,15 @@ describe('the app in another language', () => {
     expect(await screen.findByText('किमान 1 जागा')).toBeInTheDocument();
   });
 
-  it("shows the server's own explanation as it came, in English", async () => {
+  it('translates a message the server is known to send', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ detail: 'Not enough seats left on that part of the ride' }), { status: 409 })));
+    render(<Notice tone="error">Not enough seats left on that part of the ride</Notice>, {
+      wrapper: ({ children }) => <LanguageProvider initial="hi">{children}</LanguageProvider>,
+    });
+    expect(screen.getByRole('alert')).toHaveTextContent('सवारी के उस हिस्से पर पर्याप्त सीटें नहीं बचीं');
+  });
+
+  it("shows a server explanation it does not know as it came, in English", async () => {
     open('/search', 'hi');
 
     await userEvent.click(await screen.findByRole('button', { name: 'खोजें' }));

@@ -125,6 +125,10 @@ export function ConfirmButton({ label, confirmLabel, onConfirm, disabled, tone =
 }
 
 export function Notice({ tone, children }: { tone: 'error' | 'success' | 'info'; children: ReactNode }) {
+  const t = useT();
+  // An error is often the server's own words: shown translated when the tables know them,
+  // and as they came when not.
+  const content = tone === 'error' && typeof children === 'string' ? t(children) : children;
   const style = {
     error: 'border-red-200 bg-red-50 text-red-800',
     success: 'border-emerald-200 bg-emerald-50 text-emerald-800',
@@ -133,7 +137,7 @@ export function Notice({ tone, children }: { tone: 'error' | 'success' | 'info';
   // Errors interrupt a screen reader; everything else waits its turn.
   return (
     <p role={tone === 'error' ? 'alert' : 'status'} className={`rounded-md border px-4 py-3 text-sm ${style}`}>
-      {children}
+      {content}
     </p>
   );
 }
