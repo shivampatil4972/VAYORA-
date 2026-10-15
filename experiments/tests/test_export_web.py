@@ -9,9 +9,7 @@ from experiments.analysis import export_web
 
 def test_the_web_copy_matches_the_reports_it_names():
     # Git on Windows may check the file out with CRLF line endings; the figures are what matter.
-    committed = export_web.OUT.read_text(encoding="utf-8").replace("
-", "
-")
+    committed = export_web.OUT.read_text(encoding="utf-8").replace("\r\n", "\n")
     run_ids = [s["runId"] for s in json.loads(committed)["sweeps"]]
     assert run_ids, "the explorer shows no sweep"
     assert committed == export_web.render(run_ids), (
