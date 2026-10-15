@@ -131,8 +131,10 @@ public class AccountService {
 
     /**
      * Sends a fresh code to the member's email or phone. Any earlier code for that channel
-     * stops working.
+     * stops working. If the code cannot be sent, nothing changes: the earlier code still
+     * works and the member may ask again at once.
      */
+    @Transactional
     public void requestCode(long userId, Channel channel) {
         MyProfile profile = profile(userId);
         String destination = channel == Channel.EMAIL ? profile.email() : profile.phone();

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Button, ConfirmButton, Notice } from './ui';
 import { api, fetchFile } from '../lib/api';
@@ -13,10 +13,18 @@ export const initialsOf = (name: string) => name.split(/\s+/).filter(Boolean).sl
 /** The photo at this path, fetched with the session token, or null while there is none. */
 function usePhotoUrl(path: string): { url: string | null; isPending: boolean } {
   const photo = useQuery({ queryKey: ['photo', path], queryFn: () => fetchFile(path) });
-  const url = useMemo(() => (photo.data ? URL.createObjectURL(photo.data) : null), [photo.data]);
-  useEffect(() => () => {
-    if (url) URL.revokeObjectURL(url);
-  }, [url]);
+  const [url, setUrl] = useState<string | null>(null);
+  // Made and revoked by the same effect, so a remount (StrictMode does one in development)
+  // makes a fresh address instead of keeping one already revoked.
+  useEffect(() => {
+    if (!photo.data) {
+      setUrl(null);
+      return;
+    }
+    const made = URL.createObjectURL(photo.data);
+    setUrl(made);
+    return () => URL.revokeObjectURL(made);
+  }, [photo.data]);
   return { url, isPending: photo.isPending };
 }
 

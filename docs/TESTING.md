@@ -4,7 +4,7 @@ Counts are from the runs on 2026-10-13. Every suite passed with no failures.
 
 | Suite | Command, from the repository root | Tests |
 |---|---|---|
-| core-api | `docker compose --profile test run --rm core-api-tests` | 220 |
+| core-api | `docker compose --profile test run --rm core-api-tests` | 221 |
 | Python (events, simulator, model, scheduler, experiments, intel API) | `docker compose --profile research run --rm research` | 177 |
 | web | `cd web && npm ci && npm test` | 189 |
 | gateway | `cd gateway && npm ci && npm test` | 25 |
@@ -134,6 +134,10 @@ Kept here because each is a class of mistake worth remembering.
 
 ## Bugs the tests did not find
 
+- **A failed confirmation email locked the member out for a minute**, and the supply-gap
+  timer ran outside its transaction; both found by reading the code, not by a test. The
+  first now has a test that fails without the fix. A notification sent from inside an
+  after-commit step was never written; the flexible-tier test found that one.
 - **Withdrawing a ride ran without a transaction for one commit.** A patch inserted a
   helper method between `cancel()` and its `@Transactional`, so the annotation applied to
   the helper (where Spring ignores it) and the withdrawal ran statement by statement.

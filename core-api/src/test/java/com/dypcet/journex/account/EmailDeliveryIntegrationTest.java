@@ -65,6 +65,19 @@ class EmailDeliveryIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
+    void aCodeThatCannotBeSentLeavesNothingBehindSoTheMemberCanAskAgainAtOnce() {
+        String email = UUID.randomUUID() + "@example.test";
+        long member = identity.register(email, "correct-horse-battery", "Asha", UserRole.PASSENGER).id();
+        SMTP.stop();
+        assertThatThrownBy(() -> accounts.requestCode(member, Channel.EMAIL))
+                .isInstanceOf(ResponseStatusException.class).hasMessageContaining("could not be sent");
+
+        SMTP.start();
+        accounts.requestCode(member, Channel.EMAIL);
+        assertThat(SMTP.getReceivedMessages()).hasSize(1);
+    }
+
+    @Test
     void anEmailThatCannotBeSentIsReportedNotSwallowed() {
         SMTP.stop();
         assertThatThrownBy(() -> sender.send(Channel.EMAIL, "someone@example.test", "JOURNEX: hello"))

@@ -1,5 +1,22 @@
 # Progress
 
+## 2026-10-15 — review of the recent work
+
+A review of the code added today found three bugs; each is fixed, two with a test that
+fails without the fix (checked by removing it).
+
+- **A failed confirmation email locked the member out.** `requestCode` had no
+  transaction: when the email failed, the new code stayed saved and the old one was
+  cancelled, so asking again was refused with "a code was sent a moment ago". Now nothing
+  changes if the code cannot be sent. `EmailDeliveryIntegrationTest`.
+- **The morning supply-gap check ran without its transaction**, because the timer called
+  a method on its own class, bypassing Spring's proxy. It now runs from a job class of its
+  own, as the booking-expiry job does.
+- **Photos broke in development**: React's StrictMode remounts once, and the photo's
+  temporary address was revoked on the first unmount and not made again. It is now made
+  and revoked by the same effect.
+- Tests: 221 Java, 189 web.
+
 ## 2026-10-15 — Google sign-in, ready to configure
 
 - **Feature 2** moves to Partial: "Sign in with Google" on the sign-in and sign-up pages,

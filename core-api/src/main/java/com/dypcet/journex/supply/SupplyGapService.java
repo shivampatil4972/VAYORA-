@@ -12,7 +12,6 @@ import java.time.ZoneId;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -141,11 +140,6 @@ public class SupplyGapService {
                 (rs, n) -> new Gap(rs.getObject("day", LocalDate.class), rs.getString("from_stop"),
                         rs.getString("to_stop"), rs.getInt("empty_searches"), rs.getInt("nudged")),
                 today, today.plusDays(horizonDays), nearStopMetres, nearStopMetres, minEmptySearches);
-    }
-
-    @Scheduled(cron = "${journex.supply.detection-cron}", zone = "Asia/Kolkata")
-    public void scheduled() {
-        detectAndNudge();
     }
 
     /** Logs each new gap once, and nudges drivers about it. Returns how many were nudged. */
