@@ -46,6 +46,7 @@ function serve(routes: Record<string, () => Response>) {
     if (!match && key === 'GET /notifications/preferences') return json({ email: false, sms: false });
     if (!match && key === 'GET /bus-alternatives') return json([]);
     if (!match && key === 'GET /me/push') return json({ publicKey: null, subscribed: false });
+    if (!match && key === 'GET /auth/google') return json({ clientId: null });
     if (!match && key.startsWith('GET ') && key.endsWith('/photo')) return json({ detail: 'No photo' }, 404);
     if (!match && key === 'GET /me/referral') return json({ code: 'K7QX2M', signedUp: 0, qualified: 0 });
     if (!match && key === 'GET /booking-terms') return json({ answerWithinMinutes: 720, closesMinutesBeforeBoarding: 120 });
@@ -198,7 +199,8 @@ describe('signing in', () => {
 
     expect(await screen.findByText('Enter your email or phone number')).toBeInTheDocument();
     expect(screen.getByLabelText('Email or phone number')).toHaveAttribute('aria-invalid', 'true');
-    expect(fetchMock).not.toHaveBeenCalled();
+    // Only the question of whether Google sign-in is offered; nothing is submitted.
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false);
   });
 
   it("shows the server's reason when the credentials are wrong", async () => {
@@ -2111,7 +2113,8 @@ describe('phone sign-up', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
 
     expect(await screen.findByText('Enter a valid email or phone number')).toBeInTheDocument();
-    expect(fetchMock).not.toHaveBeenCalled();
+    // Only the question of whether Google sign-in is offered; nothing is submitted.
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false);
   });
 
   it('creates an account with a phone number and sends no email', async () => {
@@ -2369,5 +2372,42 @@ describe('unmet demand', () => {
     expect(row).toHaveTextContent('7');
     expect(row).toHaveTextContent('2');
     expect(screen.getByText(/not reported as a result/)).toBeInTheDocument();
+  });
+});
+
+describe('Google sign-in', () => {
+  it('is not offered when the server has no Google client', async () => {
+    serve({});
+    open('/login');
+    expect(await screen.findByRole('button', { name: 'Sign in' })).toBeInTheDocument();
+    expect(screen.queryByText('or')).not.toBeInTheDocument();
+  });
+
+  it('asks a new person whether they travel or drive, then creates the account with the same token', async () => {
+    let callback: ((response: { credential: string }) => void) | undefined;
+    vi.stubGlobal('google', {
+      accounts: { id: { initialize: (options: { callback: typeof callback }) => (callback = options.callback), renderButton: vi.fn() } },
+    });
+    const session = { accessToken: 'token', expiresInSeconds: 43200, user: { id: 9, email: 'meera@gmail.test', fullName: 'Meera Kulkarni', role: 'DRIVER' } };
+    const fetchMock = serve({
+      'GET /auth/google': () => json({ clientId: 'client.apps.googleusercontent.com' }),
+      'POST /auth/google': () => {
+        const sent = JSON.parse(String(fetchMock.mock.calls.at(-1)![1]!.body));
+        return sent.role ? json(session) : json({ detail: 'No account uses this Google address yet. Choose passenger or driver to create one.' }, 409);
+      },
+      'GET /rides/mine': () => json([]),
+    });
+    open('/login');
+
+    await waitFor(() => expect(callback).toBeDefined());
+    callback!({ credential: 'google-id-token' });
+    await userEvent.click(await screen.findByRole('button', { name: 'Offer rides as a driver' }));
+
+    expect(await screen.findByRole('heading', { name: 'My rides' })).toBeInTheDocument();
+    const posts = fetchMock.mock.calls.filter(([url, init]) => init?.method === 'POST' && String(url).endsWith('/auth/google'));
+    expect(posts.map(([, init]) => JSON.parse(String(init!.body)))).toEqual([
+      { idToken: 'google-id-token' },
+      { idToken: 'google-id-token', role: 'DRIVER' },
+    ]);
   });
 });

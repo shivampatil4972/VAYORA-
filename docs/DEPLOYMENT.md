@@ -50,6 +50,7 @@ Every setting has a working default in `docker-compose.yml`. To change one, copy
 | `*_PORT` | see the table above | Change one if the port is taken |
 | `OSRM_PBF_URL`, `OSRM_BBOX` | western India, clipped to the corridor | |
 | `JOURNEX_PUSH_PUBLIC_KEY`, `JOURNEX_PUSH_PRIVATE_KEY` | empty | Push notifications are off unless both are set. `node scripts/vapid-keys.mjs` prints a new pair. Keep the private key secret; a new pair makes every browser subscribe again |
+| `GOOGLE_CLIENT_ID` | empty | "Sign in with Google" is off unless set: a Web application OAuth client ID from the Google Cloud console, with the web app's address as an authorised JavaScript origin. Add it to the core-api service's environment |
 | `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD` | unset | An SMTP server for real email. Unset: nothing is emailed. Add them to the core-api service's environment |
 | `JOURNEX_MAIL_FROM` | empty | The sender address. Required once an SMTP server is set; core-api will not start without it |
 | `JOURNEX_PUSH_SUBJECT` | `mailto:journex@example.invalid` | A contact push services can use about this server's messages. Set a real one before turning push on |

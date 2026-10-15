@@ -1,0 +1,104 @@
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { homeFor } from './Layout';
+import { Button, Notice } from './ui';
+import { api, ApiError } from '../lib/api';
+import { useAuth } from '../lib/auth';
+import { useT } from '../lib/i18n';
+import type { Role } from '../lib/types';
+
+// Google's own script draws the button and hands back a signed ID token; core-api checks it.
+const SCRIPT = 'https://accounts.google.com/gsi/client';
+
+interface GoogleIdentity {
+  accounts: {
+    id: {
+      initialize: (options: { client_id: string; callback: (response: { credential: string }) => void }) => void;
+      renderButton: (parent: HTMLElement, options: Record<string, string>) => void;
+    };
+  };
+}
+
+declare global {
+  interface Window {
+    google?: GoogleIdentity;
+  }
+}
+
+function loadScript(): Promise<GoogleIdentity> {
+  if (window.google) return Promise.resolve(window.google);
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = SCRIPT;
+    script.async = true;
+    script.onload = () => (window.google ? resolve(window.google) : reject(new Error('Google did not load')));
+    script.onerror = () => reject(new Error('Google did not load'));
+    document.head.appendChild(script);
+  });
+}
+
+/**
+ * "Sign in with Google", shown only when the server has a Google client ID. Someone with no
+ * account yet is asked whether they will travel or drive, as on the sign-up form.
+ */
+export function GoogleSignIn() {
+  const t = useT();
+  const navigate = useNavigate();
+  const { google } = useAuth();
+  const settings = useQuery({ queryKey: ['auth', 'google'], queryFn: () => api<{ clientId: string | null }>('/auth/google') });
+  const button = useRef<HTMLDivElement>(null);
+  const [pending, setPending] = useState<string | null>(null);
+  const [failure, setFailure] = useState<string | null>(null);
+  const clientId = settings.data?.clientId ?? null;
+
+  const finish = async (credential: string, role?: Role) => {
+    setFailure(null);
+    try {
+      const user = await google(credential, role);
+      navigate(homeFor(user.role), { replace: true });
+    } catch (error) {
+      // No account yet: ask for the role, then try again with the same token.
+      if (error instanceof ApiError && error.status === 409 && !role) setPending(credential);
+      else setFailure((error as Error).message);
+    }
+  };
+
+  useEffect(() => {
+    if (!clientId || !button.current) return;
+    let cancelled = false;
+    loadScript()
+      .then((identity) => {
+        if (cancelled || !button.current) return;
+        identity.accounts.id.initialize({ client_id: clientId, callback: ({ credential }) => void finish(credential) });
+        identity.accounts.id.renderButton(button.current, { theme: 'outline', size: 'large', text: 'continue_with' });
+      })
+      .catch(() => setFailure(t('Google sign-in could not be loaded. Use your email or phone instead.')));
+    return () => {
+      cancelled = true;
+    };
+    // finish and t are rebuilt each render; the button only needs drawing once per client.
+  }, [clientId]);
+
+  if (!clientId) return null;
+  return (
+    <div className="space-y-3">
+      <p className="text-center text-sm text-slate-500">{t('or')}</p>
+      <div ref={button} />
+      {pending && (
+        <div className="space-y-2">
+          <p className="text-sm">{t('No JOURNEX account uses this Google address yet. How will you use JOURNEX?')}</p>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => void finish(pending, 'PASSENGER')}>{t('Find rides as a passenger')}</Button>
+            <Button tone="secondary" onClick={() => void finish(pending, 'DRIVER')}>
+              {t('Offer rides as a driver')}
+            </Button>
+          </div>
+          <p className="text-xs text-slate-500">{t('An account is either a passenger or a driver. This cannot be changed later.')}</p>
+        </div>
+      )}
+      {failure && <Notice tone="error">{failure}</Notice>}
+    </div>
+  );
+}

@@ -91,6 +91,10 @@ export const SERVER_MESSAGES = [
   msg('You sign in with your phone number, so it cannot be removed'),
   msg('toSeq must come after fromSeq'),
   msg('This account is suspended'),
+  msg('Google sign-in is not set up on this server'),
+  msg('That Google sign-in could not be checked'),
+  msg('Google has not confirmed this email address'),
+  msg('No account uses this Google address yet. Choose passenger or driver to create one.'),
   msg('Invalid request content.'),
   msg('Cannot reach the server. Check your connection and try again.'),
 ];

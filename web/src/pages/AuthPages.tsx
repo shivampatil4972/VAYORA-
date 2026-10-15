@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 
+import { GoogleSignIn } from '../components/google';
 import { homeFor } from '../components/Layout';
 import { Button, Card, Notice, Page, SelectField, TextField } from '../components/ui';
 import { useAuth } from '../lib/auth';
@@ -52,6 +53,9 @@ export function LoginPage() {
             {formState.isSubmitting ? t('Signing in…') : t('Sign in')}
           </Button>
         </form>
+      </Card>
+      <Card>
+        <GoogleSignIn />
       </Card>
       <p className="text-sm text-slate-600">
         {t('New here?')}{' '}
@@ -144,6 +148,9 @@ export function RegisterPage() {
             {formState.isSubmitting ? t('Creating…') : t('Create account')}
           </Button>
         </form>
+      </Card>
+      <Card>
+        <GoogleSignIn />
       </Card>
       <p className="text-sm text-slate-600">
         {t('Already have an account?')}{' '}

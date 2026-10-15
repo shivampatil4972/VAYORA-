@@ -1,5 +1,14 @@
 # Progress
 
+## 2026-10-15 — Google sign-in, ready to configure
+
+- **Feature 2** moves to Partial: "Sign in with Google" on the sign-in and sign-up pages,
+  shown only when `GOOGLE_CLIENT_ID` is set. core-api checks Google's ID token (signature,
+  issuer, audience, expiry, confirmed email), links an account with the same address, or
+  creates one once the person says whether they travel or drive. Tested against a stand-in
+  for Google; never tried with Google itself. Its four new error messages are translated.
+- Tests: 220 Java, 189 web.
+
 ## 2026-10-15 — supply gaps and nudges
 
 - **Feature 93.** Each morning core-api reads the event log for searches in the coming

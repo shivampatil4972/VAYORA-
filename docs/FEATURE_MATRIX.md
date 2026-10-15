@@ -22,7 +22,7 @@ Last updated: 2026-10-15. Test suites and how to run them are in [TESTING.md](TE
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
 | 1 | Email/phone signup | TBD | TBD | Verified (API and UI tests): sign up and sign in with an email address or a phone number. A phone number belongs to one account and stays unconfirmed until a code (simulated sender, no SMS sent) proves it; nothing stops someone signing up with a number that is not theirs |
-| 2 | Google OAuth login | TBD | TBD | Not started |
+| 2 | Google OAuth login | TBD | TBD | Partial: "Sign in with Google" on the sign-in and sign-up pages, checked as Google documents (signature against Google's keys, issuer, our client ID, expiry, a confirmed email); links an existing account with the same address, or creates one after the person chooses passenger or driver. API and UI tested against a stand-in for Google. **Off until a Google client ID is configured, and never tried with Google itself** |
 | 3 | Profile photo upload | TBD | TBD | Verified (API and UI tests): a member adds, replaces or removes a photo on the account page; it shows on their profile. Stored in PostgreSQL as a re-encoded JPEG at most 800 px, without the file's metadata (a phone photo can carry where it was taken) |
 | 4 | Bio, age, and gender | TBD | TBD | Verified (API and UI tests): bio and an approximate age on the profile; gender is stored and shown to nobody |
 | 5 | Email verification | TBD | TBD | Verified (API and UI tests), simulated sender, nothing is sent: the code is read from an administrator-only outbox |

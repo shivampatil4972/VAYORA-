@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 
 import { api, setToken, setUnauthorizedHandler } from './api';
 import type { LoginForm, RegisterForm } from './schemas';
-import type { Session, User } from './types';
+import type { Role, Session, User } from './types';
 
 // sessionStorage, not localStorage: the token dies with the tab. It is still readable
 // by any script on the page, so the app must never render untrusted HTML.
@@ -12,6 +12,8 @@ interface AuthContextValue {
   user: User | null;
   login: (form: LoginForm) => Promise<User>;
   register: (form: RegisterForm) => Promise<User>;
+  /** Signs in with a Google ID token; a role is needed only to create an account. */
+  google: (idToken: string, role?: Role) => Promise<User>;
   logout: () => void;
 }
 
@@ -68,6 +70,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             body: method === 'email' ? { ...rest, email } : { ...rest, phone },
           }),
         ),
+      google: async (idToken, role) =>
+        open(await api<Session>('/auth/google', { method: 'POST', body: role ? { idToken, role } : { idToken } })),
       logout,
     }),
     [session, open, logout],

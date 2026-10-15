@@ -67,6 +67,9 @@ mistake for more. Updated 2026-10-13.
 - A flexible rebooking is a new booking with its own payment hold, made without the
   passenger present. On a ride the driver approves it is a request the driver may decline.
 - Walking times are straight-line distances at 4.5 km/h, so a real walk is longer.
+- **Google sign-in has never been tried with Google.** It is tested against a stand-in
+  that signs tokens the way Google does. A Google-only account has no password; it cannot
+  sign in any other way, and there is no "set a password" yet.
 - Supply gaps know a search's day but not the hour wanted: searches carry a date only. A
   nudge cannot be dismissed, and a search's ends are named by the nearest ride stop within
   5 km, so a stretch nobody has ever driven is never a gap.

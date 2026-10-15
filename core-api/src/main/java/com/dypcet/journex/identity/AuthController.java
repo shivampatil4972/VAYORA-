@@ -45,11 +45,22 @@ public class AuthController {
     public record TokenResponse(String accessToken, long expiresInSeconds, User user) {
     }
 
+    /** @param role passenger or driver, needed only to create an account */
+    public record GoogleRequest(@NotBlank @Size(max = 4096) String idToken, UserRole role) {
+    }
+
+    /** @param clientId null when Google sign-in is off */
+    public record GoogleSettings(String clientId) {
+    }
+
     private final IdentityService identity;
     private final TokenService tokens;
     private final ReferralService referrals;
+    private final GoogleSignInService google;
 
-    public AuthController(IdentityService identity, TokenService tokens, ReferralService referrals) {
+    public AuthController(IdentityService identity, TokenService tokens, ReferralService referrals,
+            GoogleSignInService google) {
+        this.google = google;
         this.identity = identity;
         this.tokens = tokens;
         this.referrals = referrals;
@@ -92,6 +103,16 @@ public class AuthController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Give an email address or a phone number");
         }
         return hasPhone;
+    }
+
+    @GetMapping("/auth/google")
+    public GoogleSettings googleSettings() {
+        return new GoogleSettings(google.clientId());
+    }
+
+    @PostMapping("/auth/google")
+    public TokenResponse google(@Valid @RequestBody GoogleRequest request) {
+        return tokenFor(google.signIn(request.idToken(), request.role()));
     }
 
     @GetMapping("/me")

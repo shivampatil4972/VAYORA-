@@ -78,6 +78,13 @@ journex:
     cache-ttl: P7D
     # Only used to guess a driving time when there is no road route.
     fallback-speed-kmh: 50
+  google:
+    # "Sign in with Google" is off unless this is set to an OAuth client ID from the Google
+    # Cloud console (a Web application client whose origins include the web app's address).
+    client-id: ${GOOGLE_CLIENT_ID:}
+    # Where Google publishes the keys its ID tokens are signed with, and the issuers it uses.
+    jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
+    issuers: accounts.google.com,https://accounts.google.com
   mail:
     # The sender address for real email. Email is sent only when SPRING_MAIL_HOST names an
     # SMTP server; without one, copies and codes go to the simulated outbox as before.

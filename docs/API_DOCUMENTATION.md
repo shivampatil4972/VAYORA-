@@ -32,6 +32,8 @@ territory.
 | Method and path | Who | What |
 |---|---|---|
 | `POST /api/v1/auth/register` | public | Create a passenger or driver account with exactly one of `email` or `phone`, optionally with an invitation code; returns a token. A phone number already on an account is refused (409) |
+| `GET /api/v1/auth/google` | public | `clientId`, or null when Google sign-in is off |
+| `POST /api/v1/auth/google` | public | `idToken` from Google, and `role` only to create an account; returns a token. 409 when no account exists and no role was given |
 | `POST /api/v1/auth/login` | public | Exactly one of `email` or `phone`, with `password`. Returns a token valid for 12 hours |
 | `GET /api/v1/me` | any | The signed-in account |
 | `GET /api/v1/me/referral` | any | Own invitation code and how many used it |

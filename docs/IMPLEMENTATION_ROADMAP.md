@@ -42,7 +42,7 @@ mock that says so, as payments and SMS already are.
 
 | # | Feature | Needs |
 |---|---|---|
-| 2 | Google sign-in | A Google Cloud OAuth client |
+| 2 | Google sign-in, tried for real | A Google Cloud OAuth client ID; everything else is built |
 | 1, 6, 64 | Phone sign-up, real SMS codes and notifications | An SMS gateway account |
 | 63 | Email with a real provider | Built for any SMTP server; needs an account with one to try it |
 | 61 | Masked calling | A telephony provider |

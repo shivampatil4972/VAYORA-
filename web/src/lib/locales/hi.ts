@@ -1366,4 +1366,19 @@ export const hi: Record<string, string> = {
     'बिना सवारी वाली खोजें',
   'Drivers told':
     'बताए गए चालक',
+  // Google sign-in
+  'Google sign-in could not be loaded. Use your email or phone instead.':
+    'Google साइन-इन लोड नहीं हो सका। इसके बजाय अपना ईमेल या फ़ोन उपयोग करें।',
+  'or':
+    'या',
+  'No JOURNEX account uses this Google address yet. How will you use JOURNEX?':
+    'इस Google पते से अभी कोई JOURNEX खाता नहीं है। आप JOURNEX का उपयोग कैसे करेंगे?',
+  'Google sign-in is not set up on this server':
+    'इस सर्वर पर Google साइन-इन सेट नहीं है',
+  'That Google sign-in could not be checked':
+    'उस Google साइन-इन की जाँच नहीं हो सकी',
+  'Google has not confirmed this email address':
+    'Google ने इस ईमेल पते की पुष्टि नहीं की है',
+  'No account uses this Google address yet. Choose passenger or driver to create one.':
+    'इस Google पते से अभी कोई खाता नहीं है। खाता बनाने के लिए यात्री या चालक चुनें।',
 };
