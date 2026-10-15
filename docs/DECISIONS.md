@@ -98,3 +98,4 @@ Each was justified in one sentence when it was added, as CLAUDE.md requires.
 | lifelines, scikit-survival | research only | Fitting the survival models; serving needs neither |
 | Leaflet, react-leaflet | web | Maps for routes and meeting points |
 | socket.io-client | web | Chat and live position |
+| matplotlib | research only | Draws the report's figures from the committed results |

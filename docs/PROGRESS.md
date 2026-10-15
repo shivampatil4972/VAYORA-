@@ -1,5 +1,16 @@
 # Progress
 
+## 2026-10-15 — report figures
+
+- Five figures in `docs/figures/`, with captions in its README: the variant ladder, early
+  against late refills, the three sweeps, the durability curve and model calibration.
+  `experiments/analysis/figures.py` draws them from the committed reports and model only;
+  `scripts/reproduce.sh` redraws them and fails on any difference. New research-only
+  dependency: matplotlib.
+- Looking at the first drafts caught two wrong ones: the durability curve's axis stopped at
+  80%, cutting off the curve, and its title said most cancellations come in the first days,
+  which the curve does not show (it falls steadily). Both corrected.
+
 ## 2026-10-15 — what-if explorer
 
 - **Feature 87** moves from Not started to Partial. An administrator's "What if" page picks
