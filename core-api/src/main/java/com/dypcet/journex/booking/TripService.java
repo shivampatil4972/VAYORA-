@@ -1,36 +1,37 @@
 package com.dypcet.journex.booking;
 
+import com.dypcet.journex.booking.BookingService.Booking;
 import static com.dypcet.journex.booking.BookingService.conflict;
 import static com.dypcet.journex.booking.BookingService.notFound;
 
-import com.dypcet.journex.booking.BookingService.Booking;
 import com.dypcet.journex.booking.BookingService.Cancelled;
 import com.dypcet.journex.booking.BookingService.Decided;
 import com.dypcet.journex.booking.BookingService.LockedRide;
-import com.dypcet.journex.bus.BusService;
 import com.dypcet.journex.bus.BusService.Bus;
+import com.dypcet.journex.bus.BusService;
 import com.dypcet.journex.eventlog.EventLogService;
 import com.dypcet.journex.eventlog.EventType;
 import com.dypcet.journex.eventlog.HasActor;
-import com.dypcet.journex.notification.NotificationService;
 import com.dypcet.journex.notification.NotificationService.Type;
-import com.dypcet.journex.payment.PaymentService;
+import com.dypcet.journex.notification.NotificationService;
+import com.dypcet.journex.notification.Text;
 import com.dypcet.journex.payment.PaymentService.RefundReason;
 import com.dypcet.journex.payment.PaymentService.SettlementReason;
+import com.dypcet.journex.payment.PaymentService;
 import com.dypcet.journex.referral.ReferralService;
-import com.dypcet.journex.ride.RideService;
-import com.dypcet.journex.routing.RouteService.Point;
 import com.dypcet.journex.ride.RideService.Candidate;
 import com.dypcet.journex.ride.RideService.Ride;
+import com.dypcet.journex.ride.RideService;
+import com.dypcet.journex.routing.RouteService.Point;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
-import java.time.format.DateTimeFormatter;
-import java.time.ZoneId;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -153,8 +154,8 @@ public class TripService {
         bookings.move(booking, BookingStatus.NO_SHOW);
         payments.captureInFull(bookingId, driverId, SettlementReason.PASSENGER_NO_SHOW);
         notifications.send(booking.passengerId(), Type.MARKED_NO_SHOW,
-                "The driver reported that you did not board for " + BookingService.seatsOn(booking)
-                        + ". Nothing is refunded for a missed ride.", bookingId);
+                Text.of("The driver reported that you did not board for {seats}. Nothing is refunded for a missed ride.",
+                        "seats", BookingService.seatsText(booking)), bookingId);
         events.write(EventType.TRIP_FAILED, new TripFailed(bookingId, rideId,
                 booking.passengerId(), driverId, "passenger_no_show"));
         return bookings.load(bookingId);
@@ -173,8 +174,8 @@ public class TripService {
             bookings.move(booking, BookingStatus.COMPLETED);
             payments.captureInFull(booking.id(), driverId, SettlementReason.TRIP_COMPLETED);
             notifications.send(booking.passengerId(), Type.TRIP_COMPLETED,
-                    "Your trip from " + booking.fromStop() + " to " + booking.toStop()
-                            + " is complete. You can rate your driver in My bookings.", booking.id());
+                    Text.of("Your trip from {from} to {to} is complete. You can rate your driver in My bookings.",
+                            "from", booking.fromStop(), "to", booking.toStop()), booking.id());
             events.write(EventType.TRIP_COMPLETED,
                     new Trip(booking.id(), rideId, booking.passengerId(), driverId));
             travelled.add(booking.passengerId());
@@ -210,7 +211,7 @@ public class TripService {
      * Up to three other rides that could take this passenger, as one sentence for the
      * notification, or nothing if there are none. A suggestion only: nothing is booked.
      */
-    private String otherRides(long rideId, Booking booking) {
+    private Text otherRides(long rideId, Booking booking) {
         List<Point> ends = jdbc.query("""
                 SELECT ST_Y(location::geometry) AS lat, ST_X(location::geometry) AS lon
                 FROM ride_stops WHERE ride_id = ? AND seq IN (?, ?) ORDER BY seq""",
@@ -219,12 +220,15 @@ public class TripService {
         List<Candidate> others = rides.alternatives(booking.passengerId(), rideId, ends.get(0), ends.get(1),
                 booking.boardingTime(), booking.seats(), ALTERNATIVES_WINDOW, 3);
         if (others.isEmpty()) {
-            return " No other ride with seats leaves near that time." + buses(rideId, booking);
+            List<Text> buses = buses(rideId, booking);
+            return buses.isEmpty() ? Text.of("No other ride with seats leaves near that time.")
+                    : Text.of("No other ride with seats leaves near that time. Buses listed by JOURNEX staff"
+                            + " (check with the operator before travelling): {buses}.", "buses", buses);
         }
         DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm", Locale.ENGLISH).withZone(CORRIDOR_ZONE);
-        return " Other rides that could take you: " + others.stream()
-                .map(c -> time.format(c.boardingTime()) + " from " + c.fromStop() + " with " + c.driverName())
-                .collect(Collectors.joining("; ")) + ". Search again to book one.";
+        return Text.of("Other rides that could take you: {rides}. Search again to book one.", "rides",
+                others.stream().map(c -> Text.of("{time} from {stop} with {driver}", "time",
+                        time.format(c.boardingTime()), "stop", c.fromStop(), "driver", c.driverName())).toList());
     }
 
     /**
@@ -232,19 +236,17 @@ public class TripService {
      * boarding time, as one sentence, or nothing. Administrators enter these; they are not
      * checked against the operator, and the sentence says so.
      */
-    private String buses(long rideId, Booking booking) {
+    private List<Text> buses(long rideId, Booking booking) {
         List<String> names = jdbc.queryForList(
                 "SELECT name FROM ride_stops WHERE ride_id = ? AND seq IN (?, ?) ORDER BY seq",
                 String.class, rideId, booking.fromSeq(), booking.toSeq());
         LocalTime boarding = booking.boardingTime().atZone(CORRIDOR_ZONE).toLocalTime();
         LocalTime from = boarding.isBefore(LocalTime.of(1, 0)) ? LocalTime.MIN : boarding.minusHours(1);
         List<Bus> found = buses.between(names.get(0), names.get(1), from, 3);
-        if (found.isEmpty()) {
-            return "";
-        }
-        return " Buses listed by JOURNEX staff (check with the operator before travelling): " + found.stream()
-                .map(b -> b.departs() + " " + b.operator() + ", Rs " + b.fare().toPlainString())
-                .collect(Collectors.joining("; ")) + ".";
+        return found.stream()
+                .map(b -> Text.of("{time} {operator}, Rs {fare}", "time", b.departs().toString(),
+                        "operator", b.operator(), "fare", b.fare().toPlainString()))
+                .toList();
     }
 
     /** Withdraws a ride that has not started, cancelling every live booking on it. */
@@ -261,9 +263,9 @@ public class TripService {
                 bookings.recordCancelledBy(booking.id(), "driver");
                 payments.releaseInFull(booking.id(), RefundReason.DRIVER_CANCELLED);
                 notifications.send(booking.passengerId(), Type.RIDE_CANCELLED,
-                        "The driver cancelled the ride you booked for "
-                                + BookingService.seatsOn(booking)
-                                + ". Everything you paid has been returned." + otherRides(rideId, booking),
+                        Text.of("The driver cancelled the ride you booked for {seats}. Everything you paid has been"
+                                + " returned. {more}", "seats", BookingService.seatsText(booking),
+                                "more", otherRides(rideId, booking)),
                         booking.id());
                 events.write(EventType.BOOKING_CANCELLED, new Cancelled(booking.id(), rideId,
                         booking.passengerId(), booking.seats(), booking.boardingTime(),

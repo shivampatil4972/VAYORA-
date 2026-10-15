@@ -162,7 +162,7 @@ class NotificationIntegrationTest extends PostgresIntegrationTest {
                 new PaymentChoice(PaymentChoice.Method.CARD, "DECLINE"), null))
                 .isInstanceOf(ResponseStatusException.class);
         new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
-            notifications.send(driverId, Type.BOOKING_REQUESTED, "never happened", null);
+            notifications.send(driverId, Type.BOOKING_REQUESTED, Text.of("never happened"), null);
             status.setRollbackOnly();
         });
 
@@ -208,9 +208,9 @@ class NotificationIntegrationTest extends PostgresIntegrationTest {
                 .thenThrow(new DataAccessResourceFailureException("mongo is down"));
         NotificationService withBrokenStore = new NotificationService(broken, Clock.systemUTC(),
                 mock(org.springframework.jdbc.core.JdbcTemplate.class),
-                mock(com.dypcet.journex.account.MessageSender.class));
+                mock(com.dypcet.journex.account.MessageSender.class), mock(com.dypcet.journex.push.PushService.class));
 
-        assertThatCode(() -> withBrokenStore.send(1L, Type.BOOKING_REQUESTED, "hello", 7L))
+        assertThatCode(() -> withBrokenStore.send(1L, Type.BOOKING_REQUESTED, Text.of("hello"), 7L))
                 .doesNotThrowAnyException();
     }
 

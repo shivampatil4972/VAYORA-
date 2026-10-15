@@ -37,6 +37,12 @@ territory.
 | `GET /api/v1/me/referral` | any | Own invitation code and how many used it |
 | `GET /api/v1/bus-alternatives?from=&to=&after=HH:mm` | any | Up to five administrator-entered buses between two towns, earliest first; not checked against the operator |
 | `GET/POST /api/v1/admin/bus-services`, `DELETE /api/v1/admin/bus-services/{id}` | ADMIN | List, add and remove bus services; adding and removing are audited |
+| `GET/POST /api/v1/admin/stopovers`, `DELETE /api/v1/admin/stopovers/{id}` | ADMIN | Rest stops and chargers; audited. The route preview (`POST /api/v1/rides/route-preview`) now also returns `alongRoute`: those near the route, in order, with `kmAlong`, `kmOffRoute` and `suggestedBreak` |
+| `GET /api/v1/users/{id}/photo`, `GET /api/v1/vehicles/{id}/photo` | any | The photo as `image/jpeg`, or 404 |
+| `PUT /api/v1/me/photo`, `DELETE /api/v1/me/photo` | any | Own photo. The body is the image itself (JPEG or PNG, up to 5 MB) |
+| `PUT/DELETE /api/v1/vehicles/{id}/photo` | DRIVER, owner | A vehicle's photo; someone else's vehicle is a 404 |
+| `GET /api/v1/me/push` | any | `publicKey` (null when push is off) and whether any of the member's browsers is subscribed |
+| `POST /api/v1/me/push-subscriptions`, `DELETE /api/v1/me/push-subscriptions?endpoint=` | any | A browser's push subscription, as `PushSubscription.toJSON()` gives it |
 | `GET /api/v1/me/profile` | any | Own profile, including phone and confirmation status |
 | `PUT /api/v1/me/profile` | any | Replace own profile. A changed phone must be confirmed again |
 | `POST /api/v1/me/verification/{email\|phone}/request` | any | Send a 6-digit code (simulated sender) |

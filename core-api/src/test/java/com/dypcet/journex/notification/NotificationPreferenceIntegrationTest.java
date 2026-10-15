@@ -61,15 +61,15 @@ class NotificationPreferenceIntegrationTest extends PostgresIntegrationTest {
 
     @Test
     void nothingLeavesTheAppUntilAskedForAndOnlyToConfirmedAddresses() {
-        notifications.send(member, Type.ACCOUNT_NOTICE, "first", null);
+        notifications.send(member, Type.ACCOUNT_NOTICE, Text.of("first"), null);
         assertThat(copiesTo(email) + copiesTo(phone)).isZero();
 
         notifications.setPreferences(member, new Preferences(true, true));
-        notifications.send(member, Type.ACCOUNT_NOTICE, "second", null);
+        notifications.send(member, Type.ACCOUNT_NOTICE, Text.of("second"), null);
         assertThat(copiesTo(email) + copiesTo(phone)).isZero(); // neither address confirmed
 
         jdbc.update("UPDATE users SET email_verified_at = now(), phone_verified_at = now() WHERE id = ?", member);
-        notifications.send(member, Type.ACCOUNT_NOTICE, "third", null);
+        notifications.send(member, Type.ACCOUNT_NOTICE, Text.of("third"), null);
         assertThat(mock.outbox()).filteredOn(m -> m.to().equals(email)).singleElement()
                 .satisfies(m -> {
                     assertThat(m.channel()).isEqualTo(Channel.EMAIL);
@@ -80,7 +80,7 @@ class NotificationPreferenceIntegrationTest extends PostgresIntegrationTest {
         assertThat(notifications.forUser(member)).hasSize(3);
 
         notifications.setPreferences(member, new Preferences(false, true));
-        notifications.send(member, Type.ACCOUNT_NOTICE, "fourth", null);
+        notifications.send(member, Type.ACCOUNT_NOTICE, Text.of("fourth"), null);
         assertThat(copiesTo(email)).isEqualTo(1);
         assertThat(copiesTo(phone)).isEqualTo(2);
     }
@@ -91,7 +91,7 @@ class NotificationPreferenceIntegrationTest extends PostgresIntegrationTest {
         notifications.setPreferences(member, new Preferences(true, false));
 
         transactions.executeWithoutResult(status -> {
-            notifications.send(member, Type.ACCOUNT_NOTICE, "never happened", null);
+            notifications.send(member, Type.ACCOUNT_NOTICE, Text.of("never happened"), null);
             status.setRollbackOnly();
         });
 

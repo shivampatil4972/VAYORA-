@@ -85,6 +85,9 @@ was decided while building within them.
 | A chat message is shown when the gateway relays it, not when it is typed | What a sender sees is what everyone received | |
 | Irreversible actions need a second, explicit press | Cancelling, completing and marking a no-show cannot be undone | One more click |
 | Receipts are in English | The PDF's built-in fonts cover Latin script only | Devanagari names print as "?" |
+| Photos are kept in PostgreSQL | CLAUDE.md allows no third data store, and a photo belongs to the member or vehicle it shows. Each is a small re-encoded JPEG | The database grows with them; there is no CDN, and every view goes through core-api |
+| Web Push written with the JDK, not a library | The protocol is three small pieces of standard cryptography; the libraries for it bring their own HTTP client and crypto provider. Checked against RFC 8291's example to the byte | Code to maintain that a library would have kept up to date |
+| Notifications are stored as a template and its values | So the app can show them in the reader's language; the English is rendered from the same template, so copies and older notifications read as before. A core-api test reads the web app's list, so a template the app cannot translate fails the build | Every new notification needs its template added to the web app and translated |
 | The what-if page shows saved sweeps; it runs nothing | Running the simulator from a screen needs a service to run it: intel holds no state and core-api owns transactions, and a fourth runtime is ruled out. The web image is built from `web/` alone, so `export_web.py` copies the sweep figures into `web/src/data/whatif.json`, and `reproduce.sh` and a test fail if the copy drifts | Only settings already swept can be chosen; a new question needs a sweep run by hand |
 
 ## Dependencies

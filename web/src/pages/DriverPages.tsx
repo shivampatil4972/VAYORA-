@@ -8,6 +8,7 @@ import { SimulatedPaymentNotice } from '../components/payment';
 import { RateForm } from '../components/rating';
 import { CheckCode } from '../components/boarding';
 import { RideChat } from '../components/RideChat';
+import { initialsOf, PhotoEditor } from '../components/photo';
 import { RouteMap } from '../components/RouteMap';
 import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, StatusBadge, TextField } from '../components/ui';
 import { api } from '../lib/api';
@@ -52,6 +53,14 @@ export function VehiclesPage() {
       />
       {vehicles.data?.map((vehicle) => (
         <Card key={vehicle.id}>
+          <div className="mb-3">
+            <PhotoEditor
+              viewPath={`/vehicles/${vehicle.id}/photo`}
+              changePath={`/vehicles/${vehicle.id}/photo`}
+              alt={t('Photo of the {vehicle}', { vehicle: `${vehicle.make} ${vehicle.model}` })}
+              initials={initialsOf(`${vehicle.make} ${vehicle.model}`)}
+            />
+          </div>
           <p className="font-medium">
             {vehicle.make} {vehicle.model}
           </p>
@@ -235,9 +244,32 @@ function RoutePlanner({ stops, rangeKm, onMove, onUse }: {
           {rangeKm != null && preview.data.distanceKm > rangeKm && (
             <div className="mt-2">
               <Notice tone="info">
-                {t('This route is longer than the {range} km your vehicle covers on a full charge, by your own figures. Plan a charging stop: JOURNEX does not plan one for you.', { range: rangeKm })}
+                {t('This route is longer than the {range} km your vehicle covers on a full charge, by your own figures. Plan a charging stop: JOURNEX does not plan one for you.', { range: rangeKm })}{' '}
+                {preview.data.alongRoute.some((a) => a.stopover.kind === 'CHARGER')
+                  ? t('Chargers are listed near this route below.')
+                  : t('No charger is listed near this route.')}
               </Notice>
             </div>
+          )}
+          {preview.data.alongRoute.length > 0 && (
+            <section aria-label={t('Along this route')} className="mt-3">
+              <h3 className="font-medium">{t('Along this route')}</h3>
+              <ul className="mt-1 space-y-1">
+                {preview.data.alongRoute.map((a) => (
+                  <li key={a.stopover.id}>
+                    {t('km {km}', { km: Math.round(a.kmAlong) })} · {a.stopover.name} ·{' '}
+                    {a.stopover.kind === 'CHARGER'
+                      ? a.stopover.chargerKw != null
+                        ? t('charger, {kw} kW', { kw: a.stopover.chargerKw })
+                        : t('charger')
+                      : t('rest stop')}
+                    {a.kmOffRoute >= 0.5 && ` · ${t('{km} km off the route', { km: a.kmOffRoute.toFixed(1) })}`}
+                    {a.suggestedBreak && <span className="ml-1 font-medium text-teal-800">· {t('a good place for a break')}</span>}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-1 text-slate-500">{t('Listed by JOURNEX staff. Nothing checks that a stop is open or a charger works.')}</p>
+            </section>
           )}
         </div>
       )}

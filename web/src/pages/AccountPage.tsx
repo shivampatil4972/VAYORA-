@@ -3,6 +3,8 @@ import { useEffect, useId, useState, type FormEvent } from 'react';
 
 import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, TextField } from '../components/ui';
 import { api } from '../lib/api';
+import { initialsOf, PhotoEditor } from '../components/photo';
+import { PushChoice } from '../components/push';
 import { useAuth } from '../lib/auth';
 import { msg, useT } from '../lib/i18n';
 import type { Chattiness, EmergencyContact, Gender, MyProfile } from '../lib/types';
@@ -355,6 +357,9 @@ function NotificationChoices({ emailConfirmed, phoneConfirmed }: { emailConfirme
         {t('Text me a copy')}
       </label>
       {current.sms && !phoneConfirmed && <p className="text-amber-800">{t('Confirm your phone number above, or no copy can be sent.')}</p>}
+      <div className="border-t border-slate-100 pt-3">
+        <PushChoice />
+      </div>
     </div>
   );
 }
@@ -373,6 +378,11 @@ export function AccountPage() {
           <section aria-label={t('Profile')} className="space-y-3">
             <h2 className="text-lg font-semibold">{t('Profile')}</h2>
             <Card>
+              {user && (
+                <div className="mb-4">
+                  <PhotoEditor viewPath={`/users/${user.id}/photo`} changePath="/me/photo" alt={t('Your photo')} initials={initialsOf(user.fullName)} />
+                </div>
+              )}
               <ProfileForm profile={mine} />
             </Card>
           </section>

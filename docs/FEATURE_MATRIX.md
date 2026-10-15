@@ -23,7 +23,7 @@ Last updated: 2026-10-15. Test suites and how to run them are in [TESTING.md](TE
 |---|---|---|---|---|
 | 1 | Email/phone signup | TBD | TBD | Verified (API and UI tests): sign up and sign in with an email address or a phone number. A phone number belongs to one account and stays unconfirmed until a code (simulated sender, no SMS sent) proves it; nothing stops someone signing up with a number that is not theirs |
 | 2 | Google OAuth login | TBD | TBD | Not started |
-| 3 | Profile photo upload | TBD | TBD | Not started |
+| 3 | Profile photo upload | TBD | TBD | Verified (API and UI tests): a member adds, replaces or removes a photo on the account page; it shows on their profile. Stored in PostgreSQL as a re-encoded JPEG at most 800 px, without the file's metadata (a phone photo can carry where it was taken) |
 | 4 | Bio, age, and gender | TBD | TBD | Verified (API and UI tests): bio and an approximate age on the profile; gender is stored and shown to nobody |
 | 5 | Email verification | TBD | TBD | Verified (API and UI tests), simulated sender, nothing is sent: the code is read from an administrator-only outbox |
 | 6 | Phone OTP verification | TBD | TBD | Verified (API and UI tests), simulated sender, nothing is sent: the code is read from an administrator-only outbox |
@@ -41,7 +41,7 @@ Last updated: 2026-10-15. Test suites and how to run them are in [TESTING.md](TE
 | 13 | Seat count and comfort class | TBD | TBD | Verified (API and UI tests): comfort is the driver's own description, shown on search results; nothing inspects the car |
 | 14 | Luggage allowance | TBD | TBD | Verified (API and UI tests): the largest bag each passenger may bring, shown on search results; not a search filter |
 | 15 | EV status, battery capacity, and consumption rate | TBD | TBD | Verified (API and UI tests): stored and shown, with the range the two figures imply. When a driver works out a route longer than that range, the publish screen tells them to plan a charging stop (UI tested); it does not stop them publishing and plans no stop |
-| 16 | Vehicle photo | TBD | TBD | Not started |
+| 16 | Vehicle photo | TBD | TBD | Verified (API and UI tests): as for profile photos, on the vehicles page; only the owner can change it |
 
 ## Driver ride publishing
 
@@ -112,7 +112,7 @@ Last updated: 2026-10-15. Test suites and how to run them are in [TESTING.md](TE
 |---|---|---|---|---|
 | 60 | Socket.IO chat | TBD | TBD | Verified (gateway and UI tests, live run): one chat per ride for its driver and booked passengers, stored in MongoDB |
 | 61 | Masked calling | TBD | TBD | Not started |
-| 62 | Web push | TBD | TBD | Not started |
+| 62 | Web push | TBD | TBD | Verified (API and UI tests): standard Web Push, written with the JDK alone and checked against RFC 8291's worked example; turned on per browser on the account page. **Off until the server's key pair is configured**, and never seen arriving in a real browser. Pushes carry the English |
 | 63 | Email notifications | TBD | TBD | Partial: a copy of each notification to a confirmed email address when the member asks, API and UI tested; **through the simulated sender, so nothing is really emailed** |
 | 64 | SMS notifications | TBD | TBD | Partial: as for email, to a confirmed phone; **simulated, nothing is really sent** |
 | 65 | Notification preferences | TBD | TBD | Verified (API and UI tests): email and SMS copies on or off; in-app always kept; copies only to confirmed addresses and never for a rolled-back change |
@@ -131,7 +131,7 @@ Last updated: 2026-10-15. Test suites and how to run them are in [TESTING.md](TE
 
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
-| 71 | English, Hindi, and Marathi | TBD | TBD | Partial: every screen is in English, Hindi and Marathi and tests enforce completeness. The translations have had no native review, and text the server writes (error explanations, notification messages) stays in English |
+| 71 | English, Hindi, and Marathi | TBD | TBD | Partial: every screen is in English, Hindi and Marathi and tests enforce completeness. The translations have had no native review, and error explanations the server writes stay in English. Notifications are now stored as a template and its values and shown in the reader's language (API and UI tests); older ones, and email, SMS and push copies, stay in English |
 | 72 | Referral programme | TBD | TBD | Partial: invitation codes, recorded at sign-up and counted once the invited member completes a trip (API and UI tested). **No reward**: none has been decided |
 | 73 | Static/configured MSRTC alternatives | TBD | TBD | Verified (API and UI tests): administrators enter bus services; passengers see them when a search finds no ride. None ship with the platform, nothing checks them against MSRTC, and passengers are told to check with the operator |
 | 74 | Admin back office | TBD | TBD | Verified (API and UI tests): overview, reports queue, members, rides and bookings by status, disputed trips, emergencies and simulated outbox, booking durability with reasons, audit log. No experiment screens |
@@ -158,8 +158,8 @@ Last updated: 2026-10-15. Test suites and how to run them are in [TESTING.md](TE
 
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
-| 82 | Driver rest-stop planning | TBD | TBD | Not started |
-| 83 | Fuel and EV charging stops | TBD | TBD | Not started |
+| 82 | Driver rest-stop planning | TBD | TBD | Verified (API and UI tests): administrators enter rest stops; a driver working out a route sees those within 2 km of it, in order, with the one nearest the two-hour mark suggested for a break. None ship with the platform, and nothing checks a stop is open |
+| 83 | Fuel and EV charging stops | TBD | TBD | Verified (API and UI tests): chargers are entered and shown the same way, with their stated power, and the electric-range warning says whether any is listed near the route. Nothing checks a charger works, and no charging stop is planned |
 | 85 | Weekly, monthly, and annual travel passes | TBD | TBD | Verified (API and UI tests, live run), mock provider, no money moves: a running pass waives the service fee; the driver's fare is untouched. Prices are assumptions |
 | 87 | Live what-if simulator | TBD | TBD | Partial: an administrator page explores the saved sweeps (departure window, publishing lead, contact budget) one setting at a time, with each run's figures against its baseline (Python and UI tests). **Nothing is simulated live**: only settings a sweep was run at can be chosen |
 | 90 | Reproducibility capsule (`make reproduce` or equivalent) | TBD | TBD | Verified: `scripts/reproduce.sh` rebuilds the tests, model, ladder and current sweeps and fails unless every file matches the committed one. Run in full on 2026-10-16: every committed number reproduced exactly |

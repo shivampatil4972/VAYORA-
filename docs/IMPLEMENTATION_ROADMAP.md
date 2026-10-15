@@ -35,7 +35,6 @@ Ordered by value to the research question first, then by size.
 | 93 | Supply-gap detection and nudging | Three event types already reserved (`nudge_*`, `supply_gap_detected`); nudge conversion must stay a swept parameter, never a result | Medium |
 | 89 | Corridor demand calibration | Needs real demand figures to calibrate against, which do not exist | Blocked on data |
 | 84, 76 | Mid-route seat allocation; two-sided match scoring | Need geography the simulator does not have (see B1, B2 below) | Large |
-| 82, 83 | Rest stops; fuel and charging stops | Need stop data for the corridor | Medium |
 | 87 | Live what-if simulator | Saved sweeps can be explored; running a new simulation from the screen would need a service to run it, which the architecture rule does not provide | Large, placement first |
 | 94 | Driver commitment pricing | Must not price on predicted risk (a project rule); needs careful definition | Medium, policy first |
 
@@ -49,10 +48,8 @@ mock that says so, as payments and SMS already are.
 | 2 | Google sign-in | A Google Cloud OAuth client |
 | 1, 6, 64 | Phone sign-up, real SMS codes and notifications | An SMS gateway account |
 | 63 | Email notifications | An email sending service |
-| 62 | Web push | Push keys and a service worker |
 | 61 | Masked calling | A telephony provider |
 | 46 | Card, UPI and wallet doing something different | A payment gateway in test mode |
-| 3, 16 | Profile and vehicle photos | File storage (a fourth store, which CLAUDE.md forbids without a decision) |
 | 7, 8 | Government ID verification and a real verified badge | An identity verification provider, and a privacy review |
 | 58 | Insurance badge | An insurer |
 | 91 | Last-mile access | Rickshaw and bus data |
@@ -99,4 +96,4 @@ mock that says so, as payments and SMS already are.
 - Anything that cancels a booking or changes a price because of a predicted risk. The
   project's own rules forbid it.
 - A sync layer between stores, a third data store or a fourth runtime. CLAUDE.md forbids
-  them; photo storage (3, 16) would need that rule changed first.
+  them. Photos (3, 16) are kept in PostgreSQL for that reason, not in a file store.

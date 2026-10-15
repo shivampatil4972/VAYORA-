@@ -33,6 +33,9 @@ Access is through `JdbcTemplate` with hand-written SQL. There is no ORM.
 | V19 | `referrals`; on users: `referral_code` |
 | V20 | `bus_services` (entered by administrators; none shipped) |
 | V21 | On users: `email` may be null if `phone` is set; `phone` unique, rewritten as +91 for Indian numbers |
+| V22 | `stopovers` (rest stops and chargers, entered by administrators; none shipped) |
+| V23 | `user_photos`, `vehicle_photos` (one re-encoded JPEG each, in PostgreSQL) |
+| V24 | `push_subscriptions` (one row per browser; the address is unique) |
 
 ### Tables
 

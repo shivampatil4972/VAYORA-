@@ -8,7 +8,7 @@ import { api } from '../lib/api';
 import { formatDateTime } from '../lib/format';
 import { msg, useT } from '../lib/i18n';
 import { formatRupees } from '../lib/format';
-import type { AdminOverview, AuditEntry, BookingStatus, BusService, DisputedTrip, Member, MemberReport, ReportOutcome, RideStatus, Role } from '../lib/types';
+import type { AdminOverview, AuditEntry, BookingStatus, BusService, DisputedTrip, Stopover, Member, MemberReport, ReportOutcome, RideStatus, Role } from '../lib/types';
 
 // The server's own codes, in words. A code with no entry here is shown as it is.
 const codeLabels: Record<string, string> = {
@@ -393,6 +393,98 @@ export function BusServicesPage() {
               confirmLabel={t('Yes, remove it')}
               disabled={remove.isPending}
               onConfirm={() => remove.mutate(bus.id)}
+            />
+          </div>
+        </Card>
+      ))}
+    </Page>
+  );
+}
+
+const emptyStopover = { kind: 'REST', name: '', lat: '', lon: '', chargerKw: '', notes: '' };
+
+/** Rest stops and chargers shown to drivers along their route. None ship with the platform. */
+export function StopoversPage() {
+  const t = useT();
+  const queryClient = useQueryClient();
+  const [draft, setDraft] = useState(emptyStopover);
+  const stopovers = useQuery({ queryKey: ['admin', 'stopovers'], queryFn: () => api<Stopover[]>('/admin/stopovers') });
+  const add = useMutation({
+    mutationFn: () =>
+      api<Stopover>('/admin/stopovers', {
+        method: 'POST',
+        body: {
+          kind: draft.kind,
+          name: draft.name,
+          lat: Number(draft.lat),
+          lon: Number(draft.lon),
+          chargerKw: draft.kind === 'CHARGER' && draft.chargerKw ? Number(draft.chargerKw) : null,
+          notes: draft.notes || null,
+        },
+      }),
+    onSuccess: () => setDraft(emptyStopover),
+    onSettled: () => void queryClient.invalidateQueries({ queryKey: ['admin', 'stopovers'] }),
+  });
+  const remove = useMutation({
+    mutationFn: (id: number) => api<void>(`/admin/stopovers/${id}`, { method: 'DELETE' }),
+    onSettled: () => void queryClient.invalidateQueries({ queryKey: ['admin', 'stopovers'] }),
+  });
+  const field = (name: keyof typeof emptyStopover) => ({
+    value: draft[name],
+    onChange: (event: { target: { value: string } }) => setDraft({ ...draft, [name]: event.target.value }),
+  });
+
+  return (
+    <Page title={t('Rest stops and chargers')}>
+      <p className="text-sm text-slate-600">
+        {t('Drivers see these when they work out a route that passes near them. Nothing here checks that a stop is open or a charger works, and drivers are told so.')}
+      </p>
+      {(add.error ?? remove.error) && <Notice tone="error">{(add.error ?? remove.error)!.message}</Notice>}
+      <Card>
+        <form
+          className="grid gap-3 sm:grid-cols-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            add.mutate();
+          }}
+        >
+          <SelectField label={t('Kind')} {...field('kind')}>
+            <option value="REST">{t('Rest stop')}</option>
+            <option value="CHARGER">{t('Charger')}</option>
+          </SelectField>
+          <TextField label={t('Name')} required {...field('name')} />
+          <TextField label={t('Latitude')} type="number" step="any" min={-90} max={90} required {...field('lat')} />
+          <TextField label={t('Longitude')} type="number" step="any" min={-180} max={180} required {...field('lon')} />
+          {draft.kind === 'CHARGER' && (
+            <TextField label={t('Power in kW (optional)')} type="number" min={1} step="0.1" {...field('chargerKw')} />
+          )}
+          <TextField label={t('Notes (optional)')} {...field('notes')} />
+          <div className="sm:col-span-2">
+            <Button type="submit" disabled={add.isPending}>
+              {t('Add')}
+            </Button>
+          </div>
+        </form>
+      </Card>
+      <QueryState
+        isPending={stopovers.isPending}
+        error={stopovers.error}
+        isEmpty={stopovers.data?.length === 0}
+        empty={t('No rest stops or chargers are listed.')}
+        onRetry={() => void stopovers.refetch()}
+      />
+      {stopovers.data?.map((stop) => (
+        <Card key={stop.id}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p>
+              <span className="font-medium">{stop.name}</span> · {stop.kind === 'CHARGER' ? t('Charger') : t('Rest stop')}
+              {stop.chargerKw != null && ` · ${stop.chargerKw} kW`} · {stop.lat.toFixed(4)}, {stop.lon.toFixed(4)}
+            </p>
+            <ConfirmButton
+              label={t('Remove')}
+              confirmLabel={t('Yes, remove it')}
+              disabled={remove.isPending}
+              onConfirm={() => remove.mutate(stop.id)}
             />
           </div>
         </Card>

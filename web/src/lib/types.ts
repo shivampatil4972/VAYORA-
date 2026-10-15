@@ -96,6 +96,27 @@ export interface RoutePreview {
   source: RouteSource;
   legs: { distanceKm: number; durationMinutes: number; suggestedPrice: number }[];
   path: [number, number][];
+  /** Rest stops and chargers near the route, in the order they are reached. */
+  alongRoute: AlongRoute[];
+}
+
+/** A place to stop, entered by an administrator; nothing checks it is open or working. */
+export interface Stopover {
+  id: number;
+  kind: 'REST' | 'CHARGER';
+  name: string;
+  lat: number;
+  lon: number;
+  chargerKw: number | null;
+  notes: string | null;
+}
+
+export interface AlongRoute {
+  stopover: Stopover;
+  kmAlong: number;
+  kmOffRoute: number;
+  /** The rest stop nearest the point a break is due; at most one per route. */
+  suggestedBreak: boolean;
 }
 
 /** One search result: a ride and the stretch of it the passenger would travel. */
@@ -210,10 +231,20 @@ export interface AuditEntry {
 }
 
 /** Named so as not to shadow the browser's own Notification. */
+/** A notification as an English template and the values that fill it. */
+export interface NotificationText {
+  template: string;
+  values: Record<string, TextValue>;
+}
+
+export type TextValue = string | NotificationText | NotificationText[];
+
 export interface AppNotification {
   id: string;
   type: string;
+  /** The English, which older notifications only have. */
   message: string;
+  text: NotificationText | null;
   bookingId: number | null;
   createdAt: string;
   read: boolean;

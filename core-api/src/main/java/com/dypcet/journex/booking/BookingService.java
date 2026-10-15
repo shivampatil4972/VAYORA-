@@ -5,11 +5,12 @@ import com.dypcet.journex.eventlog.EventType;
 import com.dypcet.journex.eventlog.HasActor;
 import com.dypcet.journex.hazard.HazardFeatures;
 import com.dypcet.journex.hold.SeatHolds;
-import com.dypcet.journex.notification.NotificationService;
 import com.dypcet.journex.notification.NotificationService.Type;
+import com.dypcet.journex.notification.NotificationService;
+import com.dypcet.journex.notification.Text;
 import com.dypcet.journex.payment.PaymentChoice;
-import com.dypcet.journex.payment.PaymentService;
 import com.dypcet.journex.payment.PaymentService.RefundReason;
+import com.dypcet.journex.payment.PaymentService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -20,8 +21,8 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -307,8 +308,12 @@ public class BookingService {
         }
         Booking booking = load(bookingId);
         notifications.send(ride.driverId(), Type.BOOKING_REQUESTED,
-                booking.passengerName() + (status == BookingStatus.CONFIRMED ? " booked " : " asked for ")
-                        + seatsOn(booking) + ".", bookingId);
+                status == BookingStatus.CONFIRMED
+                        ? Text.of("{passenger} booked {seats}.", "passenger", booking.passengerName(),
+                                "seats", seatsText(booking))
+                        : Text.of("{passenger} asked for {seats}.", "passenger", booking.passengerName(),
+                                "seats", seatsText(booking)),
+                bookingId);
         return booking;
     }
 
@@ -321,7 +326,7 @@ public class BookingService {
         events.write(EventType.BOOKING_ACCEPTED,
                 new Decided(bookingId, booking.rideId(), driverId, false));
         notifications.send(booking.passengerId(), Type.BOOKING_CONFIRMED,
-                "The driver accepted your booking for " + seatsOn(booking) + ".", bookingId);
+                Text.of("The driver accepted your booking for {seats}.", "seats", seatsText(booking)), bookingId);
         return load(bookingId);
     }
 
@@ -383,12 +388,12 @@ public class BookingService {
         events.write(EventType.BOOKING_REJECTED,
                 new Expired(bookingId, rideId, ride.driverId(), "not_answered_in_time"));
         notifications.send(booking.passengerId(), Type.REQUEST_EXPIRED,
-                "The driver did not answer your request for " + seatsOn(booking)
-                        + " in time, so it has been closed. Everything you paid has been returned.",
+                Text.of("The driver did not answer your request for {seats} in time, so it has been closed."
+                        + " Everything you paid has been returned.", "seats", seatsText(booking)),
                 bookingId);
         notifications.send(ride.driverId(), Type.REQUEST_EXPIRED,
-                booking.passengerName() + "'s request for " + seatsOn(booking)
-                        + " was closed because it was not answered in time.", bookingId);
+                Text.of("{passenger}'s request for {seats} was closed because it was not answered in time.",
+                        "passenger", booking.passengerName(), "seats", seatsText(booking)), bookingId);
         return true;
     }
 
@@ -415,7 +420,8 @@ public class BookingService {
         events.write(EventType.BOOKING_CANCELLED, new Cancelled(bookingId, booking.rideId(),
                 passengerId, booking.seats(), booking.boardingTime(), "passenger", passengerId));
         notifications.send(ride.driverId(), Type.BOOKING_CANCELLED,
-                booking.passengerName() + " cancelled " + seatsOn(booking) + ".", bookingId);
+                Text.of("{passenger} cancelled {seats}.", "passenger", booking.passengerName(),
+                        "seats", seatsText(booking)), bookingId);
         return load(bookingId);
     }
 
@@ -493,14 +499,21 @@ public class BookingService {
 
     void notifyDeclined(Booking booking) {
         notifications.send(booking.passengerId(), Type.BOOKING_DECLINED,
-                "The driver did not accept your request for " + seatsOn(booking)
-                        + ". Everything you paid has been returned.", booking.id());
+                Text.of("The driver did not accept your request for {seats}. Everything you paid has been returned.",
+                        "seats", seatsText(booking)), booking.id());
     }
 
     /** "2 seats, Kolhapur to Pune", for messages. */
     static String seatsOn(Booking booking) {
-        return booking.seats() + (booking.seats() == 1 ? " seat, " : " seats, ")
-                + booking.fromStop() + " to " + booking.toStop();
+        return seatsText(booking).render();
+    }
+
+    /** "2 seats, Kolhapur to Pune", to be translated. */
+    static Text seatsText(Booking booking) {
+        String n = String.valueOf(booking.seats());
+        return booking.seats() == 1
+                ? Text.of("{n} seat, {from} to {to}", "n", n, "from", booking.fromStop(), "to", booking.toStop())
+                : Text.of("{n} seats, {from} to {to}", "n", n, "from", booking.fromStop(), "to", booking.toStop());
     }
 
     void recordRejectedBy(long bookingId, String who) {

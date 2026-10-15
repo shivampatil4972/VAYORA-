@@ -54,12 +54,25 @@ export async function download(path: string, filename: string): Promise<void> {
   URL.revokeObjectURL(url);
 }
 
+/** A photo or other file the server keeps, or null if there is none. */
+export async function fetchFile(path: string): Promise<Blob | null> {
+  try {
+    return await (await send(path, {})).blob();
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
+  }
+}
+
 async function send(
   path: string,
   options: { method?: string; body?: unknown; headers?: Record<string, string> },
 ): Promise<Response> {
   const headers: Record<string, string> = { ...options.headers };
-  if (options.body !== undefined) headers['Content-Type'] = 'application/json';
+  // A file goes as itself; anything else as JSON.
+  const file = options.body instanceof Blob ? options.body : null;
+  if (file) headers['Content-Type'] = file.type || 'application/octet-stream';
+  else if (options.body !== undefined) headers['Content-Type'] = 'application/json';
   const sentToken = token;
   if (sentToken) headers.Authorization = `Bearer ${sentToken}`;
 
@@ -68,7 +81,7 @@ async function send(
     response = await fetch(`${BASE}/api/v1${path}`, {
       method: options.method ?? 'GET',
       headers,
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      body: file ?? (options.body === undefined ? undefined : JSON.stringify(options.body)),
     });
   } catch {
     throw new ApiError(0, 'Cannot reach the server. Check your connection and try again.');

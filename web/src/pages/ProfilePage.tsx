@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 
 import { levelLabels } from '../lib/levels';
 import { RatingSummary } from '../components/rating';
+import { initialsOf, Photo } from '../components/photo';
 import { ReportMember } from '../components/report';
 import { Card, Page, QueryState } from '../components/ui';
 import { api } from '../lib/api';
@@ -41,6 +42,7 @@ export function ProfilePage() {
       <QueryState isPending={profile.isPending} error={profile.error} isEmpty={false} empty="" onRetry={() => void profile.refetch()} />
       {member && (
         <>
+          <Photo path={`/users/${id}/photo`} alt={t('Photo of {name}', { name: member.fullName })} initials={initialsOf(member.fullName)} size="h-24 w-24" />
           <Card>
             <dl className="grid gap-4 text-sm sm:grid-cols-3">
               <div>

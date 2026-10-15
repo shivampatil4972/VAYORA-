@@ -10,6 +10,7 @@ import com.dypcet.journex.routing.RouteService;
 import com.dypcet.journex.routing.RouteService.Leg;
 import com.dypcet.journex.routing.RouteService.Point;
 import com.dypcet.journex.routing.RouteService.Route;
+import com.dypcet.journex.stopover.StopoverService;
 import com.dypcet.journex.vehicle.VehicleService;
 import com.dypcet.journex.vehicle.VehicleService.Comfort;
 import com.dypcet.journex.vehicle.VehicleService.Luggage;
@@ -224,8 +225,9 @@ public class RideService {
     }
 
     /** What a route through some stops would look like, before a ride is published. */
+    /** @param alongRoute rest stops and chargers near the route, in the order they are reached */
     public record RoutePreview(double distanceKm, int durationMinutes, String source,
-            List<LegPreview> legs, List<double[]> path) {
+            List<LegPreview> legs, List<double[]> path, List<StopoverService.Along> alongRoute) {
     }
 
     record SearchIssued(long passengerId, double originLat, double originLon,
@@ -265,12 +267,14 @@ public class RideService {
     private final BigDecimal suggestedRupeesPerKm;
     private final SeatHolds holds;
     private final PassService passes;
+    private final StopoverService stopovers;
 
     public RideService(JdbcTemplate jdbc, VehicleService vehicles, EventLogService events,
             ServiceFee serviceFee, RouteService routes, ObjectMapper mapper, Clock clock,
             @Value("${journex.search.max-access-km}") double maxAccessKm,
             @Value("${journex.pricing.suggested-rupees-per-km}") BigDecimal suggestedRupeesPerKm,
-            SeatHolds holds, PassService passes) {
+            SeatHolds holds, PassService passes, StopoverService stopovers) {
+        this.stopovers = stopovers;
         this.passes = passes;
         this.holds = holds;
         this.jdbc = jdbc;
@@ -363,8 +367,10 @@ public class RideService {
                 .map(leg -> new LegPreview(km(leg.distanceMetres()), minutes(leg.durationSeconds()),
                         suggestedPrice(leg)))
                 .toList();
-        return new RoutePreview(km(route.distanceMetres()), minutes(route.durationSeconds()),
-                route.source(), legs, route.path());
+        double distanceKm = km(route.distanceMetres());
+        int durationMinutes = minutes(route.durationSeconds());
+        return new RoutePreview(distanceKm, durationMinutes, route.source(), legs, route.path(),
+                stopovers.along(route.path(), distanceKm, durationMinutes));
     }
 
     /** Distance times the configured rate, to the nearest ten rupees. */

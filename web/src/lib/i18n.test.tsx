@@ -11,6 +11,7 @@ import { AppRoutes } from '../App';
 import { AuthProvider } from './auth';
 import { formatRupees, setFormatLanguage } from './format';
 import { LanguageProvider, TABLES, translate, type Language } from './i18n';
+import { translatedNotification } from './notificationText';
 
 const SRC = join(process.cwd(), 'src');
 
@@ -206,5 +207,36 @@ describe('money', () => {
       expect(formatRupees(1144)).toMatch(/1,144/);
       expect(formatRupees(1144)).toContain('₹');
     }
+  });
+});
+
+describe('notifications', () => {
+  const hindi = (text: string, values?: Record<string, string | number>) => translate('hi', text, values);
+
+  it('are translated piece by piece: the sentence, the seats, the towns and each other ride', () => {
+    const notice = {
+      template: 'The driver cancelled the ride you booked for {seats}. Everything you paid has been returned. {more}',
+      values: {
+        seats: { template: '{n} seats, {from} to {to}', values: { n: '2', from: 'Kolhapur', to: 'Pune' } },
+        more: {
+          template: 'Other rides that could take you: {rides}. Search again to book one.',
+          values: { rides: [{ template: '{time} from {stop} with {driver}', values: { time: '07:15', stop: 'Kolhapur', driver: 'Pune Kulkarni' } }] },
+        },
+      },
+    };
+    expect(translatedNotification(hindi, notice)).toBe(
+      'चालक ने वह सवारी रद्द कर दी जिसमें आपने 2 सीटें, कोल्हापुर से पुणे बुक की थीं। आपका पूरा भुगतान लौटा दिया गया है।'
+        + ' अन्य सवारियाँ जो आपको ले जा सकती हैं: 07:15, कोल्हापुर से, Pune Kulkarni के साथ। बुक करने के लिए फिर से खोजें।',
+    );
+  });
+
+  it("leave a person's name and an administrator's note as written", () => {
+    expect(translatedNotification(hindi, { template: 'An administrator reviewed a report about you: {note}', values: { note: 'Pune' } }))
+      .toBe('एक व्यवस्थापक ने आपके बारे में एक रिपोर्ट की समीक्षा की: Pune');
+  });
+
+  it('are left to the English when any part is unknown', () => {
+    expect(translatedNotification(hindi, { template: '{x}', values: { x: 'y' } })).toBeNull();
+    expect(translatedNotification(hindi, null)).toBeNull();
   });
 });

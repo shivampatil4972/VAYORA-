@@ -71,6 +71,31 @@ journex:
     cache-ttl: P7D
     # Only used to guess a driving time when there is no road route.
     fallback-speed-kmh: 50
+  push:
+    # The server's key pair, base64url. Empty: push notifications are off. Make a pair with
+    # node scripts/vapid-keys.mjs; never commit a real private key.
+    public-key: ${JOURNEX_PUSH_PUBLIC_KEY:}
+    private-key: ${JOURNEX_PUSH_PRIVATE_KEY:}
+    # Who push services can contact about this server's messages (RFC 8292).
+    subject: ${JOURNEX_PUSH_SUBJECT:mailto:journex@example.invalid}
+    # Push services a browser may name, and their subdomains; a subscription anywhere else is
+    # refused. Comma-separated.
+    allowed-hosts: fcm.googleapis.com,updates.push.services.mozilla.com,notify.windows.com,push.apple.com
+    # How long a push service keeps a message for a browser that is offline.
+    time-to-live: P1D
+  photo:
+    # The largest upload accepted. What is stored is smaller: re-encoded and scaled down.
+    max-upload: 5MB
+    # The longest side of a stored photo.
+    max-side-pixels: 800
+    # Refused before decoding above this, so a small file cannot claim an enormous picture.
+    max-source-pixels: 40000000
+  route:
+    # Rest stops and chargers this close to a route, in a straight line, are shown to the driver.
+    stopovers-within-km: 2
+    # On a longer drive, the rest stop nearest the point this much driving in is suggested
+    # for a break. An assumption, not a rule from any regulation.
+    break-after: PT2H
   search:
     # How far, in a straight line, a passenger may be from a stop for a ride to match.
     max-access-km: 5

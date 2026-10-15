@@ -49,6 +49,8 @@ Every setting has a working default in `docker-compose.yml`. To change one, copy
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:5173` | Where the browser app is served from. Change it together with `WEB_PORT` |
 | `*_PORT` | see the table above | Change one if the port is taken |
 | `OSRM_PBF_URL`, `OSRM_BBOX` | western India, clipped to the corridor | |
+| `JOURNEX_PUSH_PUBLIC_KEY`, `JOURNEX_PUSH_PRIVATE_KEY` | empty | Push notifications are off unless both are set. `node scripts/vapid-keys.mjs` prints a new pair. Keep the private key secret; a new pair makes every browser subscribe again |
+| `JOURNEX_PUSH_SUBJECT` | `mailto:journex@example.invalid` | A contact push services can use about this server's messages. Set a real one before turning push on |
 
 The web app's addresses for core-api and the gateway are fixed when its image is built
 (`VITE_API_URL`, `VITE_GATEWAY_URL`). Changing `CORE_API_PORT` or `GATEWAY_PORT` means

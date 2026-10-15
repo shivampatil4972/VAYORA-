@@ -3,8 +3,9 @@ package com.dypcet.journex.account;
 import com.dypcet.journex.account.AccountService.EmergencyContact;
 import com.dypcet.journex.account.MessageSender.Channel;
 import com.dypcet.journex.audit.AuditService;
-import com.dypcet.journex.notification.NotificationService;
 import com.dypcet.journex.notification.NotificationService.Type;
+import com.dypcet.journex.notification.NotificationService;
+import com.dypcet.journex.notification.Text;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -109,7 +110,7 @@ public class SosService {
         for (Long adminId : jdbc.queryForList(
                 "SELECT id FROM users WHERE role = 'ADMIN' AND status = 'ACTIVE'", Long.class)) {
             notifications.send(adminId, Type.SOS_RAISED,
-                    name + " pressed the emergency button. Open the emergency queue.", null);
+                    Text.of("{name} pressed the emergency button. Open the emergency queue.", "name", name), null);
         }
         return raised(alertId, contacts.size(), sender.name());
     }

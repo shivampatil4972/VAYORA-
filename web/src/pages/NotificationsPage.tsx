@@ -4,6 +4,7 @@ import { Button, Card, Notice, Page, QueryState } from '../components/ui';
 import { api } from '../lib/api';
 import { formatDateTime } from '../lib/format';
 import { useT } from '../lib/i18n';
+import { translatedNotification } from '../lib/notificationText';
 import type { AppNotification } from '../lib/types';
 
 export function NotificationsPage() {
@@ -34,15 +35,20 @@ export function NotificationsPage() {
         onRetry={() => void notifications.refetch()}
       />
       <ul className="space-y-3">
-        {notifications.data?.map((notification) => (
+        {notifications.data?.map((notification) => {
+          const translated = translatedNotification(t, notification.text);
+          return (
           <li key={notification.id}>
             <Card>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  {/* The message is written by the server, in English, whatever language is chosen. */}
-                  <p className={notification.read ? 'text-slate-700' : 'font-semibold text-slate-900'} lang="en">
+                  {/* Older notifications have only the server's English, and say so to a screen reader. */}
+                  <p
+                    className={notification.read ? 'text-slate-700' : 'font-semibold text-slate-900'}
+                    lang={translated === null ? 'en' : undefined}
+                  >
                     {!notification.read && <span className="sr-only">{t('Unread:')} </span>}
-                    {notification.message}
+                    {translated ?? notification.message}
                   </p>
                   <p className="mt-1 text-sm text-slate-500">{formatDateTime(notification.createdAt)}</p>
                 </div>
@@ -54,7 +60,8 @@ export function NotificationsPage() {
               </div>
             </Card>
           </li>
-        ))}
+          );
+        })}
       </ul>
     </Page>
   );

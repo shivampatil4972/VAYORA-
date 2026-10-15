@@ -34,6 +34,7 @@ test. It must not be put on the public internet as it stands; the last section s
 | Search positions are coarsened in the research log | Three decimals, about 100 metres | `RoutingIntegrationTest` |
 | The model never sees a passenger's latent type | And scores are visible to administrators only | `sim/tests`, `HazardScoringIntegrationTest` |
 | GPS points expire | 7 days, by a database TTL | Gateway live check |
+| A photo keeps only its pixels | Every upload is decoded and written again as a JPEG, which drops metadata such as where a phone photo was taken. Files over 5 MB, or claiming over 40 million pixels, are refused before decoding | `PhotoIntegrationTest` |
 
 ### Integrity
 
@@ -53,6 +54,8 @@ test. It must not be put on the public internet as it stands; the last section s
 | Requests are validated | Bean validation on every body and parameter; a bad query is a 400, not a 500 |
 | Text people type is shown as text | Reviews, bios, notes, chat and report details are rendered by React as text nodes, never as HTML. Tests feed markup in and check it comes out as characters for reviews, ride notes and chat; bios and report details rely on the same mechanism untested |
 | A search wildcard is text | `%` typed into the member search matches nothing |
+| Push goes only to push services | A browser names the address its push service accepts messages at. Only HTTPS addresses at the configured push services (Google, Mozilla, Microsoft, Apple) are accepted, so a member cannot make the server send requests to an internal or chosen address. `PushIntegrationTest` tries localhost, a cloud metadata address, a look-alike host and a user-info trick |
+| Push messages are encrypted for the browser | RFC 8291: only the subscribing browser can read one; the push service cannot |
 
 ### Browsers
 

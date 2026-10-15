@@ -54,6 +54,14 @@ mistake for more. Updated 2026-10-13.
 - Migration V21 makes phone numbers unique. A database where two members already share a
   number will refuse the migration until that is settled by hand.
 - A member who signed up with a phone number cannot add an email address yet.
+- **Push notifications are off by default and untried in a real browser.** The encryption
+  matches RFC 8291's example exactly and a test decrypts what the server sends, but no push
+  has been seen arriving through Google's, Mozilla's or Apple's service. Pushes are in
+  English, as email and SMS copies are. Safari needs the app installed to the home screen
+  before it allows push.
+- Rest stops, chargers and bus services are whatever administrators enter; none ship with
+  the platform and nothing checks them. The suggested break assumes an even pace.
+- Photos are not moderated: nothing checks what a photo shows.
 
 - **Payments are simulated.** The only provider is a mock that approves every hold
   unless told to decline. No money moves and nothing is verified with any bank, card

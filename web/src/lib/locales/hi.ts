@@ -1022,4 +1022,128 @@ export const hi: Record<string, string> = {
     'पूछने से अधिकतम कितना लाभ, यात्री कितनी आसानी से सीट छोड़ते हैं उसके अनुसार',
   'Chance an asked passenger releases at once':
     'पूछे गए यात्री के तुरंत सीट छोड़ने की संभावना',
+  // Rest stops and chargers
+  'Chargers are listed near this route below.':
+    'इस मार्ग के पास के चार्जर नीचे दिए गए हैं।',
+  'No charger is listed near this route.':
+    'इस मार्ग के पास कोई चार्जर सूचीबद्ध नहीं है।',
+  'Along this route':
+    'इस मार्ग पर',
+  'km {km}':
+    'किमी {km}',
+  'charger, {kw} kW':
+    'चार्जर, {kw} kW',
+  'charger':
+    'चार्जर',
+  'rest stop':
+    'विश्राम स्थल',
+  '{km} km off the route':
+    'मार्ग से {km} किमी दूर',
+  'a good place for a break':
+    'विश्राम के लिए अच्छी जगह',
+  'Listed by JOURNEX staff. Nothing checks that a stop is open or a charger works.':
+    'JOURNEX कर्मचारियों द्वारा सूचीबद्ध। कोई जाँच नहीं करता कि स्थल खुला है या चार्जर काम करता है।',
+  'Rest stops and chargers':
+    'विश्राम स्थल और चार्जर',
+  'Drivers see these when they work out a route that passes near them. Nothing here checks that a stop is open or a charger works, and drivers are told so.':
+    'जब चालक पास से गुजरने वाला मार्ग बनाते हैं तो उन्हें ये दिखते हैं। यहाँ कोई जाँच नहीं होती कि स्थल खुला है या चार्जर काम करता है, और चालकों को यह बताया जाता है।',
+  'Kind':
+    'प्रकार',
+  'Rest stop':
+    'विश्राम स्थल',
+  'Charger':
+    'चार्जर',
+  'Latitude':
+    'अक्षांश',
+  'Longitude':
+    'देशांतर',
+  'Power in kW (optional)':
+    'शक्ति kW में (वैकल्पिक)',
+  'Add':
+    'जोड़ें',
+  'No rest stops or chargers are listed.':
+    'कोई विश्राम स्थल या चार्जर सूचीबद्ध नहीं है।',
+  // Notifications
+  '{passenger} booked {seats}.':
+    '{passenger} ने {seats} बुक कीं।',
+  '{passenger} asked for {seats}.':
+    '{passenger} ने {seats} का अनुरोध किया।',
+  'The driver accepted your booking for {seats}.':
+    'चालक ने {seats} के लिए आपकी बुकिंग स्वीकार की।',
+  'The driver did not answer your request for {seats} in time, so it has been closed. Everything you paid has been returned.':
+    'चालक ने {seats} के आपके अनुरोध का समय पर उत्तर नहीं दिया, इसलिए इसे बंद कर दिया गया है। आपका पूरा भुगतान लौटा दिया गया है।',
+  '{passenger}\'s request for {seats} was closed because it was not answered in time.':
+    '{passenger} का {seats} का अनुरोध समय पर उत्तर न मिलने से बंद कर दिया गया।',
+  '{passenger} cancelled {seats}.':
+    '{passenger} ने {seats} रद्द कीं।',
+  'The driver did not accept your request for {seats}. Everything you paid has been returned.':
+    'चालक ने {seats} का आपका अनुरोध स्वीकार नहीं किया। आपका पूरा भुगतान लौटा दिया गया है।',
+  '{n} seat, {from} to {to}':
+    '{n} सीट, {from} से {to}',
+  '{n} seats, {from} to {to}':
+    '{n} सीटें, {from} से {to}',
+  'The driver reported that you did not board for {seats}. Nothing is refunded for a missed ride.':
+    'चालक ने बताया कि आप {seats} के लिए सवार नहीं हुए। छूटी सवारी का कोई पैसा वापस नहीं होता।',
+  'Your trip from {from} to {to} is complete. You can rate your driver in My bookings.':
+    '{from} से {to} तक आपकी यात्रा पूरी हुई। आप मेरी बुकिंग में अपने चालक को रेटिंग दे सकते हैं।',
+  'The driver cancelled the ride you booked for {seats}. Everything you paid has been returned. {more}':
+    'चालक ने वह सवारी रद्द कर दी जिसमें आपने {seats} बुक की थीं। आपका पूरा भुगतान लौटा दिया गया है। {more}',
+  'No other ride with seats leaves near that time.':
+    'उस समय के आसपास सीटों वाली कोई और सवारी नहीं है।',
+  'No other ride with seats leaves near that time. Buses listed by JOURNEX staff (check with the operator before travelling): {buses}.':
+    'उस समय के आसपास सीटों वाली कोई और सवारी नहीं है। JOURNEX कर्मचारियों द्वारा सूचीबद्ध बसें (यात्रा से पहले संचालक से जाँच लें): {buses}।',
+  'Other rides that could take you: {rides}. Search again to book one.':
+    'अन्य सवारियाँ जो आपको ले जा सकती हैं: {rides}। बुक करने के लिए फिर से खोजें।',
+  '{time} from {stop} with {driver}':
+    '{time}, {stop} से, {driver} के साथ',
+  '{time} {operator}, Rs {fare}':
+    '{time} {operator}, ₹ {fare}',
+  'A passenger says a trip marked completed did not happen. See disputed trips.':
+    'एक यात्री का कहना है कि पूरी बताई गई यात्रा हुई ही नहीं। विवादित यात्राएँ देखें।',
+  'How was your trip with {driver}? You can still rate it.':
+    '{driver} के साथ आपकी यात्रा कैसी रही? आप अब भी रेटिंग दे सकते हैं।',
+  'How was {passenger} as a passenger? You can still rate the trip.':
+    'यात्री के रूप में {passenger} कैसे रहे? आप अब भी यात्रा को रेटिंग दे सकते हैं।',
+  'An administrator reviewed a report about you.':
+    'एक व्यवस्थापक ने आपके बारे में एक रिपोर्ट की समीक्षा की।',
+  'An administrator reviewed a report about you: {note}':
+    'एक व्यवस्थापक ने आपके बारे में एक रिपोर्ट की समीक्षा की: {note}',
+  '{name} pressed the emergency button. Open the emergency queue.':
+    '{name} ने आपातकालीन बटन दबाया। आपातकालीन सूची खोलें।',
+  // Photos
+  'Choose a photo':
+    'फ़ोटो चुनें',
+  'Uploading…':
+    'अपलोड हो रहा है…',
+  'Replace photo':
+    'फ़ोटो बदलें',
+  'Add a photo':
+    'फ़ोटो जोड़ें',
+  'Remove photo':
+    'फ़ोटो हटाएँ',
+  'JPEG or PNG, up to 5 MB. It is stored resized, without the location or other details the file may carry.':
+    'JPEG या PNG, अधिकतम 5 MB। इसे छोटा करके रखा जाता है, फ़ाइल में मौजूद स्थान या अन्य विवरण के बिना।',
+  'Your photo':
+    'आपकी फ़ोटो',
+  'Photo of {name}':
+    '{name} की फ़ोटो',
+  'Photo of the {vehicle}':
+    '{vehicle} की फ़ोटो',
+  // Push
+  'Notifications are blocked for this site in your browser settings.':
+    'आपकी ब्राउज़र सेटिंग में इस साइट के लिए सूचनाएँ बंद हैं।',
+  'This browser cannot receive push notifications.':
+    'यह ब्राउज़र पुश सूचनाएँ प्राप्त नहीं कर सकता।',
+  'Push notifications are not set up on this server.':
+    'इस सर्वर पर पुश सूचनाएँ सेट नहीं हैं।',
+  'Push notifications are on in this browser.':
+    'इस ब्राउज़र में पुश सूचनाएँ चालू हैं।',
+  'Push notifications are off in this browser.':
+    'इस ब्राउज़र में पुश सूचनाएँ बंद हैं।',
+  'Turn off in this browser':
+    'इस ब्राउज़र में बंद करें',
+  'Turn on in this browser':
+    'इस ब्राउज़र में चालू करें',
+  'A push shows the notification in English, as email and SMS copies do.':
+    'पुश सूचना अंग्रेज़ी में दिखती है, जैसे ईमेल और SMS प्रतियाँ।',
 };

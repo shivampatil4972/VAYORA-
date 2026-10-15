@@ -1,7 +1,8 @@
 package com.dypcet.journex.aftertrip;
 
-import com.dypcet.journex.notification.NotificationService;
 import com.dypcet.journex.notification.NotificationService.Type;
+import com.dypcet.journex.notification.NotificationService;
+import com.dypcet.journex.notification.Text;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -72,7 +73,7 @@ public class AfterTripService {
             for (Long adminId : jdbc.queryForList(
                     "SELECT id FROM users WHERE role = 'ADMIN' AND status = 'ACTIVE'", Long.class)) {
                 notifications.send(adminId, Type.TRIP_DISPUTED,
-                        "A passenger says a trip marked completed did not happen. See disputed trips.", bookingId);
+                        Text.of("A passenger says a trip marked completed did not happen. See disputed trips."), bookingId);
             }
         }
     }
@@ -137,12 +138,14 @@ public class AfterTripService {
         for (Due trip : due) {
             if (!trip.passengerRated()) {
                 notifications.send(trip.passengerId(), Type.RATING_REMINDER,
-                        "How was your trip with " + trip.driverName() + "? You can still rate it.", trip.bookingId());
+                        Text.of("How was your trip with {driver}? You can still rate it.", "driver", trip.driverName()),
+                        trip.bookingId());
                 sent++;
             }
             if (!trip.driverRated()) {
                 notifications.send(trip.driverId(), Type.RATING_REMINDER,
-                        "How was " + trip.passengerName() + " as a passenger? You can still rate the trip.",
+                        Text.of("How was {passenger} as a passenger? You can still rate the trip.",
+                                "passenger", trip.passengerName()),
                         trip.bookingId());
                 sent++;
             }

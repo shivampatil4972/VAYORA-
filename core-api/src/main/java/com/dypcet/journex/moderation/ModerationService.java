@@ -1,8 +1,9 @@
 package com.dypcet.journex.moderation;
 
 import com.dypcet.journex.audit.AuditService;
-import com.dypcet.journex.notification.NotificationService;
 import com.dypcet.journex.notification.NotificationService.Type;
+import com.dypcet.journex.notification.NotificationService;
+import com.dypcet.journex.notification.Text;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -132,8 +133,8 @@ public class ModerationService {
             setStatus(report.reportedUserId(), "SUSPENDED");
         } else if (outcome == Outcome.WARN) {
             notifications.send(report.reportedUserId(), Type.ACCOUNT_NOTICE,
-                    "An administrator reviewed a report about you"
-                            + (text == null ? "." : ": " + text), null);
+                    text == null ? Text.of("An administrator reviewed a report about you.")
+                            : Text.of("An administrator reviewed a report about you: {note}", "note", text), null);
         }
         audit.record(adminId, "REPORT_" + outcome.name(), "report", reportId,
                 Map.of("reported_user_id", report.reportedUserId(), "reason", report.reason().name()));

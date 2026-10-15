@@ -2,6 +2,7 @@ package com.dypcet.journex.notification;
 
 import com.dypcet.journex.account.MessageSender;
 import com.dypcet.journex.account.MessageSender.Channel;
+import com.dypcet.journex.push.PushService;
 import jakarta.annotation.PostConstruct;
 import java.time.Clock;
 import java.time.Instant;
@@ -53,7 +54,12 @@ public class NotificationService {
         RATING_REMINDER
     }
 
-    public record Notification(String id, Type type, String message, Long bookingId,
+    /**
+     * @param message the English, as sent in any email or SMS copy
+     * @param text    the same as a template and its values, for the app to translate; null
+     *                on notifications written before there were templates
+     */
+    public record Notification(String id, Type type, String message, Text text, Long bookingId,
             Instant createdAt, boolean read) {
     }
 
@@ -69,8 +75,11 @@ public class NotificationService {
 
     private final JdbcTemplate jdbc;
     private final MessageSender sender;
+    private final PushService push;
 
-    public NotificationService(MongoTemplate mongo, Clock clock, JdbcTemplate jdbc, MessageSender sender) {
+    public NotificationService(MongoTemplate mongo, Clock clock, JdbcTemplate jdbc, MessageSender sender,
+            PushService push) {
+        this.push = push;
         this.mongo = mongo;
         this.clock = clock;
         this.jdbc = jdbc;
@@ -87,10 +96,12 @@ public class NotificationService {
         }
     }
 
-    public void send(long userId, Type type, String message, Long bookingId) {
+    public void send(long userId, Type type, Text text, Long bookingId) {
+        String message = text.render();
         Document document = new Document("userId", userId)
                 .append("type", type.name())
                 .append("message", message)
+                .append("text", text.toDocument())
                 .append("bookingId", bookingId)
                 .append("createdAt", Date.from(clock.instant()))
                 .append("readAt", null);
@@ -101,11 +112,13 @@ public class NotificationService {
                 public void afterCommit() {
                     write(document);
                     deliver(copies, message);
+                    pushTo(userId, message);
                 }
             });
         } else {
             write(document);
             deliver(copies, message);
+            pushTo(userId, message);
         }
     }
 
@@ -155,6 +168,14 @@ public class NotificationService {
             log.warn("Notification copies skipped for user {}: {}", userId, e.getMessage());
             return List.of();
         }
+    }
+
+    /**
+     * To the member's browsers, off the request: a slow push service must not hold up the
+     * person who caused the notification. The push carries the English, as copies do.
+     */
+    private void pushTo(long userId, String message) {
+        Thread.ofVirtual().name("push-" + userId).start(() -> push.send(userId, message));
     }
 
     private void deliver(List<Copy> copies, String message) {
@@ -219,6 +240,7 @@ public class NotificationService {
                 document.getObjectId("_id").toHexString(),
                 Type.valueOf(document.getString("type")),
                 document.getString("message"),
+                document.get("text") instanceof Document text ? Text.fromDocument(text) : null,
                 booking == null ? null : booking.longValue(),
                 document.getDate("createdAt").toInstant(),
                 document.get("readAt") != null);

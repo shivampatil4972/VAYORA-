@@ -1,5 +1,30 @@
 # Progress
 
+## 2026-10-15 — rest stops and chargers, translated notifications, photos, push
+
+Built on the team's go-ahead for all four. Verified by 17 new Java tests (208 in all) and
+the web tests (183), all passing.
+
+- **Rest stops and chargers (82, 83).** Administrators enter them; none ship. A driver
+  working out a route sees those within 2 km of it, in order, with the rest stop nearest
+  the two-hour mark suggested for a break, and the electric-range warning says whether a
+  charger is listed near the route.
+- **Translated notifications (71).** A notification is stored as an English template and
+  its values (a value can itself be a phrase, like "2 seats, Kolhapur to Pune", or a list of
+  them), rendered to exactly the English it had before. The app translates it piece by
+  piece; town names are translated, people's names and notes are not. Older notifications,
+  and copies, stay in English. A core-api test fails if the server uses a template the app
+  does not list.
+- **Photos (3, 16).** Profile and vehicle photos in PostgreSQL. Each upload is re-encoded
+  as a JPEG of at most 800 px, which drops metadata such as a phone photo's location.
+- **Web push (62).** The standard protocol written with the JDK, checked against RFC
+  8291's example to the byte. Only HTTPS addresses at known push services are accepted.
+  Off until a key pair is configured (`scripts/vapid-keys.mjs`).
+- Also: a member with no email who asks for an email code is now told so, instead of being
+  asked to add a phone number.
+- `scripts/reproduce.sh` was run in full after the robustness work, before this: every
+  result reproduced exactly.
+
 ## 2026-10-15 — the ceiling across passengers' response
 
 - ORACLE against B3 with the release chance at 0.25, 0.5 and 1.0 (sweep `...007`,

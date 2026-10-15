@@ -34,7 +34,10 @@ function open(path: string) {
 function serve(routes: Record<string, () => Response>) {
   const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
     const key = `${init?.method ?? 'GET'} ${new URL(url).pathname.replace('/api/v1', '')}`;
-    const match = Object.keys(routes).find((route) => key.startsWith(route));
+    // A photo is answered only by a route written for it, never by a shorter prefix such as
+    // GET /vehicles, which would hand a page a list where it expects an image.
+    const photo = key.endsWith('/photo');
+    const match = Object.keys(routes).find((route) => key.startsWith(route) && (!photo || route.endsWith('/photo')));
     // Any signed-in page may ask for the payment terms.
     if (!match && key === 'GET /payment-terms') return json(terms);
     // And the bookings page for how long a driver has to answer.
@@ -42,6 +45,8 @@ function serve(routes: Record<string, () => Response>) {
     if (!match && key === 'GET /me/profile') return json({ gender: null });
     if (!match && key === 'GET /notifications/preferences') return json({ email: false, sms: false });
     if (!match && key === 'GET /bus-alternatives') return json([]);
+    if (!match && key === 'GET /me/push') return json({ publicKey: null, subscribed: false });
+    if (!match && key.startsWith('GET ') && key.endsWith('/photo')) return json({ detail: 'No photo' }, 404);
     if (!match && key === 'GET /me/referral') return json({ code: 'K7QX2M', signedUp: 0, qualified: 0 });
     if (!match && key === 'GET /booking-terms') return json({ answerWithinMinutes: 720, closesMinutesBeforeBoarding: 120 });
     // The navigation asks for this on every signed-in page.
@@ -591,6 +596,7 @@ describe('maps, routes and location search', () => {
           durationMinutes: 191,
           source: 'OSRM',
           legs: [{ distanceKm: 230, durationMinutes: 191, suggestedPrice: 460 }],
+          alongRoute: [],
           path: [
             [16.705, 74.2433],
             [18.5204, 73.8567],
@@ -2046,7 +2052,7 @@ describe('bus services', () => {
 
 describe('electric range', () => {
   const preview = () =>
-    json({ distanceKm: 230, durationMinutes: 191, source: 'OSRM', legs: [{ distanceKm: 230, durationMinutes: 191, suggestedPrice: 460 }],
+    json({ distanceKm: 230, durationMinutes: 191, source: 'OSRM', alongRoute: [], legs: [{ distanceKm: 230, durationMinutes: 191, suggestedPrice: 460 }],
       path: [[16.705, 74.2433], [18.5204, 73.8567]] });
   const ev = (rangeKm: number) => ({ id: 3, make: 'Tata', model: 'Nexon EV', year: 2023, colour: 'Blue', seats: 5,
     electric: true, batteryKwh: 30, consumptionKwhPer100Km: 15, estimatedRangeKm: rangeKm });
@@ -2139,5 +2145,175 @@ describe('what if', () => {
     expect(row).toHaveTextContent('−0.05 (−0.10 to −0.01)');
     expect(within(row).queryByText('no clear difference')).not.toBeInTheDocument();
     expect(screen.getByText('B4 compared with B3, 30 seeds each, paired by seed.', { exact: false })).toBeInTheDocument();
+  });
+});
+
+describe('rest stops and chargers', () => {
+  const stop = (id: number, kind: 'REST' | 'CHARGER', name: string, kmAlong: number, suggestedBreak = false, chargerKw: number | null = null) => ({
+    stopover: { id, kind, name, lat: 17.6, lon: 74.05, chargerKw, notes: null },
+    kmAlong,
+    kmOffRoute: 0.2,
+    suggestedBreak,
+  });
+
+  it('lists what is along the route, marks the suggested break, and names chargers in the range warning', async () => {
+    signIn('DRIVER');
+    serve({
+      'GET /vehicles': () => json([{ id: 3, make: 'Tata', model: 'Nexon EV', year: 2023, colour: 'Blue', seats: 5,
+        electric: true, batteryKwh: 30, consumptionKwhPer100Km: 15, estimatedRangeKm: 200 }]),
+      'POST /rides/route-preview': () =>
+        json({ distanceKm: 230, durationMinutes: 191, source: 'OSRM', legs: [{ distanceKm: 230, durationMinutes: 191, suggestedPrice: 460 }],
+          path: [[16.705, 74.2433], [18.5204, 73.8567]],
+          alongRoute: [stop(1, 'CHARGER', 'Karad charger', 62, false, 60), stop(2, 'REST', 'Satara dhaba', 121, true)] }),
+    });
+    open('/rides/new');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Work out the route' }));
+    const along = within(await screen.findByRole('region', { name: 'Along this route' }));
+    expect(along.getByText(/km 62 · Karad charger · charger, 60 kW/)).toBeInTheDocument();
+    expect(along.getByText(/km 121 · Satara dhaba · rest stop/)).toHaveTextContent('a good place for a break');
+    expect(along.getByText(/Nothing checks that a stop is open/)).toBeInTheDocument();
+    expect(screen.getByText(/Chargers are listed near this route below/)).toBeInTheDocument();
+  });
+
+  it('lets an administrator add a charger with its power', async () => {
+    signIn('ADMIN');
+    const fetchMock = serve({
+      'GET /admin/stopovers': () => json([]),
+      'POST /admin/stopovers': () => json({ id: 5, kind: 'CHARGER', name: 'Karad charger', lat: 17.28, lon: 74.18, chargerKw: 60, notes: null }, 201),
+    });
+    open('/admin/stopovers');
+
+    expect(await screen.findByText('No rest stops or chargers are listed.')).toBeInTheDocument();
+    await userEvent.selectOptions(screen.getByLabelText('Kind'), 'Charger');
+    await userEvent.type(screen.getByLabelText('Name'), 'Karad charger');
+    await userEvent.type(screen.getByLabelText('Latitude'), '17.28');
+    await userEvent.type(screen.getByLabelText('Longitude'), '74.18');
+    await userEvent.type(screen.getByLabelText('Power in kW (optional)'), '60');
+    await userEvent.click(screen.getByRole('button', { name: 'Add' }));
+
+    await waitFor(() => {
+      const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
+      expect(JSON.parse(String(post?.[1]?.body))).toEqual({ kind: 'CHARGER', name: 'Karad charger', lat: 17.28, lon: 74.18,
+        chargerKw: 60, notes: null });
+    });
+  });
+});
+
+describe('notifications in the reader language', () => {
+  const seats = { template: '{n} seats, {from} to {to}', values: { n: '2', from: 'Kolhapur', to: 'Pune' } };
+  const cancelled = {
+    id: 'a1', type: 'RIDE_CANCELLED', bookingId: 7, createdAt: '2026-11-02T01:30:00Z', read: false,
+    message: 'The driver cancelled the ride you booked for 2 seats, Kolhapur to Pune. Everything you paid has been returned. No other ride with seats leaves near that time.',
+    text: {
+      template: 'The driver cancelled the ride you booked for {seats}. Everything you paid has been returned. {more}',
+      values: { seats, more: { template: 'No other ride with seats leaves near that time.', values: {} } },
+    },
+  };
+  const older = { id: 'a2', type: 'ACCOUNT_NOTICE', bookingId: null, createdAt: '2026-11-01T01:30:00Z', read: true,
+    message: 'Written before templates existed.', text: null };
+
+  it('shows a notification from its template, and an older one as its English', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /notifications': () => json([cancelled, older]) });
+    open('/notifications');
+
+    expect(await screen.findByText(/The driver cancelled the ride you booked for 2 seats, Kolhapur to Pune/)).not.toHaveAttribute('lang');
+    expect(screen.getByText('Written before templates existed.')).toHaveAttribute('lang', 'en');
+  });
+
+  it('falls back to the English when a template is not one this version knows', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /notifications': () => json([{ ...cancelled, text: { template: 'A sentence from a newer server: {x}', values: { x: 'y' } } }]) });
+    open('/notifications');
+
+    expect(await screen.findByText(/The driver cancelled the ride you booked for 2 seats/)).toHaveAttribute('lang', 'en');
+  });
+});
+
+describe('photos', () => {
+  const profile = { email: 'user@example.test', emailVerified: false, phone: null, phoneVerified: false,
+    bio: null, birthYear: null, gender: null, smoking: null, pets: null, music: null, chattiness: null };
+
+  it('uploads a chosen photo as the file itself, then shows it', async () => {
+    // A subclass, so the real URL is left as it was for every other test.
+    vi.stubGlobal('URL', class extends URL {
+      static createObjectURL = vi.fn(() => 'blob:photo');
+      static revokeObjectURL = vi.fn();
+    });
+    signIn('PASSENGER');
+    let stored = false;
+    const fetchMock = serve({
+      'GET /me/profile': () => json(profile),
+      'GET /me/emergency-contacts': () => json([]),
+      'PUT /me/photo': () => {
+        stored = true;
+        return new Response(null, { status: 204 });
+      },
+      'GET /users/1/photo': () => (stored ? new Response(new Blob(['jpeg'], { type: 'image/jpeg' })) : json({ detail: 'No photo' }, 404)),
+    });
+    open('/account');
+
+    expect(await screen.findByRole('button', { name: 'Add a photo' })).toBeInTheDocument();
+    const file = new File(['png bytes'], 'me.png', { type: 'image/png' });
+    await userEvent.upload(screen.getByLabelText('Choose a photo'), file);
+
+    expect(await screen.findByRole('img', { name: 'Your photo' })).toHaveAttribute('src', 'blob:photo');
+    expect(screen.getByRole('button', { name: 'Replace photo' })).toBeInTheDocument();
+    const put = fetchMock.mock.calls.find(([, init]) => init?.method === 'PUT')!;
+    expect(put[1]!.body).toBe(file);
+    expect((put[1]!.headers as Record<string, string>)['Content-Type']).toBe('image/png');
+  });
+
+  it('shows initials when a member has no photo', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /me/profile': () => json(profile), 'GET /me/emergency-contacts': () => json([]) });
+    open('/account');
+
+    expect(await screen.findByRole('button', { name: 'Add a photo' })).toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: 'Your photo' })).not.toBeInTheDocument();
+  });
+});
+
+describe('push notifications', () => {
+  const profile = { email: 'user@example.test', emailVerified: false, phone: null, phoneVerified: false,
+    bio: null, birthYear: null, gender: null, smoking: null, pets: null, music: null, chattiness: null };
+
+  it('says so when the browser cannot receive them', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /me/profile': () => json(profile), 'GET /me/emergency-contacts': () => json([]) });
+    open('/account');
+
+    expect(await screen.findByText('This browser cannot receive push notifications.')).toBeInTheDocument();
+  });
+
+  it('subscribes this browser with the server key and sends the subscription', async () => {
+    const subscription = {
+      endpoint: 'https://fcm.googleapis.com/fcm/send/abc',
+      toJSON: () => ({ endpoint: 'https://fcm.googleapis.com/fcm/send/abc', keys: { p256dh: 'BCVx', auth: 'BTBZ' } }),
+    };
+    let current: typeof subscription | null = null;
+    const subscribe = vi.fn(async () => (current = subscription));
+    const registration = { pushManager: { subscribe, getSubscription: async () => current } };
+    vi.stubGlobal('navigator', Object.assign(Object.create(navigator), {
+      serviceWorker: { register: vi.fn(async () => registration), getRegistration: async () => registration },
+    }));
+    vi.stubGlobal('PushManager', function PushManager() {});
+    vi.stubGlobal('Notification', { requestPermission: vi.fn(async () => 'granted') });
+    signIn('PASSENGER');
+    const fetchMock = serve({
+      'GET /me/profile': () => json(profile),
+      'GET /me/emergency-contacts': () => json([]),
+      'GET /me/push': () => json({ publicKey: 'BP4z9KsN', subscribed: false }),
+      'POST /me/push-subscriptions': () => new Response(null, { status: 204 }),
+    });
+    open('/account');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Turn on in this browser' }));
+
+    expect(await screen.findByText('Push notifications are on in this browser.')).toBeInTheDocument();
+    expect(subscribe).toHaveBeenCalledWith(expect.objectContaining({ userVisibleOnly: true }));
+    const post = fetchMock.mock.calls.find(([url, init]) => init?.method === 'POST' && String(url).endsWith('/me/push-subscriptions'))!;
+    expect(JSON.parse(String(post[1]!.body))).toEqual({ endpoint: 'https://fcm.googleapis.com/fcm/send/abc', keys: { p256dh: 'BCVx', auth: 'BTBZ' } });
   });
 });
