@@ -1012,4 +1012,9 @@ export const hi: Record<string, string> = {
     'कोई स्पष्ट अंतर नहीं',
   'Run {run}. Rebuilt and checked by scripts/reproduce.sh.':
     'रन {run}। scripts/reproduce.sh द्वारा दोबारा बनाया और जाँचा गया।',
+  // What-if: threshold sweep
+  'How risky a booking must look before its passenger is asked':
+    'यात्री से पूछने से पहले बुकिंग कितनी जोखिम भरी दिखनी चाहिए',
+  'Ask when the estimated chance of lasting to departure is below':
+    'पूछें जब प्रस्थान तक टिकने की अनुमानित संभावना इससे कम हो',
 };

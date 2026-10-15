@@ -1,0 +1,10 @@
+# B4-KM: B4 with the no-feature model, for ranking and for choosing whom to ask. Every
+# booking with the same time to departure gets the same estimate, so who is asked depends
+# on timing alone.
+name: B4-KM
+ranking: predicted_survival
+hazard_model: h2-km
+intervention:
+  survival_threshold: 0.8
+  min_hours_before_departure: 24
+  scoring_interval_hours: 24

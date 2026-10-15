@@ -183,10 +183,17 @@ inside the time limit.
 **What it is not.** At this corridor's scale the seat limit rarely binds, so on most
 rounds the plan is what sorting would have given. The solver is correct; it is not what
 drives any result in EXPERIMENT_PROTOCOL.md. It never recommends cancelling anything.
+Sending the same number of requests to eligible bookings in a random order (variant
+B5-RANDOM) does as well (EXPERIMENT_PROTOCOL.md section 14): in this simulator the
+scheduler does not beat chance.
 
 ## 8. Known limitations
 
 - Synthetic data only. Nothing here is evidence about real cancellation behaviour.
+- **The features add nothing measurable to the primary metric.** Ranking with the
+  Kaplan-Meier curve, which uses no booking feature and depends only on time to
+  departure, keeps all of B3's gain over B0 (EXPERIMENT_PROTOCOL.md section 14). The
+  ranking helps because of timing; the Cox model's reading of the passenger does not.
 - The public hotel-reservation dataset named in the synopsis has not been examined. A
   cancellation flag with a lead time does not give a cancellation time, so it may not
   support a time-to-event validation at all; that check is still to be done.

@@ -30,6 +30,10 @@ This is a hypothesis under test. Section 5 reports what the first full run found
 | B3 | Predicted survival to departure | `h2-cox` (`h1-cox` in section 5) | none | Run |
 | B4 | As B3 | `h2-cox` (`h1-cox` in section 5) | Reconfirmation request when estimated survival is below 0.8, at most once per booking, never within 24 h of departure, scored every 24 h | Run |
 | B5 | As B3 | `h2-cox` | As B4, but at most 2 requests per daily round, 1 per ride, and 4 seats asked about per departure day, chosen by the contact scheduler | Run (section 8) |
+| B3-KM | As B3 | `h2-km`, which uses no booking feature | none | Run (section 14) |
+| B4-KM | As B3-KM | `h2-km` | As B4 | Run (section 14) |
+| ASK-ONLY | As B0 | `h2-cox`, for choosing whom to ask only | As B4 | Run (section 14) |
+| B5-RANDOM | As B3 | `h2-cox` | As B5, but the requests go to eligible bookings in a random order, not the scheduler's choice | Run (section 14) |
 | B6-B11 | | | | Not built |
 
 The platform never cancels a booking. An intervention only asks; the passenger decides.
@@ -567,3 +571,44 @@ all. ORACLE cuts late cancellations by 23.5 and moves them mostly into the one t
 before departure. This is the mechanism behind sections 8 and 12: asking moves many
 releases from "early" to "earlier", which gains nothing, and a few from late to early, which
 gains little because late seats are mostly refilled anyway (section 11).
+
+## 14. Robustness: each component removed or replaced
+
+Run `7a1c0de0-0000-4000-8000-000000000004`, 30 seeds per variant, every variant against
+**B3**, paired by seed. B0, B3, B4 and B5 reproduce run `...003` to every digit of every
+measure, which is the check that nothing else changed.
+
+| Variant | Completed per 100 | vs B3 (95% CI) | Late share vs B3 (95% CI) | Requests per accepted booking |
+|---|---|---|---|---|
+| B0 | 30.77 | -0.34 (-0.42 to -0.25) | -0.003 (-0.008 to +0.001) | 0.000 |
+| ASK-ONLY | 30.78 | -0.33 (-0.41 to -0.25) | -0.057 (-0.062 to -0.053) | 0.209 |
+| B3-KM | 31.09 | -0.01 (-0.04 to +0.01) | +0.001 (-0.001 to +0.003) | 0.000 |
+| B4 | 31.10 | -0.01 (-0.04 to +0.03) | -0.056 (-0.060 to -0.051) | 0.207 |
+| B4-KM | 31.08 | -0.03 (-0.08 to +0.03) | -0.056 (-0.061 to -0.051) | 0.215 |
+| B5 | 31.10 | -0.01 (-0.03 to +0.01) | -0.019 (-0.023 to -0.016) | 0.083 |
+| B5-RANDOM | 31.11 | -0.00 (-0.03 to +0.02) | -0.022 (-0.025 to -0.018) | 0.084 |
+
+B3 itself: 31.11 completed per 100 searches, late share 0.376.
+
+- **B3's gain over B0 needs no booking features.** B3-KM ranks rides with a model that knows
+  nothing about the passenger or the booking, only how far off departure is, and keeps all
+  of B3's gain (−0.01, −0.04 to +0.01). In this simulator the survival-aware ranking works
+  because of timing, not because the model reads anything about individual passengers. The
+  Cox model's features add nothing measurable to the primary metric.
+- **Asking adds nothing however it is done.** Choosing whom to ask by features (B4) or by
+  timing alone (B4-KM) gives the same result. Asking on B0's ranking (ASK-ONLY) does no
+  better than B0 (−0.33 against B0's −0.34): all of the gain is the ranking.
+- **The scheduler does not beat chance.** With the same limits, sending B5's requests to
+  eligible bookings in a random order (B5-RANDOM) does as well on the primary metric and
+  slightly better on the late share (−0.022 against −0.019).
+- **No threshold rescues B4.** Sweep `5eeb0000-0000-4000-8000-000000000006` asks below
+  0.6, 0.7, 0.8 and 0.9 against B3. The late share falls steadily, from −0.011 to −0.097,
+  as more bookings are asked (0.045 to 0.375 requests per accepted booking), and released
+  seats refilled rise from +3.0 to +17.6 per seed. Completed rides per 100 searches move by
+  −0.02 to +0.00, with every interval spanning zero.
+
+Read with sections 11 to 13, this closes the question the simulator can answer: on this
+corridor, under these assumptions, moving cancellations earlier is real but does not turn
+into completed rides, and the part of the platform that helps is a ranking that needs no
+prediction about the passenger. It says nothing about real passengers, whose behaviour
+the simulator only assumes.

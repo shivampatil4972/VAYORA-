@@ -67,8 +67,8 @@ mock that says so, as payments and SMS already are.
 | ~~Refills by release timing~~ | Done: early releases are refilled 94%, late ones 68%; B4 moves too few (EXPERIMENT_PROTOCOL.md section 11) | |
 | ~~Oracle variant~~ | Done: the ceiling is +0.10 per 100 searches (EXPERIMENT_PROTOCOL.md section 12) | |
 | Oracle across release probability | How the ceiling depends on the assumed response | |
-| B5 with random choice | Same budget, requests chosen at random | Says whether the scheduler beats chance |
-| Survival-threshold sweep; B4 with the no-feature model; component removal | Robustness | Planned since section 7 |
+| ~~B5 with random choice~~ | Done: random choice does as well; the scheduler does not beat chance (EXPERIMENT_PROTOCOL.md section 14) | |
+| ~~Survival-threshold sweep; B4 with the no-feature model; component removal~~ | Done: no threshold helps, the features add nothing, all the gain is the ranking (EXPERIMENT_PROTOCOL.md section 14) | |
 | Variants B6 to B11 | Not defined anywhere in the repository | Need their definitions |
 | The public hotel dataset | Decide whether it can support a time-to-event check at all | The only route to any real data |
 

@@ -31,12 +31,14 @@ const sweepLabels: Record<string, string> = {
   'contact-budget': msg('How many reconfirmation requests may go out at once'),
   'departure-tolerance': msg('How far from their chosen time passengers will travel'),
   'publish-lead': msg('How early drivers publish their rides'),
+  'survival-threshold': msg('How risky a booking must look before its passenger is asked'),
 };
 
 const parameterLabels: Record<string, string> = {
   'variant.intervention.budget.contacts_per_round': msg('Requests per round'),
   'demand.departure_tolerance_hours': msg('Hours either side of the chosen time'),
   'supply.publish_lead_days_min': msg('Days ahead, at the least, that a ride is published'),
+  'variant.intervention.survival_threshold': msg('Ask when the estimated chance of lasting to departure is below'),
 };
 
 // As in experiments/sweep.py: the primary metric first, each with the decimals the reports use.

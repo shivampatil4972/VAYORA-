@@ -1,0 +1,10 @@
+# ASK-ONLY: B4's reconfirmation requests on B0's ranking (closest departure time first).
+# Removes the survival-aware ranking and keeps only the intervention, to show what asking
+# does on its own.
+name: ASK-ONLY
+ranking: departure_time
+hazard_model: h2-cox
+intervention:
+  survival_threshold: 0.8
+  min_hours_before_departure: 24
+  scoring_interval_hours: 24

@@ -19,10 +19,12 @@ sql() { docker compose exec -T postgres psql -U "${POSTGRES_USER:-journex}" -d "
 forget() { sql "DELETE FROM events WHERE run_id = '$1'"; }
 
 LADDER=7a1c0de0-0000-4000-8000-000000000003
+ROBUSTNESS=7a1c0de0-0000-4000-8000-000000000004
 SWEEP_RUNS=(
   "contact_budget 5eeb0000-0000-4000-8000-000000000003"
   "departure_tolerance 5eeb0000-0000-4000-8000-000000000004"
   "publish_lead 5eeb0000-0000-4000-8000-000000000005"
+  "survival_threshold 5eeb0000-0000-4000-8000-000000000006"
 )
 
 echo "== starting the database"
@@ -41,6 +43,13 @@ for variant in B0 B3 B4 B5 ORACLE; do
 done
 research python -m experiments.analysis.compare --run-id "$LADDER" --baseline B0 B3 B4 B5 ORACLE > /dev/null
 research python -m experiments.analysis.timing --run-id "$LADDER" --baseline B3 B0 B3 B4 B5 ORACLE > /dev/null
+
+echo "== 3b. robustness: each component removed or replaced"
+forget "$ROBUSTNESS"
+for variant in B0 B3 B4 B3-KM B4-KM ASK-ONLY B5 B5-RANDOM; do
+  research python -m sim.run --variant "experiments/configs/variants/$variant.yaml" --run-id "$ROBUSTNESS"
+done
+research python -m experiments.analysis.compare --run-id "$ROBUSTNESS" --baseline B3 B0 B3 B4 B3-KM B4-KM ASK-ONLY B5 B5-RANDOM > /dev/null
 
 if $SWEEPS; then
   echo "== 4. the sweeps"

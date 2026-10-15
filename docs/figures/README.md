@@ -1,6 +1,6 @@
 # Figures
 
-Six figures for the report, drawn by `python -m experiments.analysis.figures` from files
+Seven figures for the report, drawn by `python -m experiments.analysis.figures` from files
 the repository already commits: the ladder and sweep reports, whose numbers come from
 `experiments/analysis/metrics.sql`, and the durability model. `scripts/reproduce.sh`
 redraws them and fails if any comes out different.
@@ -73,3 +73,12 @@ Mean cancellations per seed, and the seed-paired difference from B3:
 | 6-12 h | 20.4 | 18.3 | -2.2 (-2.8 to -1.5) | 14.5 | -5.9 (-7.0 to -4.9) |
 | 2-6 h | 15.1 | 13.6 | -1.6 (-2.2 to -0.9) | 10.9 | -4.2 (-5.1 to -3.3) |
 | under 2 h | 7.8 | 7.0 | -0.8 (-1.2 to -0.4) | 5.7 | -2.0 (-2.5 to -1.5) |
+
+## Figure 7. Robustness (`fig7-robustness.png`)
+
+Completed rides per 100 searches, each variant against B3 (run `7a1c0de0-…-004`, 30 seeds,
+paired by seed). Replacing the Cox model with one that uses no booking feature (B3-KM,
+B4-KM) changes nothing; asking without B3's ranking (ASK-ONLY) is no better than B0; and
+the contact scheduler (B5) does no better than sending the same requests at random
+(B5-RANDOM). The one gain, B3's ranking, comes from timing, not from predicting the
+passenger. EXPERIMENT_PROTOCOL.md section 14.

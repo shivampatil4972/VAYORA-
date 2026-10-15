@@ -142,10 +142,10 @@ Last updated: 2026-10-15. Test suites and how to run them are in [TESTING.md](TE
 |---|---|---|---|---|
 | 75 | PostGIS/OSRM feasibility filter | TBD | TBD | Partial: the access distance is a hard limit enforced in PostGIS, and rides carry an OSRM road route; an electric car's route is compared with its stated range and the driver warned (UI only, not enforced). No detour check |
 | 76 | Two-sided match scoring | TBD | TBD | Not started |
-| 77 | CommitmentDecay survival modelling | TBD | TBD | Partial: model trained, evaluated, served and scored in the app, on synthetic data only; see AI_ML_METHODOLOGY.md |
+| 77 | CommitmentDecay survival modelling | TBD | TBD | Partial: model trained, evaluated, served and scored in the app, on synthetic data only; see AI_ML_METHODOLOGY.md. Its features add nothing measurable in the simulator: a no-feature model ranks as well (EXPERIMENT_PROTOCOL.md section 14) |
 | 78 | Reliability indicator in search results | TBD | TBD | Not started |
 | 79 | Anticipatory interventions | TBD | TBD | Partial: in the simulator only (variant B4); the platform sends no interventions |
-| 80 | CP-SAT contact-budget scheduler | TBD | TBD | Partial: built and tested in intel (`POST /v1/scheduler/plan`) and used by simulator variant B5; the platform does not call it, because the platform sends no interventions |
+| 80 | CP-SAT contact-budget scheduler | TBD | TBD | Partial: built and tested in intel (`POST /v1/scheduler/plan`) and used by simulator variant B5; the platform does not call it, because the platform sends no interventions. In the simulator it does no better than random choice within the same limits (EXPERIMENT_PROTOCOL.md section 14) |
 | 81 | Hazard-informed passenger flexibility tiers | TBD | TBD | Not started |
 | 84 | Mid-route vacant-seat allocation | TBD | TBD | Not started |
 | 86 | Per-booking SHAP explanations | TBD | TBD | Verified (model, API and UI tests): exact per-feature shares of the log relative risk, which for Cox are the full explanation, so SHAP is not used. Administrators only |

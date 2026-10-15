@@ -1,0 +1,10 @@
+# Does B4 fail only because 0.8 is the wrong threshold?
+#
+# Each cell is B4 asking every booking whose estimated survival to departure is below a
+# different threshold: 0.6 asks only the riskiest, 0.9 asks most bookings. The threshold
+# is a property of the variant, so one B3 baseline serves every cell.
+name: survival-threshold
+baseline: variants/B3.yaml
+variant: variants/B4.yaml
+parameters:
+  variant.intervention.survival_threshold: [0.6, 0.7, 0.8, 0.9]

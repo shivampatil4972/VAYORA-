@@ -37,8 +37,10 @@ mistake for more. Updated 2026-10-13.
   completed rides per 100 searches (section 12). The ceiling depends on assumed passenger
   responses.
 - It is one synthetic corridor. It is not evidence that the idea fails in reality.
-- Variants B1, B2 and B6 to B11 are not built. No component-removal or robustness
-  experiment has been run.
+- Variants B1, B2 and B6 to B11 are not built.
+- The one gain found, B3's ranking (+0.34), needs no booking features: a model that knows
+  only the time to departure does as well (section 14). The scheduler does no better than
+  sending the same requests at random, and no threshold for asking helps.
 - The model discriminates weakly (concordance 0.59) and violates the
   proportional-hazards assumption for lead time.
 

@@ -658,6 +658,244 @@
      }
     }
    ]
+  },
+  {
+   "name": "survival-threshold",
+   "runId": "5eeb0000-0000-4000-8000-000000000006",
+   "data": "synthetic (simulator)",
+   "variant": "B4",
+   "baseline": "B3",
+   "baselinePerCell": false,
+   "parameters": {
+    "variant.intervention.survival_threshold": [
+     0.6,
+     0.7,
+     0.8,
+     0.9
+    ]
+   },
+   "cells": [
+    {
+     "parameters": {
+      "variant.intervention.survival_threshold": 0.6
+     },
+     "measures": {
+      "per_100": {
+       "mean": 31.102,
+       "baselineMean": 31.1095,
+       "difference": -0.0075,
+       "ciLow": -0.0238,
+       "ciHigh": 0.0089,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.3651,
+       "baselineMean": 0.3763,
+       "difference": -0.0112,
+       "ciLow": -0.0139,
+       "ciHigh": -0.0086,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.045,
+       "baselineMean": 0.0,
+       "difference": 0.045,
+       "ciLow": 0.0428,
+       "ciHigh": 0.0473,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 189.2333,
+       "baselineMean": 186.2333,
+       "difference": 3.0,
+       "ciLow": 1.9576,
+       "ciHigh": 4.0424,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 77.0333,
+       "baselineMean": 76.3667,
+       "difference": 0.6667,
+       "ciLow": -0.409,
+       "ciHigh": 1.7424,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.5441,
+       "baselineMean": 0.5448,
+       "difference": -0.0008,
+       "ciLow": -0.0012,
+       "ciHigh": -0.0003,
+       "seeds": 30
+      }
+     }
+    },
+    {
+     "parameters": {
+      "variant.intervention.survival_threshold": 0.7
+     },
+     "measures": {
+      "per_100": {
+       "mean": 31.0845,
+       "baselineMean": 31.1095,
+       "difference": -0.0249,
+       "ciLow": -0.0528,
+       "ciHigh": 0.003,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.3513,
+       "baselineMean": 0.3763,
+       "difference": -0.025,
+       "ciLow": -0.0283,
+       "ciHigh": -0.0216,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.107,
+       "baselineMean": 0.0,
+       "difference": 0.107,
+       "ciLow": 0.1034,
+       "ciHigh": 0.1106,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 192.2667,
+       "baselineMean": 186.2333,
+       "difference": 6.0333,
+       "ciLow": 4.4568,
+       "ciHigh": 7.6099,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 77.0333,
+       "baselineMean": 76.3667,
+       "difference": 0.6667,
+       "ciLow": -1.145,
+       "ciHigh": 2.4784,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.5435,
+       "baselineMean": 0.5448,
+       "difference": -0.0013,
+       "ciLow": -0.0022,
+       "ciHigh": -0.0005,
+       "seeds": 30
+      }
+     }
+    },
+    {
+     "parameters": {
+      "variant.intervention.survival_threshold": 0.8
+     },
+     "measures": {
+      "per_100": {
+       "mean": 31.1019,
+       "baselineMean": 31.1095,
+       "difference": -0.0075,
+       "ciLow": -0.0446,
+       "ciHigh": 0.0296,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.3206,
+       "baselineMean": 0.3763,
+       "difference": -0.0557,
+       "ciLow": -0.0605,
+       "ciHigh": -0.051,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.207,
+       "baselineMean": 0.0,
+       "difference": 0.207,
+       "ciLow": 0.2027,
+       "ciHigh": 0.2113,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 197.4333,
+       "baselineMean": 186.2333,
+       "difference": 11.2,
+       "ciLow": 9.0552,
+       "ciHigh": 13.3448,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 76.4333,
+       "baselineMean": 76.3667,
+       "difference": 0.0667,
+       "ciLow": -2.2517,
+       "ciHigh": 2.385,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.5423,
+       "baselineMean": 0.5448,
+       "difference": -0.0026,
+       "ciLow": -0.0037,
+       "ciHigh": -0.0014,
+       "seeds": 30
+      }
+     }
+    },
+    {
+     "parameters": {
+      "variant.intervention.survival_threshold": 0.9
+     },
+     "measures": {
+      "per_100": {
+       "mean": 31.1108,
+       "baselineMean": 31.1095,
+       "difference": 0.0014,
+       "ciLow": -0.0495,
+       "ciHigh": 0.0523,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.2795,
+       "baselineMean": 0.3763,
+       "difference": -0.0968,
+       "ciLow": -0.1046,
+       "ciHigh": -0.0889,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.3745,
+       "baselineMean": 0.0,
+       "difference": 0.3745,
+       "ciLow": 0.3681,
+       "ciHigh": 0.381,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 203.8333,
+       "baselineMean": 186.2333,
+       "difference": 17.6,
+       "ciLow": 14.6785,
+       "ciHigh": 20.5215,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 75.9333,
+       "baselineMean": 76.3667,
+       "difference": -0.4333,
+       "ciLow": -2.8665,
+       "ciHigh": 1.9999,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.5401,
+       "baselineMean": 0.5448,
+       "difference": -0.0048,
+       "ciLow": -0.0063,
+       "ciHigh": -0.0033,
+       "seeds": 30
+      }
+     }
+    }
+   ]
   }
  ]
 }

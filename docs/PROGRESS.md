@@ -1,5 +1,19 @@
 # Progress
 
+## 2026-10-15 — robustness
+
+- Four new variants (B3-KM, B4-KM, ASK-ONLY, B5-RANDOM) and a threshold sweep, run against
+  B3 (run `...004`, sweep `...006`); EXPERIMENT_PROTOCOL.md section 14 and figure 7.
+- **B3's gain needs no booking features**: ranking with the no-feature Kaplan-Meier model
+  keeps all of it. Asking adds nothing however it is chosen, without the ranking it is no
+  better than B0, the contact scheduler does no better than random choice within the same
+  limits, and no threshold from 0.6 to 0.9 helps. AI_ML_METHODOLOGY.md and
+  KNOWN_LIMITATIONS.md now say so.
+- The simulator gained one option, `budget.chooser: random`; left out, it is the
+  scheduler, and B0, B3, B4 and B5 reproduce run `...003` on every measure.
+- The threshold sweep is on the what-if page. reproduce.sh rebuilds the run, the sweep and
+  figure 7.
+
 ## 2026-10-15 — when cancellations come
 
 - New named query `cancellation_timing` in metrics.sql (no new event type), tested on

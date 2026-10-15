@@ -30,6 +30,7 @@ OUT = ROOT / "docs" / "figures"
 
 # The current results, as scripts/reproduce.sh rebuilds them.
 LADDER = "7a1c0de0-0000-4000-8000-000000000003"
+ROBUSTNESS = "7a1c0de0-0000-4000-8000-000000000004"
 SWEEPS = [("departure-tolerance", "5eeb0000-0000-4000-8000-000000000004"),
           ("publish-lead", "5eeb0000-0000-4000-8000-000000000005"),
           ("contact-budget", "5eeb0000-0000-4000-8000-000000000003")]
@@ -71,12 +72,12 @@ def _finish(fig, name: str, note: str) -> Path:
     return path
 
 
-def ladder() -> Path:
-    """Completed rides per 100 searches, each variant against B0, with the 95% interval."""
-    report = _json(REPORTS / f"ladder-{LADDER}.json")
-    names = [v for v in report["variants"] if v != report["baseline"]]
+def _differences(run_id: str, name: str, title: str, order: list[str] | None = None) -> Path:
+    """Completed rides per 100 searches, each variant of a run against its baseline, with 95% intervals."""
+    report = _json(REPORTS / f"ladder-{run_id}.json")
+    names = order or [v for v in report["variants"] if v != report["baseline"]]
     rows = [report["variants"][v]["per_100"]["vs_baseline"] for v in names]
-    fig, ax = plt.subplots(figsize=(6.4, 3.2))
+    fig, ax = plt.subplots(figsize=(6.4, 0.9 + 0.5 * len(names)))
     y = range(len(names))[::-1]
     for yi, row in zip(y, rows):
         ax.plot([row["ci_low"], row["ci_high"]], [yi, yi], color=BLUE, solid_capstyle="round")
@@ -85,11 +86,24 @@ def ladder() -> Path:
                     textcoords="offset points", va="center", color=INK, fontsize=9)
     ax.axvline(0, color=MUTED, linewidth=1)
     ax.set_yticks(list(y), names)
-    ax.set_xlim(left=min(0, min(r["ci_low"] for r in rows)) - 0.05, right=max(r["ci_high"] for r in rows) + 0.12)
+    ax.set_xlim(left=min(0, min(r["ci_low"] for r in rows)) - 0.05,
+                right=max(0, max(r["ci_high"] for r in rows)) + 0.12)
     ax.grid(axis="y", visible=False)
     ax.set_xlabel(f"Difference from {report['baseline']}, completed rides per 100 searches")
-    ax.set_title("Asking passengers (B4, B5) adds nothing to B3", loc="left")
-    return _finish(fig, "fig1-ladder", f"Run {LADDER}, {rows[0]['seeds']} seeds per variant, paired by seed; bars are 95% intervals.")
+    ax.set_title(title, loc="left")
+    return _finish(fig, name, f"Run {run_id}, {rows[0]['seeds']} seeds per variant, paired by seed; "
+                              "bars are 95% intervals.")
+
+
+def ladder() -> Path:
+    return _differences(LADDER, "fig1-ladder", "Asking passengers (B4, B5) adds nothing to B3")
+
+
+def robustness() -> Path:
+    """Each component removed or replaced, against B3."""
+    return _differences(ROBUSTNESS, "fig7-robustness",
+                        "No booking features needed; asking adds nothing",
+                        order=["B0", "ASK-ONLY", "B3-KM", "B4", "B4-KM", "B5", "B5-RANDOM"])
 
 
 def refill_timing() -> Path:
@@ -232,7 +246,7 @@ def timing() -> Path:
 
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    for draw in (ladder, refill_timing, sweeps, survival, calibration, timing):
+    for draw in (ladder, refill_timing, sweeps, survival, calibration, timing, robustness):
         print(f"wrote {draw()}")
 
 
