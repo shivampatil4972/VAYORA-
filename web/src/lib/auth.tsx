@@ -54,8 +54,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthContextValue>(
     () => ({
       user: session?.user ?? null,
-      login: async (form) => open(await api<Session>('/auth/login', { method: 'POST', body: form })),
-      register: async (form) => open(await api<Session>('/auth/register', { method: 'POST', body: form })),
+      login: async ({ login, password }) =>
+        open(
+          await api<Session>('/auth/login', {
+            method: 'POST',
+            body: login.includes('@') ? { email: login, password } : { phone: login, password },
+          }),
+        ),
+      register: async ({ method, email, phone, ...rest }) =>
+        open(
+          await api<Session>('/auth/register', {
+            method: 'POST',
+            body: method === 'email' ? { ...rest, email } : { ...rest, phone },
+          }),
+        ),
       logout,
     }),
     [session, open, logout],

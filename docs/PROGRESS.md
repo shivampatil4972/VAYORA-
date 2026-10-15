@@ -1,5 +1,14 @@
 # Progress
 
+## 2026-10-15 — phone sign-up
+
+- **Feature 1** moves from Partial to Verified. A member signs up with an email address or
+  a phone number, and signs in with whichever they used: one field takes either. Phone
+  numbers are written one way (+91 for Indian numbers, spaces and hyphens dropped) and now
+  belong to one account. A member who signs in by phone cannot remove it from their
+  profile. Verified by `PhoneSignUpIntegrationTest`, `schemas.test.ts` and `App.test.tsx`.
+- KNOWN_LIMITATIONS said there were no receipts; corrected.
+
 ## 2026-10-14 — phone confirmation screen tested
 
 - **Feature 6** moves from Partial to Verified: a UI test now confirms a phone number on the

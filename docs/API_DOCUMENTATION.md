@@ -31,8 +31,8 @@ territory.
 
 | Method and path | Who | What |
 |---|---|---|
-| `POST /api/v1/auth/register` | public | Create a passenger or driver account, optionally with an invitation code; returns a token |
-| `POST /api/v1/auth/login` | public | Returns a token valid for 12 hours |
+| `POST /api/v1/auth/register` | public | Create a passenger or driver account with exactly one of `email` or `phone`, optionally with an invitation code; returns a token. A phone number already on an account is refused (409) |
+| `POST /api/v1/auth/login` | public | Exactly one of `email` or `phone`, with `password`. Returns a token valid for 12 hours |
 | `GET /api/v1/me` | any | The signed-in account |
 | `GET /api/v1/me/referral` | any | Own invitation code and how many used it |
 | `GET /api/v1/bus-alternatives?from=&to=&after=HH:mm` | any | Up to five administrator-entered buses between two towns, earliest first; not checked against the operator |

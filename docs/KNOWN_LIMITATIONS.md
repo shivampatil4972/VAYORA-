@@ -44,12 +44,20 @@ mistake for more. Updated 2026-10-13.
 
 ## Platform
 
+- **Signing up with a phone number proves nothing about the number.** It is unconfirmed
+  until a code proves it, and the code goes only to the simulated outbox. Someone can sign
+  up with a number that is not theirs, and the real owner then cannot use it until an
+  administrator steps in. A number without a country code is taken to be Indian (+91).
+- Migration V21 makes phone numbers unique. A database where two members already share a
+  number will refuse the migration until that is settled by hand.
+- A member who signed up with a phone number cannot add an email address yet.
+
 - **Payments are simulated.** The only provider is a mock that approves every hold
   unless told to decline. No money moves and nothing is verified with any bank, card
   network or UPI. The ledger records what a real provider would have been asked to do.
 - The mock is synchronous. A real provider confirms by callback; there is no callback
   endpoint, so duplicate-callback handling is unbuilt and untested.
-- No invoice or receipt, and no screen listing a passenger's payments.
+- Receipts are PDFs in English only and are not tax invoices: there is no GST.
 - A payout is recorded the moment a trip completes. There is no settlement delay,
   dispute window or bank detail.
 - **A seat hold is a courtesy, not a guarantee.** It lives only in Redis. If Redis is

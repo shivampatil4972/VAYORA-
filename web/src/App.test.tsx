@@ -186,8 +186,8 @@ describe('signing in', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: 'Sign in' }));
 
-    expect(await screen.findByText('Enter your email')).toBeInTheDocument();
-    expect(screen.getByLabelText('Email')).toHaveAttribute('aria-invalid', 'true');
+    expect(await screen.findByText('Enter your email or phone number')).toBeInTheDocument();
+    expect(screen.getByLabelText('Email or phone number')).toHaveAttribute('aria-invalid', 'true');
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -195,7 +195,7 @@ describe('signing in', () => {
     serve({ 'POST /auth/login': () => json({ detail: 'Invalid email or password' }, 401) });
     open('/login');
 
-    await userEvent.type(await screen.findByLabelText('Email'), 'asha@example.test');
+    await userEvent.type(await screen.findByLabelText('Email or phone number'), 'asha@example.test');
     await userEvent.type(screen.getByLabelText('Password'), 'wrong-password');
     await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
 
@@ -2068,5 +2068,56 @@ describe('electric range', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Work out the route' }));
     await screen.findByText('230 km by road, about 3 h 11 min of driving.');
     expect(screen.queryByText(/on a full charge/)).not.toBeInTheDocument();
+  });
+});
+
+describe('phone sign-up', () => {
+  const bodyOf = (fetchMock: ReturnType<typeof serve>, method: string, path: string) => {
+    const call = fetchMock.mock.calls.find(([url, init]) => init?.method === method && String(url).endsWith(path));
+    return JSON.parse(String(call?.[1]?.body ?? 'null'));
+  };
+  const session = { accessToken: 'token', expiresInSeconds: 43200, user: { id: 9, email: null, fullName: 'Meera Kulkarni', role: 'PASSENGER' } };
+
+  it('signs in with a phone number, sending it as a phone', async () => {
+    const fetchMock = serve({ 'POST /auth/login': () => json(session), 'GET /rides/search': () => json([]) });
+    open('/login');
+
+    await userEvent.type(await screen.findByLabelText('Email or phone number'), '98000 00009');
+    await userEvent.type(screen.getByLabelText('Password'), 'correct-horse-battery');
+    await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+
+    expect(await screen.findByRole('heading', { name: 'Find a ride' })).toBeInTheDocument();
+    expect(bodyOf(fetchMock, 'POST', '/auth/login')).toEqual({ phone: '98000 00009', password: 'correct-horse-battery' });
+  });
+
+  it('refuses something that is neither an email nor a phone number', async () => {
+    const fetchMock = serve({});
+    open('/login');
+
+    await userEvent.type(await screen.findByLabelText('Email or phone number'), 'asha');
+    await userEvent.type(screen.getByLabelText('Password'), 'x');
+    await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+
+    expect(await screen.findByText('Enter a valid email or phone number')).toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('creates an account with a phone number and sends no email', async () => {
+    const fetchMock = serve({ 'POST /auth/register': () => json(session, 201), 'GET /rides/search': () => json([]) });
+    open('/register');
+
+    await userEvent.type(await screen.findByLabelText('Full name'), 'Meera Kulkarni');
+    await userEvent.click(screen.getByRole('radio', { name: 'Phone number' }));
+    expect(screen.queryByRole('textbox', { name: 'Email' })).not.toBeInTheDocument();
+    await userEvent.type(screen.getByRole('textbox', { name: 'Phone number' }), '9800000009');
+    await userEvent.type(screen.getByLabelText('Password'), 'correct-horse-battery');
+    await userEvent.selectOptions(screen.getByLabelText('I want to'), 'PASSENGER');
+    await userEvent.click(screen.getByRole('button', { name: 'Create account' }));
+
+    expect(await screen.findByRole('heading', { name: 'Find a ride' })).toBeInTheDocument();
+    const body = bodyOf(fetchMock, 'POST', '/auth/register') as Record<string, unknown>;
+    expect(body).toMatchObject({ phone: '9800000009', fullName: 'Meera Kulkarni', role: 'PASSENGER' });
+    expect(body).not.toHaveProperty('email');
+    expect(body).not.toHaveProperty('method');
   });
 });

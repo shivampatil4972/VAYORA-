@@ -32,6 +32,7 @@ Access is through `JdbcTemplate` with hand-written SQL. There is no ORM.
 | V18 | `notification_preferences` |
 | V19 | `referrals`; on users: `referral_code` |
 | V20 | `bus_services` (entered by administrators; none shipped) |
+| V21 | On users: `email` may be null if `phone` is set; `phone` unique, rewritten as +91 for Indian numbers |
 
 ### Tables
 

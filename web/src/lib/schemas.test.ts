@@ -30,7 +30,7 @@ function ride(overrides: Partial<RideForm> = {}): RideForm {
 }
 
 describe('registerSchema', () => {
-  const valid = { fullName: 'Asha Patil', email: 'asha@example.test', password: 'long-enough', role: 'DRIVER' };
+  const valid = { fullName: 'Asha Patil', method: 'email', email: 'asha@example.test', password: 'long-enough', role: 'DRIVER' };
 
   it('accepts a complete form', () => {
     expect(registerSchema.safeParse(valid).success).toBe(true);
@@ -40,6 +40,12 @@ describe('registerSchema', () => {
     expect(messages(registerSchema.safeParse({ ...valid, password: 'short' }))).toContain('Use at least 8 characters');
     expect(messages(registerSchema.safeParse({ ...valid, email: 'not-an-email' }))).toContain('Enter a valid email');
     expect(registerSchema.safeParse({ ...valid, role: 'ADMIN' }).success).toBe(false);
+  });
+
+  it('asks only for the way the member chose to sign in', () => {
+    const byPhone = { ...valid, method: 'phone', email: undefined };
+    expect(messages(registerSchema.safeParse(byPhone))).toContain('Enter 10 to 15 digits, with or without a + in front');
+    expect(registerSchema.safeParse({ ...byPhone, phone: '+91 98000-00009' }).success).toBe(true);
   });
 });
 

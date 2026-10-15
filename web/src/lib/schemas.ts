@@ -6,20 +6,42 @@ import { z } from 'zod';
 import { CORRIDOR } from './corridor';
 import { msg } from './i18n';
 
+// Digits with an optional + in front; spaces and hyphens are allowed and the server drops them.
+const PHONE = /^\+?[0-9][0-9 -]{8,18}[0-9]$/;
+
 export const loginSchema = z.object({
-  email: z.string().trim().min(1, msg('Enter your email')).email(msg('Enter a valid email')),
+  // An email address, or a phone number: whichever the account was made with.
+  login: z
+    .string()
+    .trim()
+    .min(1, msg('Enter your email or phone number'))
+    .refine((value) => (value.includes('@') ? z.string().email().safeParse(value).success : PHONE.test(value)), {
+      message: msg('Enter a valid email or phone number'),
+    }),
   password: z.string().min(1, msg('Enter your password')),
 });
 export type LoginForm = z.infer<typeof loginSchema>;
 
-export const registerSchema = z.object({
-  fullName: z.string().trim().min(1, msg('Enter your name')).max(100),
-  email: z.string().trim().min(1, msg('Enter your email')).email(msg('Enter a valid email')).max(254),
-  password: z.string().min(8, msg('Use at least 8 characters')).max(72, msg('Use at most 72 characters')),
-  role: z.enum(['PASSENGER', 'DRIVER'], { message: msg('Choose how you will use JOURNEX') }),
-  // The code of whoever invited them. Optional; an unknown code is refused by the server.
-  referralCode: z.string().trim().max(20).optional(),
-});
+export const registerSchema = z
+  .object({
+    fullName: z.string().trim().min(1, msg('Enter your name')).max(100),
+    // What the member will sign in with; only that one is sent.
+    method: z.enum(['email', 'phone']),
+    email: z.string().trim().max(254).optional(),
+    phone: z.string().trim().max(20).optional(),
+    password: z.string().min(8, msg('Use at least 8 characters')).max(72, msg('Use at most 72 characters')),
+    role: z.enum(['PASSENGER', 'DRIVER'], { message: msg('Choose how you will use JOURNEX') }),
+    // The code of whoever invited them. Optional; an unknown code is refused by the server.
+    referralCode: z.string().trim().max(20).optional(),
+  })
+  .superRefine((form, ctx) => {
+    if (form.method === 'email' && !z.string().email().safeParse(form.email ?? '').success) {
+      ctx.addIssue({ code: 'custom', path: ['email'], message: form.email ? msg('Enter a valid email') : msg('Enter your email') });
+    }
+    if (form.method === 'phone' && !PHONE.test(form.phone ?? '')) {
+      ctx.addIssue({ code: 'custom', path: ['phone'], message: msg('Enter 10 to 15 digits, with or without a + in front') });
+    }
+  });
 export type RegisterForm = z.infer<typeof registerSchema>;
 
 const stopNames = CORRIDOR.map((stop) => stop.name);

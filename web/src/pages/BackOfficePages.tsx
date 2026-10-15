@@ -209,7 +209,7 @@ export function MembersPage() {
                 {members.data.map((member) => (
                   <tr key={member.id} className="border-b border-slate-100 last:border-0">
                     <td className="py-2 pr-4">{member.fullName}</td>
-                    <td className="py-2 pr-4">{member.email}</td>
+                    <td className="py-2 pr-4">{member.email ?? t('Signed up by phone')}</td>
                     <td className="py-2 pr-4">{t(roleLabels[member.role])}</td>
                     <td className="py-2 pr-4">{formatDateTime(member.memberSince)}</td>
                     <td className="py-2">

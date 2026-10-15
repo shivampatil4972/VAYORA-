@@ -15,13 +15,13 @@ behaviour is exercised by an automated test that passes; a row says which layers
 screen has been looked at in a browser: UI claims rest on component tests and a clean
 production build.
 
-Last updated: 2026-10-14. Test suites and how to run them are in [TESTING.md](TESTING.md).
+Last updated: 2026-10-15. Test suites and how to run them are in [TESTING.md](TESTING.md).
 
 ## Identity and profile
 
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
-| 1 | Email/phone signup | TBD | TBD | Partial: email signup and sign-in, API and UI tested; no phone signup |
+| 1 | Email/phone signup | TBD | TBD | Verified (API and UI tests): sign up and sign in with an email address or a phone number. A phone number belongs to one account and stays unconfirmed until a code (simulated sender, no SMS sent) proves it; nothing stops someone signing up with a number that is not theirs |
 | 2 | Google OAuth login | TBD | TBD | Not started |
 | 3 | Profile photo upload | TBD | TBD | Not started |
 | 4 | Bio, age, and gender | TBD | TBD | Verified (API and UI tests): bio and an approximate age on the profile; gender is stored and shown to nobody |

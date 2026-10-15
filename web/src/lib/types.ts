@@ -4,7 +4,8 @@ export type Role = 'PASSENGER' | 'DRIVER' | 'ADMIN';
 
 export interface User {
   id: number;
-  email: string;
+  /** Null for a member who signed up with a phone number. */
+  email: string | null;
   fullName: string;
   role: Role;
 }
@@ -190,7 +191,7 @@ export interface AdminOverview {
 export interface Member {
   id: number;
   fullName: string;
-  email: string;
+  email: string | null;
   role: Role;
   status: 'ACTIVE' | 'SUSPENDED';
   memberSince: string;
@@ -274,7 +275,7 @@ export type Gender = 'FEMALE' | 'MALE' | 'OTHER';
 
 /** A member's own profile. Null means not said. */
 export interface MyProfile {
-  email: string;
+  email: string | null;
   emailVerified: boolean;
   phone: string | null;
   phoneVerified: boolean;

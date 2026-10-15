@@ -952,4 +952,17 @@ export const mr: Record<string, string> = {
   // Electric range
   'This route is longer than the {range} km your vehicle covers on a full charge, by your own figures. Plan a charging stop: JOURNEX does not plan one for you.':
     'हा मार्ग तुमच्याच आकड्यांनुसार पूर्ण चार्जवर तुमचे वाहन जाणाऱ्या {range} किमीपेक्षा लांब आहे. चार्जिंगसाठी थांब्याचे नियोजन करा: JOURNEX तुमच्यासाठी ते नियोजन करत नाही.',
+  // Phone sign-up
+  'Enter your email or phone number':
+    'तुमचा ईमेल किंवा फोन नंबर टाका',
+  'Enter a valid email or phone number':
+    'वैध ईमेल किंवा फोन नंबर टाका',
+  'Email or phone number':
+    'ईमेल किंवा फोन नंबर',
+  'Sign in with':
+    'कशाने साइन इन करणार',
+  'You will be asked to confirm it with a code. In this project no SMS is really sent.':
+    'तुम्हाला एका कोडने त्याची पुष्टी करण्यास सांगितले जाईल. या प्रकल्पात कोणताही SMS प्रत्यक्षात पाठवला जात नाही.',
+  'Signed up by phone':
+    'फोनने नोंदणी केली',
 };

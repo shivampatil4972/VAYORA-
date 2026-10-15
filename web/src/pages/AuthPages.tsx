@@ -35,7 +35,12 @@ export function LoginPage() {
       <Card>
         <form onSubmit={submit} noValidate className="space-y-4">
           {failure && <Notice tone="error">{failure}</Notice>}
-          <TextField label={t('Email')} type="email" autoComplete="email" error={formState.errors.email?.message} {...register('email')} />
+          <TextField
+            label={t('Email or phone number')}
+            autoComplete="username"
+            error={formState.errors.login?.message}
+            {...register('login')}
+          />
           <TextField
             label={t('Password')}
             type="password"
@@ -63,7 +68,11 @@ export function RegisterPage() {
   const { user, register: signUp } = useAuth();
   const navigate = useNavigate();
   const [failure, setFailure] = useState<string | null>(null);
-  const { register, handleSubmit, formState } = useForm<RegisterForm>({ resolver: zodResolver(registerSchema) });
+  const { register, handleSubmit, formState, watch } = useForm<RegisterForm>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: { method: 'email' },
+  });
+  const method = watch('method');
 
   if (user) return <Navigate to={homeFor(user.role)} replace />;
 
@@ -83,7 +92,32 @@ export function RegisterPage() {
         <form onSubmit={submit} noValidate className="space-y-4">
           {failure && <Notice tone="error">{failure}</Notice>}
           <TextField label={t('Full name')} autoComplete="name" error={formState.errors.fullName?.message} {...register('fullName')} />
-          <TextField label={t('Email')} type="email" autoComplete="email" error={formState.errors.email?.message} {...register('email')} />
+          <fieldset className="space-y-1">
+            <legend className="text-sm font-medium">{t('Sign in with')}</legend>
+            <div className="flex gap-4 text-sm">
+              <label className="flex items-center gap-2">
+                <input type="radio" value="email" {...register('method')} />
+                {t('Email')}
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="radio" value="phone" {...register('method')} />
+                {t('Phone number')}
+              </label>
+            </div>
+          </fieldset>
+          {method === 'phone' ? (
+            <TextField
+              key="phone"
+              label={t('Phone number')}
+              type="tel"
+              autoComplete="tel"
+              hint={t('You will be asked to confirm it with a code. In this project no SMS is really sent.')}
+              error={formState.errors.phone?.message}
+              {...register('phone')}
+            />
+          ) : (
+            <TextField key="email" label={t('Email')} type="email" autoComplete="email" error={formState.errors.email?.message} {...register('email')} />
+          )}
           <TextField
             label={t('Password')}
             type="password"
