@@ -18,6 +18,8 @@ web/dist/
 *.osm.pbf
 *.osrm*
 data/
+# Except the web app's copy of the sweep figures, written by experiments/analysis/export_web.py.
+!web/src/data/
 
 # editors and OS
 .idea/

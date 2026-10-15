@@ -1,0 +1,663 @@
+{
+ "source": "experiments/reports",
+ "sweeps": [
+  {
+   "name": "contact-budget",
+   "runId": "5eeb0000-0000-4000-8000-000000000003",
+   "data": "synthetic (simulator)",
+   "variant": "B5",
+   "baseline": "B4",
+   "baselinePerCell": false,
+   "parameters": {
+    "variant.intervention.budget.contacts_per_round": [
+     1,
+     2,
+     4,
+     8
+    ]
+   },
+   "cells": [
+    {
+     "parameters": {
+      "variant.intervention.budget.contacts_per_round": 1
+     },
+     "measures": {
+      "per_100": {
+       "mean": 31.1148,
+       "baselineMean": 31.1019,
+       "difference": 0.0129,
+       "ciLow": -0.0191,
+       "ciHigh": 0.0449,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.3672,
+       "baselineMean": 0.3206,
+       "difference": 0.0466,
+       "ciLow": 0.0416,
+       "ciHigh": 0.0516,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.0421,
+       "baselineMean": 0.207,
+       "difference": -0.1649,
+       "ciLow": -0.1692,
+       "ciHigh": -0.1606,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 189.7667,
+       "baselineMean": 197.4333,
+       "difference": -7.6667,
+       "ciLow": -9.3347,
+       "ciHigh": -5.9987,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 76.9,
+       "baselineMean": 76.4333,
+       "difference": 0.4667,
+       "ciLow": -1.3221,
+       "ciHigh": 2.2554,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.5437,
+       "baselineMean": 0.5423,
+       "difference": 0.0014,
+       "ciLow": 0.0005,
+       "ciHigh": 0.0023,
+       "seeds": 30
+      }
+     }
+    },
+    {
+     "parameters": {
+      "variant.intervention.budget.contacts_per_round": 2
+     },
+     "measures": {
+      "per_100": {
+       "mean": 31.1027,
+       "baselineMean": 31.1019,
+       "difference": 0.0007,
+       "ciLow": -0.0269,
+       "ciHigh": 0.0284,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.3569,
+       "baselineMean": 0.3206,
+       "difference": 0.0363,
+       "ciLow": 0.0319,
+       "ciHigh": 0.0408,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.0829,
+       "baselineMean": 0.207,
+       "difference": -0.1241,
+       "ciLow": -0.1283,
+       "ciHigh": -0.1198,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 191.5,
+       "baselineMean": 197.4333,
+       "difference": -5.9333,
+       "ciLow": -7.15,
+       "ciHigh": -4.7167,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 76.1,
+       "baselineMean": 76.4333,
+       "difference": -0.3333,
+       "ciLow": -1.7856,
+       "ciHigh": 1.1189,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.5436,
+       "baselineMean": 0.5423,
+       "difference": 0.0013,
+       "ciLow": 0.0005,
+       "ciHigh": 0.002,
+       "seeds": 30
+      }
+     }
+    },
+    {
+     "parameters": {
+      "variant.intervention.budget.contacts_per_round": 4
+     },
+     "measures": {
+      "per_100": {
+       "mean": 31.1002,
+       "baselineMean": 31.1019,
+       "difference": -0.0017,
+       "ciLow": -0.0196,
+       "ciHigh": 0.0161,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.3378,
+       "baselineMean": 0.3206,
+       "difference": 0.0172,
+       "ciLow": 0.0141,
+       "ciHigh": 0.0203,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.1492,
+       "baselineMean": 0.207,
+       "difference": -0.0578,
+       "ciLow": -0.0613,
+       "ciHigh": -0.0543,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 194.7667,
+       "baselineMean": 197.4333,
+       "difference": -2.6667,
+       "ciLow": -3.614,
+       "ciHigh": -1.7193,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 76.0,
+       "baselineMean": 76.4333,
+       "difference": -0.4333,
+       "ciLow": -1.4173,
+       "ciHigh": 0.5506,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.5428,
+       "baselineMean": 0.5423,
+       "difference": 0.0005,
+       "ciLow": 0.0,
+       "ciHigh": 0.001,
+       "seeds": 30
+      }
+     }
+    },
+    {
+     "parameters": {
+      "variant.intervention.budget.contacts_per_round": 8
+     },
+     "measures": {
+      "per_100": {
+       "mean": 31.0974,
+       "baselineMean": 31.1019,
+       "difference": -0.0045,
+       "ciLow": -0.0184,
+       "ciHigh": 0.0094,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.3273,
+       "baselineMean": 0.3206,
+       "difference": 0.0067,
+       "ciLow": 0.0047,
+       "ciHigh": 0.0086,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.1832,
+       "baselineMean": 0.207,
+       "difference": -0.0238,
+       "ciLow": -0.0254,
+       "ciHigh": -0.0223,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 196.3,
+       "baselineMean": 197.4333,
+       "difference": -1.1333,
+       "ciLow": -1.7592,
+       "ciHigh": -0.5075,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 76.2333,
+       "baselineMean": 76.4333,
+       "difference": -0.2,
+       "ciLow": -1.0515,
+       "ciHigh": 0.6515,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.5425,
+       "baselineMean": 0.5423,
+       "difference": 0.0003,
+       "ciLow": -0.0001,
+       "ciHigh": 0.0006,
+       "seeds": 30
+      }
+     }
+    }
+   ]
+  },
+  {
+   "name": "departure-tolerance",
+   "runId": "5eeb0000-0000-4000-8000-000000000004",
+   "data": "synthetic (simulator)",
+   "variant": "B4",
+   "baseline": "B3",
+   "baselinePerCell": true,
+   "parameters": {
+    "demand.departure_tolerance_hours": [
+     1.0,
+     2.0,
+     4.0,
+     8.0
+    ]
+   },
+   "cells": [
+    {
+     "parameters": {
+      "demand.departure_tolerance_hours": 1.0
+     },
+     "measures": {
+      "per_100": {
+       "mean": 29.071,
+       "baselineMean": 29.0663,
+       "difference": 0.0047,
+       "ciLow": -0.0354,
+       "ciHigh": 0.0447,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.3381,
+       "baselineMean": 0.39,
+       "difference": -0.0519,
+       "ciLow": -0.0579,
+       "ciHigh": -0.0459,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.1927,
+       "baselineMean": 0.0,
+       "difference": 0.1927,
+       "ciLow": 0.1889,
+       "ciHigh": 0.1966,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 166.6,
+       "baselineMean": 155.4,
+       "difference": 11.2,
+       "ciLow": 9.2476,
+       "ciHigh": 13.1524,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 73.5,
+       "baselineMean": 71.5333,
+       "difference": 1.9667,
+       "ciLow": -0.2161,
+       "ciHigh": 4.1495,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.5825,
+       "baselineMean": 0.5851,
+       "difference": -0.0026,
+       "ciLow": -0.0034,
+       "ciHigh": -0.0018,
+       "seeds": 30
+      }
+     }
+    },
+    {
+     "parameters": {
+      "demand.departure_tolerance_hours": 2.0
+     },
+     "measures": {
+      "per_100": {
+       "mean": 31.1019,
+       "baselineMean": 31.1095,
+       "difference": -0.0075,
+       "ciLow": -0.0446,
+       "ciHigh": 0.0296,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.3206,
+       "baselineMean": 0.3763,
+       "difference": -0.0557,
+       "ciLow": -0.0605,
+       "ciHigh": -0.051,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.207,
+       "baselineMean": 0.0,
+       "difference": 0.207,
+       "ciLow": 0.2027,
+       "ciHigh": 0.2113,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 197.4333,
+       "baselineMean": 186.2333,
+       "difference": 11.2,
+       "ciLow": 9.0552,
+       "ciHigh": 13.3448,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 76.4333,
+       "baselineMean": 76.3667,
+       "difference": 0.0667,
+       "ciLow": -2.2517,
+       "ciHigh": 2.385,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.5423,
+       "baselineMean": 0.5448,
+       "difference": -0.0026,
+       "ciLow": -0.0037,
+       "ciHigh": -0.0014,
+       "seeds": 30
+      }
+     }
+    },
+    {
+     "parameters": {
+      "demand.departure_tolerance_hours": 4.0
+     },
+     "measures": {
+      "per_100": {
+       "mean": 31.8703,
+       "baselineMean": 31.8731,
+       "difference": -0.0028,
+       "ciLow": -0.042,
+       "ciHigh": 0.0364,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.3168,
+       "baselineMean": 0.3731,
+       "difference": -0.0563,
+       "ciLow": -0.0616,
+       "ciHigh": -0.051,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.2141,
+       "baselineMean": 0.0,
+       "difference": 0.2141,
+       "ciLow": 0.2101,
+       "ciHigh": 0.2182,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 210.9,
+       "baselineMean": 199.8667,
+       "difference": 11.0333,
+       "ciLow": 9.1897,
+       "ciHigh": 12.877,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 74.7333,
+       "baselineMean": 75.9,
+       "difference": -1.1667,
+       "ciLow": -3.2882,
+       "ciHigh": 0.9549,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.5316,
+       "baselineMean": 0.5341,
+       "difference": -0.0025,
+       "ciLow": -0.0036,
+       "ciHigh": -0.0014,
+       "seeds": 30
+      }
+     }
+    },
+    {
+     "parameters": {
+      "demand.departure_tolerance_hours": 8.0
+     },
+     "measures": {
+      "per_100": {
+       "mean": 33.0601,
+       "baselineMean": 33.1136,
+       "difference": -0.0535,
+       "ciLow": -0.1,
+       "ciHigh": -0.007,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.3134,
+       "baselineMean": 0.3713,
+       "difference": -0.0579,
+       "ciLow": -0.0642,
+       "ciHigh": -0.0515,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.2215,
+       "baselineMean": 0.0,
+       "difference": 0.2215,
+       "ciLow": 0.217,
+       "ciHigh": 0.226,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 230.4333,
+       "baselineMean": 219.5,
+       "difference": 10.9333,
+       "ciLow": 8.754,
+       "ciHigh": 13.1127,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 78.4333,
+       "baselineMean": 81.3,
+       "difference": -2.8667,
+       "ciLow": -4.9277,
+       "ciHigh": -0.8057,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.5174,
+       "baselineMean": 0.5193,
+       "difference": -0.0019,
+       "ciLow": -0.0032,
+       "ciHigh": -0.0006,
+       "seeds": 30
+      }
+     }
+    }
+   ]
+  },
+  {
+   "name": "publish-lead",
+   "runId": "5eeb0000-0000-4000-8000-000000000005",
+   "data": "synthetic (simulator)",
+   "variant": "B4",
+   "baseline": "B3",
+   "baselinePerCell": true,
+   "parameters": {
+    "supply.publish_lead_days_min": [
+     1.0,
+     4.0,
+     7.0
+    ]
+   },
+   "cells": [
+    {
+     "parameters": {
+      "supply.publish_lead_days_min": 1.0
+     },
+     "measures": {
+      "per_100": {
+       "mean": 31.1019,
+       "baselineMean": 31.1095,
+       "difference": -0.0075,
+       "ciLow": -0.0446,
+       "ciHigh": 0.0296,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.3206,
+       "baselineMean": 0.3763,
+       "difference": -0.0557,
+       "ciLow": -0.0605,
+       "ciHigh": -0.051,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.207,
+       "baselineMean": 0.0,
+       "difference": 0.207,
+       "ciLow": 0.2027,
+       "ciHigh": 0.2113,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 197.4333,
+       "baselineMean": 186.2333,
+       "difference": 11.2,
+       "ciLow": 9.0552,
+       "ciHigh": 13.3448,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 76.4333,
+       "baselineMean": 76.3667,
+       "difference": 0.0667,
+       "ciLow": -2.2517,
+       "ciHigh": 2.385,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.5423,
+       "baselineMean": 0.5448,
+       "difference": -0.0026,
+       "ciLow": -0.0037,
+       "ciHigh": -0.0014,
+       "seeds": 30
+      }
+     }
+    },
+    {
+     "parameters": {
+      "supply.publish_lead_days_min": 4.0
+     },
+     "measures": {
+      "per_100": {
+       "mean": 31.2757,
+       "baselineMean": 31.3084,
+       "difference": -0.0327,
+       "ciLow": -0.0699,
+       "ciHigh": 0.0046,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.267,
+       "baselineMean": 0.3313,
+       "difference": -0.0643,
+       "ciLow": -0.0693,
+       "ciHigh": -0.0594,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.2604,
+       "baselineMean": 0.0,
+       "difference": 0.2604,
+       "ciLow": 0.2554,
+       "ciHigh": 0.2654,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 241.7667,
+       "baselineMean": 229.7333,
+       "difference": 12.0333,
+       "ciLow": 9.9108,
+       "ciHigh": 14.1558,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 78.0,
+       "baselineMean": 87.4333,
+       "difference": -9.4333,
+       "ciLow": -11.9615,
+       "ciHigh": -6.9052,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.5224,
+       "baselineMean": 0.5252,
+       "difference": -0.0028,
+       "ciLow": -0.0038,
+       "ciHigh": -0.0018,
+       "seeds": 30
+      }
+     }
+    },
+    {
+     "parameters": {
+      "supply.publish_lead_days_min": 7.0
+     },
+     "measures": {
+      "per_100": {
+       "mean": 31.4743,
+       "baselineMean": 31.526,
+       "difference": -0.0518,
+       "ciLow": -0.0921,
+       "ciHigh": -0.0115,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.2264,
+       "baselineMean": 0.2902,
+       "difference": -0.0638,
+       "ciLow": -0.0695,
+       "ciHigh": -0.0581,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.3116,
+       "baselineMean": 0.0,
+       "difference": 0.3116,
+       "ciLow": 0.3057,
+       "ciHigh": 0.3175,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 295.3333,
+       "baselineMean": 280.9333,
+       "difference": 14.4,
+       "ciLow": 12.2727,
+       "ciHigh": 16.5273,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 90.0667,
+       "baselineMean": 103.5667,
+       "difference": -13.5,
+       "ciLow": -16.7088,
+       "ciHigh": -10.2912,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.4978,
+       "baselineMean": 0.5012,
+       "difference": -0.0033,
+       "ciLow": -0.0045,
+       "ciHigh": -0.0022,
+       "seeds": 30
+      }
+     }
+    }
+   ]
+  }
+ ]
+}
