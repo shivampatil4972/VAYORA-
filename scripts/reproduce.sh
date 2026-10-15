@@ -40,6 +40,7 @@ for variant in B0 B3 B4 B5 ORACLE; do
   research python -m sim.run --variant "experiments/configs/variants/$variant.yaml" --run-id "$LADDER"
 done
 research python -m experiments.analysis.compare --run-id "$LADDER" --baseline B0 B3 B4 B5 ORACLE > /dev/null
+research python -m experiments.analysis.timing --run-id "$LADDER" --baseline B3 B0 B3 B4 B5 ORACLE > /dev/null
 
 if $SWEEPS; then
   echo "== 4. the sweeps"

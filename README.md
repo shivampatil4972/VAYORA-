@@ -117,7 +117,7 @@ rebuild from scratch: `docker compose down && docker volume rm journex_osrmdata`
 | [KNOWN_LIMITATIONS](docs/KNOWN_LIMITATIONS.md) | Everything that does not work or is simulated |
 | [AI_ML_METHODOLOGY](docs/AI_ML_METHODOLOGY.md) | The survival model and the contact scheduler |
 | [EXPERIMENT_PROTOCOL](docs/EXPERIMENT_PROTOCOL.md) | How variants are compared, and every result |
-| [Figures](docs/figures/README.md) | The report's five figures, with captions |
+| [Figures](docs/figures/README.md) | The report's six figures, with captions |
 | [PROGRESS](docs/PROGRESS.md) | What was built when, and the decisions made |
 | [DECISIONS](docs/DECISIONS.md) | Every design decision, why, and what it costs |
 | [IMPLEMENTATION_ROADMAP](docs/IMPLEMENTATION_ROADMAP.md) | What is left, what it needs, and a proposed order |

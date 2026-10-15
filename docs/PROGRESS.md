@@ -1,5 +1,13 @@
 # Progress
 
+## 2026-10-15 — when cancellations come
+
+- New named query `cancellation_timing` in metrics.sql (no new event type), tested on
+  hand-made events, and `experiments/analysis/timing.py`, which reports it for the ladder
+  run against B3. Figure 6 and EXPERIMENT_PROTOCOL.md section 13: asking (B4) cuts about 10
+  late cancellations per seed but adds about 23 four or more days out, about 6 more in all;
+  the oracle cuts 23.5 late ones. reproduce.sh rebuilds the report and the figure.
+
 ## 2026-10-15 — report figures
 
 - Five figures in `docs/figures/`, with captions in its README: the variant ladder, early

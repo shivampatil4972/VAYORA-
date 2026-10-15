@@ -552,3 +552,18 @@ assumptions. None is evidence about real passengers.
 
 - The oracle across `early_release_probability`: the ceiling scales with how readily
   passengers who will cancel say so when asked, which is an assumption.
+
+## 13. When cancellations come
+
+A new named query, `cancellation_timing`, counts each seed's cancellations in bands of
+hours before departure; its four bands under 24 hours add up to `late_cancellation_share`'s
+`late`, which a test checks on hand-made events. `experiments/analysis/timing.py` runs it
+over the ladder run and writes `experiments/reports/timing-7a1c0de0-…-003.json`, paired by
+seed against B3. Figure 6 and its table are in [figures/README.md](figures/README.md).
+
+Against B3, B4 cuts late cancellations by 10.0 per seed and cancellations 24–48 hours out by
+10.1, and adds 22.7 four or more days out (+21.1 to +24.4): about 6 more cancellations in
+all. ORACLE cuts late cancellations by 23.5 and moves them mostly into the one to four days
+before departure. This is the mechanism behind sections 8 and 12: asking moves many
+releases from "early" to "earlier", which gains nothing, and a few from late to early, which
+gains little because late seats are mostly refilled anyway (section 11).

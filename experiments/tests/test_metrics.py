@@ -164,6 +164,27 @@ def test_funnel_rates_match_hand_computed_values(crafted):
             assert float(row["recovery_success_rate"]) == pytest.approx(recovery, abs=1e-9)
 
 
+# Worked by hand from SEEDS' cancel_lead: (under_2h, h2_6, h6_12, h12_24, h24_48, h48_96, h96_plus).
+EXPECTED_TIMING = {
+    1: (0, 2, 0, 2, 3, 1, 2),
+    2: (2, 1, 1, 1, 0, 0, 0),
+    3: (0, 0, 1, 1, 1, 2, 3),
+}
+BANDS = ("under_2h", "h2_6", "h6_12", "h12_24", "h24_48", "h48_96", "h96_plus")
+
+
+def test_cancellation_timing_matches_hand_computed_values(crafted):
+    result = run_query(crafted, "cancellation_timing", run_id=RUN_ID, variant=VARIANT)
+
+    assert [r["seed"] for r in result] == [1, 2, 3]
+    for row in result:
+        assert tuple(row[band] for band in BANDS) == EXPECTED_TIMING[row["seed"]]
+        assert row["cancellations"] == sum(EXPECTED_TIMING[row["seed"]])
+        assert row["missing_departure_time"] == 0
+        # The late bands are exactly what late_cancellation_share counts as late.
+        assert sum(row[band] for band in BANDS[:4]) == EXPECTED_LATE[row["seed"]][1]
+
+
 def test_seed_with_no_searches_has_undefined_metric_not_an_error(sa_conn):
     sa_conn.execute(INSERT, _rows(RUN_ID, VARIANT, 9, {"trip_completed": 2}))
 
@@ -185,7 +206,7 @@ def test_cancellation_without_departure_time_is_surfaced(sa_conn):
 def test_metrics_file_defines_the_expected_queries():
     assert set(load_queries()) == {
         "primary_metric", "late_cancellation_share", "funnel_rates", "intervention_volume",
-        "refill_additionality", "refill_by_release_timing"}
+        "refill_additionality", "refill_by_release_timing", "cancellation_timing"}
 
 
 def test_intervention_volume_matches_hand_computed_values(sa_conn):

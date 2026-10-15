@@ -1,6 +1,6 @@
 # Figures
 
-Five figures for the report, drawn by `python -m experiments.analysis.figures` from files
+Six figures for the report, drawn by `python -m experiments.analysis.figures` from files
 the repository already commits: the ladder and sweep reports, whose numbers come from
 `experiments/analysis/metrics.sql`, and the durability model. `scripts/reproduce.sh`
 redraws them and fails if any comes out different.
@@ -49,3 +49,27 @@ prediction, for the Cox and gradient-boosted models. Both sit close to the diago
 predicted 80% means about 80%. Neither ranks bookings well (concordance 0.60 and 0.58), and
 the simulator generates cancellations from a Weibull hazard with shocks that neither model
 can represent, on purpose. AI_ML_METHODOLOGY.md.
+
+## Figure 6. When cancellations come (`fig6-cancellation-timing.png`)
+
+Cancellations per seed by how long before departure they came, for B3, B4 and ORACLE (run
+`7a1c0de0-…-003`, 30 seeds, from the `cancellation_timing` query; every cancellation is
+counted, as in the late share). Asking passengers (B4) does cut late cancellations, by
+about 10 per seed, but it also cuts about 10 from 24–48 hours and adds about 23 four or
+more days out: about 6 more cancellations in all, so some bookings that would have
+travelled unasked are released instead. ORACLE, which asks only the bookings that will cancel late, cuts late
+cancellations by about 24 per seed and moves them mostly into the one to four days before
+departure. Even that buys only about +0.10 completed rides per 100 searches (Figure 1),
+because late releases are mostly refilled anyway (Figure 2).
+
+Mean cancellations per seed, and the seed-paired difference from B3:
+
+| Before departure | B3 | B4 | B4 − B3 (95%) | ORACLE | ORACLE − B3 (95%) |
+|---|---|---|---|---|---|
+| 96 h or more | 20.6 | 43.3 | +22.7 (+21.1 to +24.4) | 25.2 | +4.7 (+4.0 to +5.3) |
+| 48-96 h | 58.3 | 61.8 | +3.5 (+1.7 to +5.3) | 70.0 | +11.7 (+10.2 to +13.3) |
+| 24-48 h | 54.5 | 44.4 | -10.1 (-11.6 to -8.6) | 63.1 | +8.6 (+7.7 to +9.6) |
+| 12-24 h | 37.1 | 31.7 | -5.4 (-6.2 to -4.6) | 25.7 | -11.4 (-12.4 to -10.3) |
+| 6-12 h | 20.4 | 18.3 | -2.2 (-2.8 to -1.5) | 14.5 | -5.9 (-7.0 to -4.9) |
+| 2-6 h | 15.1 | 13.6 | -1.6 (-2.2 to -0.9) | 10.9 | -4.2 (-5.1 to -3.3) |
+| under 2 h | 7.8 | 7.0 | -0.8 (-1.2 to -0.4) | 5.7 | -2.0 (-2.5 to -1.5) |

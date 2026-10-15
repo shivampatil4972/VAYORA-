@@ -203,9 +203,36 @@ def calibration() -> Path:
                    f"Model {MODEL}, validation seeds, ten equal groups by prediction.")
 
 
+def timing() -> Path:
+    """Cancellations per seed by hours before departure, for B3, B4 and ORACLE."""
+    report = _json(REPORTS / f"timing-{LADDER}.json")
+    shown = [("B3", BLUE), ("B4", ORANGE), ("ORACLE", AQUA)]
+    # Earliest band on the left, so time runs towards departure.
+    bands = report["bands"][::-1]
+    width = 0.27
+    fig, ax = plt.subplots(figsize=(8.0, 3.8))
+    for k, (name, colour) in enumerate(shown):
+        means = [row["mean"] for row in report["variants"][name]][::-1]
+        xs = [i + (k - 1) * width for i in range(len(bands))]
+        # A white edge leaves a gap between neighbouring bars.
+        ax.bar(xs, means, width=width, color=colour, edgecolor="white", linewidth=1.5, label=name, zorder=2)
+    ax.axvline(len(bands) - 4.5, color=MUTED, linewidth=1, linestyle=(0, (4, 3)))
+    ax.set_ylim(0, 80)
+    ax.annotate("late: under 24 h  →", (len(bands) - 4.4, 55), color=MUTED, fontsize=8.5)
+    ax.set_xticks(range(len(bands)), [f"{b}" for b in bands])
+    ax.grid(axis="x", visible=False)
+    ax.set_xlabel("Time before departure when the booking was cancelled")
+    ax.set_ylabel("Cancellations per seed")
+    ax.set_title("Asking (B4) adds cancellations days ahead; the oracle cuts the late ones", loc="left")
+    ax.legend(loc="upper right", ncol=3, fontsize=8.5)
+    return _finish(fig, "fig6-cancellation-timing",
+                   f"Run {LADDER}, mean of 30 seeds; every cancellation, passenger or driver, as in the late share. "
+                   "Figures are tabulated in docs/figures/README.md.")
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    for draw in (ladder, refill_timing, sweeps, survival, calibration):
+    for draw in (ladder, refill_timing, sweeps, survival, calibration, timing):
         print(f"wrote {draw()}")
 
 

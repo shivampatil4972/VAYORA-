@@ -195,3 +195,32 @@ FROM rides
 WHERE released IS NOT NULL AND NOT driver_cancelled
 GROUP BY seed
 ORDER BY seed;
+
+-- name: cancellation_timing
+-- How long before departure each cancellation came, in bands.
+--
+-- Counts every booking_cancelled, as late_cancellation_share does, so the four bands under
+-- 24 hours add up to its `late`. Each band includes its lower edge: exactly 24 hours
+-- before departure is in h24_48, as it is not late there either.
+--
+-- under_2h, h2_6, h6_12, h12_24      the late bands
+-- h24_48, h48_96, h96_plus           the early ones
+-- missing_departure_time             must be 0, as for late_cancellation_share
+SELECT seed,
+  COUNT(*) AS cancellations,
+  COUNT(*) FILTER (WHERE lead < INTERVAL '2 hours') AS under_2h,
+  COUNT(*) FILTER (WHERE lead >= INTERVAL '2 hours' AND lead < INTERVAL '6 hours') AS h2_6,
+  COUNT(*) FILTER (WHERE lead >= INTERVAL '6 hours' AND lead < INTERVAL '12 hours') AS h6_12,
+  COUNT(*) FILTER (WHERE lead >= INTERVAL '12 hours' AND lead < INTERVAL '24 hours') AS h12_24,
+  COUNT(*) FILTER (WHERE lead >= INTERVAL '24 hours' AND lead < INTERVAL '48 hours') AS h24_48,
+  COUNT(*) FILTER (WHERE lead >= INTERVAL '48 hours' AND lead < INTERVAL '96 hours') AS h48_96,
+  COUNT(*) FILTER (WHERE lead >= INTERVAL '96 hours') AS h96_plus,
+  COUNT(*) FILTER (WHERE lead IS NULL) AS missing_departure_time
+FROM (
+  SELECT seed, CAST(payload->>'departure_time' AS timestamptz) - sim_time AS lead
+  FROM events
+  WHERE run_id = :run_id AND variant = :variant
+    AND event_type = 'booking_cancelled'
+) cancelled
+GROUP BY seed
+ORDER BY seed;

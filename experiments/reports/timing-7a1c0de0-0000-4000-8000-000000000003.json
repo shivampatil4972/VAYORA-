@@ -1,0 +1,454 @@
+{
+  "run_id": "7a1c0de0-0000-4000-8000-000000000003",
+  "baseline": "B3",
+  "data": "synthetic (simulator)",
+  "measure": "cancellations per seed, by hours before departure",
+  "bands": [
+    "under 2 h",
+    "2-6 h",
+    "6-12 h",
+    "12-24 h",
+    "24-48 h",
+    "48-96 h",
+    "96 h or more"
+  ],
+  "variants": {
+    "B0": [
+      {
+        "band": "under 2 h",
+        "mean": 7.966666666666667,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 0.2,
+          "ci_low": -0.6571249344737731,
+          "ci_high": 1.0571249344737732,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.4779357997528558,
+          "seeds_improved": 14,
+          "seeds_worsened": 9
+        }
+      },
+      {
+        "band": "2-6 h",
+        "mean": 14.966666666666667,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": -0.16666666666666666,
+          "ci_low": -1.204835457598202,
+          "ci_high": 0.8715021242648687,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.3828310689402189,
+          "seeds_improved": 11,
+          "seeds_worsened": 15
+        }
+      },
+      {
+        "band": "6-12 h",
+        "mean": 20.2,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": -0.23333333333333334,
+          "ci_low": -0.8814532019122936,
+          "ci_high": 0.414786535245627,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.40356060351533707,
+          "seeds_improved": 9,
+          "seeds_worsened": 14
+        }
+      },
+      {
+        "band": "12-24 h",
+        "mean": 37.1,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 0.03333333333333333,
+          "ci_low": -1.0295499583350078,
+          "ci_high": 1.0962166250016747,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.8921767240006435,
+          "seeds_improved": 12,
+          "seeds_worsened": 13
+        }
+      },
+      {
+        "band": "24-48 h",
+        "mean": 54.9,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 0.43333333333333335,
+          "ci_low": -0.6660174626180506,
+          "ci_high": 1.5326841292847173,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.5791431475687889,
+          "seeds_improved": 15,
+          "seeds_worsened": 10
+        }
+      },
+      {
+        "band": "48-96 h",
+        "mean": 59.1,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 0.8,
+          "ci_low": -0.11149506410935117,
+          "ci_high": 1.7114950641093514,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.06252927250456408,
+          "seeds_improved": 17,
+          "seeds_worsened": 8
+        }
+      },
+      {
+        "band": "96 h or more",
+        "mean": 20.766666666666666,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 0.2,
+          "ci_low": -0.027873766027337793,
+          "ci_high": 0.42787376602733784,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.0832645166635504,
+          "seeds_improved": 7,
+          "seeds_worsened": 2
+        }
+      }
+    ],
+    "B3": [
+      {
+        "band": "under 2 h",
+        "mean": 7.766666666666667,
+        "vs_baseline": null
+      },
+      {
+        "band": "2-6 h",
+        "mean": 15.133333333333333,
+        "vs_baseline": null
+      },
+      {
+        "band": "6-12 h",
+        "mean": 20.433333333333334,
+        "vs_baseline": null
+      },
+      {
+        "band": "12-24 h",
+        "mean": 37.06666666666667,
+        "vs_baseline": null
+      },
+      {
+        "band": "24-48 h",
+        "mean": 54.46666666666667,
+        "vs_baseline": null
+      },
+      {
+        "band": "48-96 h",
+        "mean": 58.3,
+        "vs_baseline": null
+      },
+      {
+        "band": "96 h or more",
+        "mean": 20.566666666666666,
+        "vs_baseline": null
+      }
+    ],
+    "B4": [
+      {
+        "band": "under 2 h",
+        "mean": 6.966666666666667,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": -0.8,
+          "ci_low": -1.2090459284265407,
+          "ci_high": -0.3909540715734595,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.0010025087657008316,
+          "seeds_improved": 2,
+          "seeds_worsened": 19
+        }
+      },
+      {
+        "band": "2-6 h",
+        "mean": 13.566666666666666,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": -1.5666666666666667,
+          "ci_low": -2.214786535245627,
+          "ci_high": -0.9185467980877063,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.0001337364546084055,
+          "seeds_improved": 3,
+          "seeds_worsened": 21
+        }
+      },
+      {
+        "band": "6-12 h",
+        "mean": 18.266666666666666,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": -2.1666666666666665,
+          "ci_low": -2.825090373599121,
+          "ci_high": -1.5082429597342122,
+          "confidence": 0.95,
+          "wilcoxon_p": 2.2037742086189664e-05,
+          "seeds_improved": 1,
+          "seeds_worsened": 23
+        }
+      },
+      {
+        "band": "12-24 h",
+        "mean": 31.666666666666668,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": -5.4,
+          "ci_low": -6.2062519869926,
+          "ci_high": -4.593748013007401,
+          "confidence": 0.95,
+          "wilcoxon_p": 1.6136602798486922e-06,
+          "seeds_improved": 0,
+          "seeds_worsened": 30
+        }
+      },
+      {
+        "band": "24-48 h",
+        "mean": 44.36666666666667,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": -10.1,
+          "ci_low": -11.597963918393434,
+          "ci_high": -8.602036081606565,
+          "confidence": 0.95,
+          "wilcoxon_p": 1.659399844033728e-06,
+          "seeds_improved": 0,
+          "seeds_worsened": 30
+        }
+      },
+      {
+        "band": "48-96 h",
+        "mean": 61.8,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 3.5,
+          "ci_low": 1.7058541584913218,
+          "ci_high": 5.294145841508678,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.0005058498185458411,
+          "seeds_improved": 22,
+          "seeds_worsened": 5
+        }
+      },
+      {
+        "band": "96 h or more",
+        "mean": 43.3,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 22.733333333333334,
+          "ci_low": 21.05498598500883,
+          "ci_high": 24.411680681657838,
+          "confidence": 0.95,
+          "wilcoxon_p": 1.705141514598868e-06,
+          "seeds_improved": 30,
+          "seeds_worsened": 0
+        }
+      }
+    ],
+    "B5": [
+      {
+        "band": "under 2 h",
+        "mean": 7.533333333333333,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": -0.23333333333333334,
+          "ci_low": -0.42153261508182094,
+          "ci_high": -0.045134051584845736,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.019630657257290667,
+          "seeds_improved": 1,
+          "seeds_worsened": 8
+        }
+      },
+      {
+        "band": "2-6 h",
+        "mean": 14.9,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": -0.23333333333333334,
+          "ci_low": -0.5384808858551764,
+          "ci_high": 0.07181421918850966,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.13186168007604576,
+          "seeds_improved": 4,
+          "seeds_worsened": 11
+        }
+      },
+      {
+        "band": "6-12 h",
+        "mean": 19.8,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": -0.6333333333333333,
+          "ci_low": -1.128356549553093,
+          "ci_high": -0.13831011711357355,
+          "confidence": 0.95,
+          "wilcoxon_p": 0.01639244360042193,
+          "seeds_improved": 6,
+          "seeds_worsened": 16
+        }
+      },
+      {
+        "band": "12-24 h",
+        "mean": 35.13333333333333,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": -1.9333333333333333,
+          "ci_low": -2.5607210419570143,
+          "ci_high": -1.3059456247096524,
+          "confidence": 0.95,
+          "wilcoxon_p": 3.459920272945285e-05,
+          "seeds_improved": 0,
+          "seeds_worsened": 22
+        }
+      },
+      {
+        "band": "24-48 h",
+        "mean": 50.0,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": -4.466666666666667,
+          "ci_low": -5.503213257521742,
+          "ci_high": -3.4301200758115913,
+          "confidence": 0.95,
+          "wilcoxon_p": 2.3774640568806662e-06,
+          "seeds_improved": 1,
+          "seeds_worsened": 29
+        }
+      },
+      {
+        "band": "48-96 h",
+        "mean": 55.166666666666664,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": -3.1333333333333333,
+          "ci_low": -4.258832792334252,
+          "ci_high": -2.0078338743324142,
+          "confidence": 0.95,
+          "wilcoxon_p": 2.9791821484615446e-05,
+          "seeds_improved": 4,
+          "seeds_worsened": 25
+        }
+      },
+      {
+        "band": "96 h or more",
+        "mean": 34.2,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 13.633333333333333,
+          "ci_low": 12.466926402478828,
+          "ci_high": 14.799740264187838,
+          "confidence": 0.95,
+          "wilcoxon_p": 1.6468193103618995e-06,
+          "seeds_improved": 30,
+          "seeds_worsened": 0
+        }
+      }
+    ],
+    "ORACLE": [
+      {
+        "band": "under 2 h",
+        "mean": 5.733333333333333,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": -2.033333333333333,
+          "ci_low": -2.528356549553093,
+          "ci_high": -1.5383101171135736,
+          "confidence": 0.95,
+          "wilcoxon_p": 4.559637896166456e-06,
+          "seeds_improved": 0,
+          "seeds_worsened": 27
+        }
+      },
+      {
+        "band": "2-6 h",
+        "mean": 10.933333333333334,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": -4.2,
+          "ci_low": -5.08472775620311,
+          "ci_high": -3.31527224379689,
+          "confidence": 0.95,
+          "wilcoxon_p": 2.4214616904271415e-06,
+          "seeds_improved": 0,
+          "seeds_worsened": 29
+        }
+      },
+      {
+        "band": "6-12 h",
+        "mean": 14.5,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": -5.933333333333334,
+          "ci_low": -6.984618293068311,
+          "ci_high": -4.882048373598356,
+          "confidence": 0.95,
+          "wilcoxon_p": 1.6657201609790694e-06,
+          "seeds_improved": 0,
+          "seeds_worsened": 30
+        }
+      },
+      {
+        "band": "12-24 h",
+        "mean": 25.7,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": -11.366666666666667,
+          "ci_low": -12.40668630225448,
+          "ci_high": -10.326647031078855,
+          "confidence": 0.95,
+          "wilcoxon_p": 1.6436866614365985e-06,
+          "seeds_improved": 0,
+          "seeds_worsened": 30
+        }
+      },
+      {
+        "band": "24-48 h",
+        "mean": 63.1,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 8.633333333333333,
+          "ci_low": 7.690295346182165,
+          "ci_high": 9.576371320484501,
+          "confidence": 0.95,
+          "wilcoxon_p": 1.618804276758542e-06,
+          "seeds_improved": 30,
+          "seeds_worsened": 0
+        }
+      },
+      {
+        "band": "48-96 h",
+        "mean": 70.03333333333333,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 11.733333333333333,
+          "ci_low": 10.164557550497733,
+          "ci_high": 13.302109116168932,
+          "confidence": 0.95,
+          "wilcoxon_p": 1.6933411124690754e-06,
+          "seeds_improved": 30,
+          "seeds_worsened": 0
+        }
+      },
+      {
+        "band": "96 h or more",
+        "mean": 25.233333333333334,
+        "vs_baseline": {
+          "seeds": 30,
+          "mean_difference": 4.666666666666667,
+          "ci_low": 3.9920128294764687,
+          "ci_high": 5.341320503856865,
+          "confidence": 0.95,
+          "wilcoxon_p": 1.5820715270325305e-06,
+          "seeds_improved": 30,
+          "seeds_worsened": 0
+        }
+      }
+    ]
+  }
+}
