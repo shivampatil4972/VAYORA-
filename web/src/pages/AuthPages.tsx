@@ -54,9 +54,7 @@ export function LoginPage() {
           </Button>
         </form>
       </Card>
-      <Card>
-        <GoogleSignIn />
-      </Card>
+      <GoogleSignIn />
       <p className="text-sm text-slate-600">
         {t('New here?')}{' '}
         <Link to="/register" className="font-medium text-teal-800 underline">
@@ -149,9 +147,7 @@ export function RegisterPage() {
           </Button>
         </form>
       </Card>
-      <Card>
-        <GoogleSignIn />
-      </Card>
+      <GoogleSignIn />
       <p className="text-sm text-slate-600">
         {t('Already have an account?')}{' '}
         <Link to="/login" className="font-medium text-teal-800 underline">

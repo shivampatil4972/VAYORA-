@@ -1,5 +1,17 @@
 # Progress
 
+## 2026-10-15 — the app seen in a browser
+
+- The whole stack was started with Docker and driven in headless Microsoft Edge through
+  `playwright-core`: driver sign-up, vehicle, publishing over OSRM's real road route
+  (230 km, 3 h 11 min), passenger search and booking, the driver's notification, the
+  account page, Hindi, sign-in at phone width, and the administrator overview, what-if and
+  unmet-demand pages. Every step worked; the browser logged only the expected 404s for
+  members with no photo.
+- It found two display faults, fixed: an empty box on the sign-in pages where the Google
+  button goes when Google sign-in is off, and a minutes field on the first stop of the
+  publish form that can only ever be the starting point.
+
 ## 2026-10-15 — review of the recent work
 
 A review of the code added today found three bugs; each is fixed, two with a test that

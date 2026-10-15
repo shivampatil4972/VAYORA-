@@ -435,13 +435,16 @@ export function PublishRidePage() {
                     </label>
                     {stops[index]?.included && (
                       <>
-                        <TextField
-                          label={t('Minutes from Kolhapur to {town}', { town: t(stop.name) })}
-                          type="number"
-                          min={0}
-                          error={formState.errors.stops?.[index]?.offsetMinutes?.message}
-                          {...register(`stops.${index}.offsetMinutes`)}
-                        />
+                        {/* The first stop is where the ride leaves at the time above: its own minutes count for nothing. */}
+                        {index !== firstIncluded && (
+                          <TextField
+                            label={t('Minutes from Kolhapur to {town}', { town: t(stop.name) })}
+                            type="number"
+                            min={0}
+                            error={formState.errors.stops?.[index]?.offsetMinutes?.message}
+                            {...register(`stops.${index}.offsetMinutes`)}
+                          />
+                        )}
                         {index !== firstIncluded && (
                           <TextField
                             label={t('Price to {town} (₹)', { town: t(stop.name) })}

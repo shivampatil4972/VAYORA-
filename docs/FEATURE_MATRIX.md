@@ -11,9 +11,12 @@ the team supplies it. Nothing here has been assigned a tier by guesswork.
 (the simulator) is described in the repository.
 
 **Status** values: `Not started`, `Partial`, `Verified`, `Blocked`. `Verified` means the
-behaviour is exercised by an automated test that passes; a row says which layers. No
-screen has been looked at in a browser: UI claims rest on component tests and a clean
-production build.
+behaviour is exercised by an automated test that passes; a row says which layers. UI
+claims rest on component tests and a clean production build. On 2026-10-15 the full stack
+was also driven in a real browser (headless Microsoft Edge): a driver signing up, adding a
+vehicle and publishing over the real road route; a passenger searching and booking; the
+account page, notifications, Hindi, a phone-width sign-in and three administrator pages.
+Everything else on screen is still unseen by a person.
 
 Last updated: 2026-10-15. Test suites and how to run them are in [TESTING.md](TESTING.md).
 

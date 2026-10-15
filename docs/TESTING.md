@@ -134,6 +134,10 @@ Kept here because each is a class of mistake worth remembering.
 
 ## Bugs the tests did not find
 
+- **Found by driving the app in a browser** (headless Edge, 2026-10-15): the sign-in and
+  sign-up pages showed an empty box where the Google button goes when Google sign-in is
+  off; and the publish form asked for "Minutes from Kolhapur to Kolhapur" on the first
+  stop, a value that is always taken as the starting point. Both fixed.
 - **A failed confirmation email locked the member out for a minute**, and the supply-gap
   timer ran outside its transaction; both found by reading the code, not by a test. The
   first now has a test that fails without the fix. A notification sent from inside an

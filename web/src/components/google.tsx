@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { homeFor } from './Layout';
-import { Button, Notice } from './ui';
+import { Button, Card, Notice } from './ui';
 import { api, ApiError } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { useT } from '../lib/i18n';
@@ -81,24 +81,27 @@ export function GoogleSignIn() {
     // finish and t are rebuilt each render; the button only needs drawing once per client.
   }, [clientId]);
 
+  // Nothing at all when Google sign-in is off: not even an empty card.
   if (!clientId) return null;
   return (
-    <div className="space-y-3">
-      <p className="text-center text-sm text-slate-500">{t('or')}</p>
-      <div ref={button} />
-      {pending && (
-        <div className="space-y-2">
-          <p className="text-sm">{t('No JOURNEX account uses this Google address yet. How will you use JOURNEX?')}</p>
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={() => void finish(pending, 'PASSENGER')}>{t('Find rides as a passenger')}</Button>
-            <Button tone="secondary" onClick={() => void finish(pending, 'DRIVER')}>
-              {t('Offer rides as a driver')}
-            </Button>
+    <Card>
+      <div className="space-y-3">
+        <p className="text-center text-sm text-slate-500">{t('or')}</p>
+        <div ref={button} />
+        {pending && (
+          <div className="space-y-2">
+            <p className="text-sm">{t('No JOURNEX account uses this Google address yet. How will you use JOURNEX?')}</p>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={() => void finish(pending, 'PASSENGER')}>{t('Find rides as a passenger')}</Button>
+              <Button tone="secondary" onClick={() => void finish(pending, 'DRIVER')}>
+                {t('Offer rides as a driver')}
+              </Button>
+            </div>
+            <p className="text-xs text-slate-500">{t('An account is either a passenger or a driver. This cannot be changed later.')}</p>
           </div>
-          <p className="text-xs text-slate-500">{t('An account is either a passenger or a driver. This cannot be changed later.')}</p>
-        </div>
-      )}
-      {failure && <Notice tone="error">{failure}</Notice>}
-    </div>
+        )}
+        {failure && <Notice tone="error">{failure}</Notice>}
+      </div>
+    </Card>
   );
 }
