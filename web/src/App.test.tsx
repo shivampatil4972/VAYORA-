@@ -93,6 +93,11 @@ const candidate: Candidate = {
   driverConfirmed: false,
   maxTwoInBack: false,
   womenOnly: false,
+  driverRidesCompleted: 18,
+  driverRidesWithdrawn: 1,
+  pickupWalkMinutes: 4,
+  dropoffWalkMinutes: 0,
+  suggestFlexible: false,
   vehicle: 'Maruti Ertiga',
   comfort: null,
   luggage: null,
@@ -241,6 +246,7 @@ describe('finding and booking a ride', () => {
       toSeq: 2,
       seats: 2,
       paymentMethod: 'CARD',
+      tier: 'EXACT',
     });
     expect((post[1]!.headers as Record<string, string>)['Idempotency-Key']).toMatch(/^[0-9a-f-]{36}$/);
   });
@@ -2315,5 +2321,40 @@ describe('push notifications', () => {
     expect(subscribe).toHaveBeenCalledWith(expect.objectContaining({ userVisibleOnly: true }));
     const post = fetchMock.mock.calls.find(([url, init]) => init?.method === 'POST' && String(url).endsWith('/me/push-subscriptions'))!;
     expect(JSON.parse(String(post[1]!.body))).toEqual({ endpoint: 'https://fcm.googleapis.com/fcm/send/abc', keys: { p256dh: 'BCVx', auth: 'BTBZ' } });
+  });
+});
+
+describe('driver record and walk in search results', () => {
+  it("shows the driver's own record and a rough walk to the pickup", async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /rides/search': () => json([candidate, { ...candidate, rideId: 99, driverRidesCompleted: 0, driverRidesWithdrawn: 0, pickupWalkMinutes: 0 }]) });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+    expect(await screen.findByText('Completed 18 of the 19 rides they have finished or withdrawn')).toBeInTheDocument();
+    expect(screen.getByText('No completed rides yet')).toBeInTheDocument();
+    expect(screen.getAllByText(/about 4 min walk to the pickup, in a straight line/)).toHaveLength(1);
+  });
+});
+
+describe('flexibility tiers', () => {
+  it('books with the chosen tier, and suggests flexible only on a driver with withdrawals', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({
+      'GET /rides/search': () => json([{ ...candidate, suggestFlexible: true }]),
+      'POST /bookings': () => json({ ...booking, flexTier: 'FLEXIBLE' }, 201),
+    });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+    expect(await screen.findByText(/This driver has withdrawn some rides/)).toBeInTheDocument();
+    await userEvent.selectOptions(screen.getByLabelText('If the driver withdraws'), 'Flexible: book me within 2 hours');
+    expect(screen.queryByText(/This driver has withdrawn some rides/)).not.toBeInTheDocument();
+    await userEvent.click(screen.getAllByRole('button', { name: /^(Book|Request)/ })[0]);
+
+    await waitFor(() => {
+      const post = fetchMock.mock.calls.find(([url, init]) => init?.method === 'POST' && String(url).endsWith('/bookings'));
+      expect(JSON.parse(String(post?.[1]?.body))).toMatchObject({ tier: 'FLEXIBLE' });
+    });
   });
 });

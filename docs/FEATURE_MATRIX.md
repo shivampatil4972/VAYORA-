@@ -113,7 +113,7 @@ Last updated: 2026-10-15. Test suites and how to run them are in [TESTING.md](TE
 | 60 | Socket.IO chat | TBD | TBD | Verified (gateway and UI tests, live run): one chat per ride for its driver and booked passengers, stored in MongoDB |
 | 61 | Masked calling | TBD | TBD | Not started |
 | 62 | Web push | TBD | TBD | Verified (API and UI tests): standard Web Push, written with the JDK alone and checked against RFC 8291's worked example; turned on per browser on the account page. **Off until the server's key pair is configured**, and never seen arriving in a real browser. Pushes carry the English |
-| 63 | Email notifications | TBD | TBD | Partial: a copy of each notification to a confirmed email address when the member asks, API and UI tested; **through the simulated sender, so nothing is really emailed** |
+| 63 | Email notifications | TBD | TBD | Verified (API and UI tests): a copy of each notification, and confirmation codes, by real email through any SMTP server set with `SPRING_MAIL_HOST`; tested against an in-process SMTP server. **Without one configured, nothing is emailed** and copies go to the simulated outbox as before. Never tried with a real provider |
 | 64 | SMS notifications | TBD | TBD | Partial: as for email, to a confirmed phone; **simulated, nothing is really sent** |
 | 65 | Notification preferences | TBD | TBD | Verified (API and UI tests): email and SMS copies on or off; in-app always kept; copies only to confirmed addresses and never for a rolled-back change |
 
@@ -143,10 +143,10 @@ Last updated: 2026-10-15. Test suites and how to run them are in [TESTING.md](TE
 | 75 | PostGIS/OSRM feasibility filter | TBD | TBD | Partial: the access distance is a hard limit enforced in PostGIS, and rides carry an OSRM road route; an electric car's route is compared with its stated range and the driver warned (UI only, not enforced). No detour check |
 | 76 | Two-sided match scoring | TBD | TBD | Not started |
 | 77 | CommitmentDecay survival modelling | TBD | TBD | Partial: model trained, evaluated, served and scored in the app, on synthetic data only; see AI_ML_METHODOLOGY.md. Its features add nothing measurable in the simulator: a no-feature model ranks as well (EXPERIMENT_PROTOCOL.md section 14) |
-| 78 | Reliability indicator in search results | TBD | TBD | Not started |
+| 78 | Reliability indicator in search results | TBD | TBD | Verified (API and UI tests): each result shows the driver's own record, rides completed out of those completed or withdrawn. From past rides only: no prediction about the driver or any passenger is shown |
 | 79 | Anticipatory interventions | TBD | TBD | Partial: in the simulator only (variant B4); the platform sends no interventions |
 | 80 | CP-SAT contact-budget scheduler | TBD | TBD | Partial: built and tested in intel (`POST /v1/scheduler/plan`) and used by simulator variant B5; the platform does not call it, because the platform sends no interventions. In the simulator it does no better than random choice within the same limits (EXPERIMENT_PROTOCOL.md section 14) |
-| 81 | Hazard-informed passenger flexibility tiers | TBD | TBD | Not started |
+| 81 | Hazard-informed passenger flexibility tiers | TBD | TBD | Verified (API and UI tests), as the team defined them: when booking, a passenger chooses what happens if the driver withdraws: this ride only, Flexible (booked automatically on the closest ride within 2 hours) or any time that day. Same price; a new booking has its own payment hold. Flexible is suggested on rides whose driver has withdrawn rides and completed under 90%: the driver's record, never a prediction about the passenger. `tier_selected` is logged for every non-default choice |
 | 84 | Mid-route vacant-seat allocation | TBD | TBD | Not started |
 | 86 | Per-booking SHAP explanations | TBD | TBD | Verified (model, API and UI tests): exact per-feature shares of the log relative risk, which for Cox are the full explanation, so SHAP is not used. Administrators only |
 | 88 | Cascade-aware recovery | TBD | TBD | Partial: when a driver withdraws a ride, each passenger is told of up to three other rides on the same stretch within 3 hours with seats for their party (API tested). A suggestion only: nothing is rebooked, and the simulator does not model it |
@@ -163,7 +163,7 @@ Last updated: 2026-10-15. Test suites and how to run them are in [TESTING.md](TE
 | 85 | Weekly, monthly, and annual travel passes | TBD | TBD | Verified (API and UI tests, live run), mock provider, no money moves: a running pass waives the service fee; the driver's fare is untouched. Prices are assumptions |
 | 87 | Live what-if simulator | TBD | TBD | Partial: an administrator page explores the saved sweeps (departure window, publishing lead, contact budget) one setting at a time, with each run's figures against its baseline (Python and UI tests). **Nothing is simulated live**: only settings a sweep was run at can be chosen |
 | 90 | Reproducibility capsule (`make reproduce` or equivalent) | TBD | TBD | Verified: `scripts/reproduce.sh` rebuilds the tests, model, ladder and current sweeps and fails unless every file matches the committed one. Run in full on 2026-10-16: every committed number reproduced exactly |
-| 91 | Last-mile rickshaw, bus, and walking access | TBD | TBD | Not started |
+| 91 | Last-mile rickshaw, bus, and walking access | TBD | TBD | Partial: each result shows a rough walk to the pickup, from the straight-line distance at 4.5 km/h (API and UI tests), and buses are offered as in 73. No rickshaw data, and no walking route |
 | 92 | Bus alternative after recovery failure | TBD | TBD | Verified (API test): when a driver withdraws and no other ride fits, the notice names up to three listed buses, with the same warning |
 | 95 | Driver reliability self-view | TBD | TBD | Verified (API and UI tests): rides completed and withdrawn, passengers carried, cancelled and marked absent, rating, response rate and level, for the driver only |
 

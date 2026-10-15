@@ -97,7 +97,7 @@ public class SosService {
                         ?, ?)
                 RETURNING id""",
                 Long.class, userId, ride, located, located ? lon : 0.0, located ? lat : 0.0,
-                contacts.size(), sender.name());
+                contacts.size(), sender.name(Channel.PHONE));
 
         String where = located
                 ? String.format(Locale.ROOT, " Last known position: %.5f, %.5f.", lat, lon)
@@ -112,7 +112,7 @@ public class SosService {
             notifications.send(adminId, Type.SOS_RAISED,
                     Text.of("{name} pressed the emergency button. Open the emergency queue.", "name", name), null);
         }
-        return raised(alertId, contacts.size(), sender.name());
+        return raised(alertId, contacts.size(), sender.name(Channel.PHONE));
     }
 
     /** Alerts no administrator has acknowledged yet, oldest first. */

@@ -36,6 +36,7 @@ Access is through `JdbcTemplate` with hand-written SQL. There is no ORM.
 | V22 | `stopovers` (rest stops and chargers, entered by administrators; none shipped) |
 | V23 | `user_photos`, `vehicle_photos` (one re-encoded JPEG each, in PostgreSQL) |
 | V24 | `push_subscriptions` (one row per browser; the address is unique) |
+| V25 | On bookings: `flex_tier` (`EXACT`, `FLEXIBLE` or `ANY_TIME`) |
 
 ### Tables
 

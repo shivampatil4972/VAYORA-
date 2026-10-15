@@ -61,7 +61,7 @@ territory.
 | `GET /api/v1/rides/mine` | D | Own rides |
 | `GET /api/v1/rides/{id}` | any | A ride with its stops, legs, route and notes |
 | `GET /api/v1/rides/{id}/membership` | any | Whether the caller is on the ride. Used by the gateway |
-| `GET /api/v1/rides/search` | any | Rides with a stop near each end on a day |
+| `GET /api/v1/rides/search` | any | Rides with a stop near each end on a day. Each result also carries the driver's `driverRidesCompleted` and `driverRidesWithdrawn`, a rough `pickupWalkMinutes` and `dropoffWalkMinutes`, and `suggestFlexible` |
 
 Search takes `originLat`, `originLon`, `destLat`, `destLon`, `date`, and optionally
 `seats` (default 1), `sort` (`TIME`, `PRICE`, `RATING`, `PROXIMITY`), and filters
@@ -79,7 +79,7 @@ woman, filter or no filter.
 | `POST /api/v1/holds` | P | Hold seats for 5 minutes. Not a booking |
 | `GET /api/v1/holds/mine` | P | Own hold, or 204 |
 | `DELETE /api/v1/holds/mine` | P | Give the hold up |
-| `POST /api/v1/bookings` | P | Request seats on a stretch of a ride; the payment hold is placed in the same step |
+| `POST /api/v1/bookings` | P | Request seats on a stretch of a ride; the payment hold is placed in the same step. Optional `tier`: `EXACT` (default), `FLEXIBLE` or `ANY_TIME`, what happens if the driver withdraws |
 | `GET /api/v1/bookings` | P | Own bookings |
 | `POST /api/v1/bookings/{id}/cancel` | P | Cancel; the refund follows the published tiers |
 | `GET /api/v1/rides/{rideId}/bookings` | D | Bookings on own ride |

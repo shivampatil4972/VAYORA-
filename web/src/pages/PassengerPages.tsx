@@ -18,7 +18,7 @@ import { answerBy, formatDateTime, formatRupees, formatTime, todayInCorridor } f
 import { msg, useT, useUnits } from '../lib/i18n';
 import { comfortLabels, luggageLabels, vehiclePhrases } from '../lib/vehicle';
 import { searchSchema, type SearchForm } from '../lib/schemas';
-import type { Booking, Candidate, Comfort, Luggage, MyProfile, PaymentMethod, RequestTerms, Ride, SearchSort, SeatHold } from '../lib/types';
+import type { Booking, Candidate, Comfort, FlexTier, Luggage, MyProfile, PaymentMethod, RequestTerms, Ride, SearchSort, SeatHold } from '../lib/types';
 
 interface LatLon {
   lat: number;
@@ -96,6 +96,16 @@ const townPoint = (name: string): LatLon => {
   return { lat: town.lat, lon: town.lon };
 };
 
+/** The driver's own record: rides completed out of those they went on to drive or withdrew. */
+function driverRecord(candidate: Candidate, t: ReturnType<typeof useT>): string {
+  const offered = candidate.driverRidesCompleted + candidate.driverRidesWithdrawn;
+  if (offered === 0) return t('No completed rides yet');
+  return t('Completed {completed} of the {offered} rides they have finished or withdrawn', {
+    completed: candidate.driverRidesCompleted,
+    offered,
+  });
+}
+
 const candidateKey = (candidate: Candidate, seats: number) =>
   `${candidate.rideId}-${candidate.fromSeq}-${candidate.toSeq}-${seats}`;
 
@@ -152,6 +162,7 @@ export function SearchPage() {
   const me = useQuery({ queryKey: ['me', 'profile'], queryFn: () => api<MyProfile>('/me/profile') });
   const [booked, setBooked] = useState<Booking | null>(null);
   const [method, setMethod] = useState<PaymentMethod>('UPI');
+  const [tier, setTier] = useState<FlexTier>('EXACT');
   const [sort, setSort] = useState<SearchSort>('TIME');
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -200,6 +211,7 @@ export function SearchPage() {
           toSeq: candidate.toSeq,
           seats: criteria!.form.seats,
           paymentMethod: method,
+          tier,
         },
       });
     },
@@ -462,6 +474,16 @@ export function SearchPage() {
                   <option value="CARD">{t('Card')}</option>
                   <option value="WALLET">{t('Wallet')}</option>
                 </SelectField>
+                <SelectField
+                  label={t('If the driver withdraws')}
+                  value={tier}
+                  onChange={(event) => setTier(event.target.value as FlexTier)}
+                  hint={t('Flexible and any time book you on another ride automatically, with a new payment hold. The price is the same.')}
+                >
+                  <option value="EXACT">{t('Only this ride: suggest others')}</option>
+                  <option value="FLEXIBLE">{t('Flexible: book me within 2 hours')}</option>
+                  <option value="ANY_TIME">{t('Any time that day')}</option>
+                </SelectField>
               </div>
             </>
           )}
@@ -496,7 +518,15 @@ export function SearchPage() {
                         pickup: units.distance(candidate.pickupDistanceM),
                         dropoff: units.distance(candidate.dropoffDistanceM),
                       })}
+                      {candidate.pickupWalkMinutes > 0 &&
+                        ` · ${t('about {minutes} min walk to the pickup, in a straight line', { minutes: candidate.pickupWalkMinutes })}`}
                     </p>
+                    <p className="mt-1 text-sm text-slate-600">{driverRecord(candidate, t)}</p>
+                    {candidate.suggestFlexible && tier === 'EXACT' && (
+                      <p className="mt-1 text-sm text-amber-800">
+                        {t('This driver has withdrawn some rides. A flexible booking would move you to another ride automatically.')}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-4">
                     <p className="text-right">
@@ -596,6 +626,13 @@ export function BookingsPage() {
               <p className="mt-2">
                 <StatusBadge status={booking.status} />
               </p>
+              {booking.flexTier && booking.flexTier !== 'EXACT' && (
+                <p className="mt-2 text-sm text-slate-600">
+                  {booking.flexTier === 'FLEXIBLE'
+                    ? t('If the driver withdraws, you are booked on another ride within 2 hours.')
+                    : t('If the driver withdraws, you are booked on another ride that day.')}
+                </p>
+              )}
               {booking.status === 'PENDING' && requestTerms.data && (
                 <p className="mt-2 text-sm text-slate-600">
                   {t('The driver has until {time} to answer. After that the request closes and everything you paid is returned.', {

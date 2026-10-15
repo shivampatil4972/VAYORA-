@@ -17,6 +17,13 @@ spring:
     mongodb:
       # The short server selection timeout keeps a MongoDB outage from stalling requests.
       uri: ${MONGO_URI:mongodb://localhost:27017/journex?serverSelectionTimeoutMS=2000}
+  mail:
+    # Only used when SPRING_MAIL_HOST is set. A mail server that does not answer costs
+    # seconds, not a hung request.
+    properties:
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
   mvc:
     problemdetails:
       enabled: true
@@ -71,6 +78,10 @@ journex:
     cache-ttl: P7D
     # Only used to guess a driving time when there is no road route.
     fallback-speed-kmh: 50
+  mail:
+    # The sender address for real email. Email is sent only when SPRING_MAIL_HOST names an
+    # SMTP server; without one, copies and codes go to the simulated outbox as before.
+    from: ${JOURNEX_MAIL_FROM:}
   push:
     # The server's key pair, base64url. Empty: push notifications are off. Make a pair with
     # node scripts/vapid-keys.mjs; never commit a real private key.
@@ -90,6 +101,13 @@ journex:
     max-side-pixels: 800
     # Refused before decoding above this, so a small file cannot claim an enormous picture.
     max-source-pixels: 40000000
+  tiers:
+    # A passenger who chose Flexible is booked on the closest other ride within this much of
+    # the withdrawn one; Any time widens it to the whole day.
+    flexible-window: PT2H
+    # Flexible is suggested on a ride whose driver has completed fewer than this share of the
+    # rides they finished or withdrew. An assumption, not an estimate.
+    suggest-below: 0.9
   route:
     # Rest stops and chargers this close to a route, in a straight line, are shown to the driver.
     stopovers-within-km: 2
@@ -99,6 +117,9 @@ journex:
   search:
     # How far, in a straight line, a passenger may be from a stop for a ride to match.
     max-access-km: 5
+    # For a rough walking time to and from stops, shown with each result. Distances are in a
+    # straight line, so the real walk is longer.
+    walking-kmh: 4.5
   pricing:
     # Per seat. Only a suggestion offered to the driver, never applied automatically.
     suggested-rupees-per-km: 2.0

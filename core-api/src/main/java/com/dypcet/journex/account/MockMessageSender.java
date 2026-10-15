@@ -35,7 +35,7 @@ public class MockMessageSender implements MessageSender {
     }
 
     @Override
-    public String name() {
+    public String name(Channel channel) {
         return NAME;
     }
 

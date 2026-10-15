@@ -28,6 +28,9 @@ const TEMPLATES = new Set([
   msg('An administrator reviewed a report about you.'),
   msg('An administrator reviewed a report about you: {note}'),
   msg('{name} pressed the emergency button. Open the emergency queue.'),
+  msg('As you chose a flexible booking, you are booked on the {time} ride from {stop} with {driver}.'),
+  msg('As you chose a flexible booking, you have asked for a seat on the {time} ride from {stop} with {driver}. The driver will answer.'),
+  msg('You chose a flexible booking, but no other ride with seats fits it. Nothing new has been booked.'),
 ]);
 
 const known = (text: NotificationText): boolean =>

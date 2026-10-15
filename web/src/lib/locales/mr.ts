@@ -1146,4 +1146,34 @@ export const mr: Record<string, string> = {
     'या ब्राउझरमध्ये चालू करा',
   'A push shows the notification in English, as email and SMS copies do.':
     'पुश सूचना इंग्रजीत दिसते, ईमेल आणि SMS प्रतींप्रमाणे.',
+  // Driver record and walk
+  'about {minutes} min walk to the pickup, in a straight line':
+    'पिकअपपर्यंत सरळ रेषेत सुमारे {minutes} मिनिटे चालत',
+  'No completed rides yet':
+    'अजून एकही राइड पूर्ण केलेली नाही',
+  'Completed {completed} of the {offered} rides they have finished or withdrawn':
+    'पूर्ण केलेल्या किंवा मागे घेतलेल्या {offered} राइडपैकी {completed} पूर्ण केल्या',
+  // Flexibility tiers
+  'If the driver withdraws':
+    'चालकाने राइड मागे घेतल्यास',
+  'Flexible and any time book you on another ride automatically, with a new payment hold. The price is the same.':
+    'लवचिक आणि केव्हाही निवडल्यास तुम्हाला आपोआप दुसऱ्या राइडवर बुक केले जाते, नव्या पेमेंट होल्डसह. किंमत तीच राहते.',
+  'Only this ride: suggest others':
+    'फक्त हीच राइड: इतर सुचवा',
+  'Flexible: book me within 2 hours':
+    'लवचिक: 2 तासांच्या आत बुक करा',
+  'Any time that day':
+    'त्या दिवशी केव्हाही',
+  'This driver has withdrawn some rides. A flexible booking would move you to another ride automatically.':
+    'या चालकाने काही राइड मागे घेतल्या आहेत. लवचिक बुकिंग तुम्हाला आपोआप दुसऱ्या राइडवर नेईल.',
+  'If the driver withdraws, you are booked on another ride within 2 hours.':
+    'चालकाने राइड मागे घेतल्यास तुम्हाला 2 तासांच्या आत दुसऱ्या राइडवर बुक केले जाईल.',
+  'If the driver withdraws, you are booked on another ride that day.':
+    'चालकाने राइड मागे घेतल्यास तुम्हाला त्याच दिवशी दुसऱ्या राइडवर बुक केले जाईल.',
+  'As you chose a flexible booking, you are booked on the {time} ride from {stop} with {driver}.':
+    'तुम्ही लवचिक बुकिंग निवडली होती, म्हणून तुम्हाला {stop} येथून {time} च्या {driver} यांच्या राइडवर बुक केले आहे.',
+  'As you chose a flexible booking, you have asked for a seat on the {time} ride from {stop} with {driver}. The driver will answer.':
+    'तुम्ही लवचिक बुकिंग निवडली होती, म्हणून {stop} येथून {time} च्या {driver} यांच्या राइडवर तुमच्यासाठी जागेची विनंती केली आहे. चालक उत्तर देतील.',
+  'You chose a flexible booking, but no other ride with seats fits it. Nothing new has been booked.':
+    'तुम्ही लवचिक बुकिंग निवडली होती, पण जागा असलेली दुसरी कोणतीही राइड त्यात बसत नाही. नवीन काहीही बुक केलेले नाही.',
 };

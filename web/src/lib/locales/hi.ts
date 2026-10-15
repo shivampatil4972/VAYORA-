@@ -1146,4 +1146,34 @@ export const hi: Record<string, string> = {
     'इस ब्राउज़र में चालू करें',
   'A push shows the notification in English, as email and SMS copies do.':
     'पुश सूचना अंग्रेज़ी में दिखती है, जैसे ईमेल और SMS प्रतियाँ।',
+  // Driver record and walk
+  'about {minutes} min walk to the pickup, in a straight line':
+    'पिकअप तक सीधी रेखा में लगभग {minutes} मिनट पैदल',
+  'No completed rides yet':
+    'अभी तक कोई सवारी पूरी नहीं की',
+  'Completed {completed} of the {offered} rides they have finished or withdrawn':
+    'पूरी या वापस ली गई {offered} सवारियों में से {completed} पूरी कीं',
+  // Flexibility tiers
+  'If the driver withdraws':
+    'यदि चालक सवारी वापस ले',
+  'Flexible and any time book you on another ride automatically, with a new payment hold. The price is the same.':
+    'लचीला और कभी भी चुनने पर आपको अपने आप दूसरी सवारी पर बुक किया जाता है, नई भुगतान रोक के साथ। कीमत वही रहती है।',
+  'Only this ride: suggest others':
+    'केवल यही सवारी: अन्य सुझाएँ',
+  'Flexible: book me within 2 hours':
+    'लचीला: 2 घंटे के भीतर बुक करें',
+  'Any time that day':
+    'उस दिन कभी भी',
+  'This driver has withdrawn some rides. A flexible booking would move you to another ride automatically.':
+    'इस चालक ने कुछ सवारियाँ वापस ली हैं। लचीली बुकिंग आपको अपने आप दूसरी सवारी पर ले जाएगी।',
+  'If the driver withdraws, you are booked on another ride within 2 hours.':
+    'यदि चालक सवारी वापस लेता है, तो आपको 2 घंटे के भीतर दूसरी सवारी पर बुक किया जाएगा।',
+  'If the driver withdraws, you are booked on another ride that day.':
+    'यदि चालक सवारी वापस लेता है, तो आपको उसी दिन दूसरी सवारी पर बुक किया जाएगा।',
+  'As you chose a flexible booking, you are booked on the {time} ride from {stop} with {driver}.':
+    'आपने लचीली बुकिंग चुनी थी, इसलिए आपको {stop} से {time} की {driver} की सवारी पर बुक किया गया है।',
+  'As you chose a flexible booking, you have asked for a seat on the {time} ride from {stop} with {driver}. The driver will answer.':
+    'आपने लचीली बुकिंग चुनी थी, इसलिए {stop} से {time} की {driver} की सवारी पर आपकी ओर से सीट का अनुरोध किया गया है। चालक उत्तर देंगे।',
+  'You chose a flexible booking, but no other ride with seats fits it. Nothing new has been booked.':
+    'आपने लचीली बुकिंग चुनी थी, पर सीटों वाली कोई और सवारी इसमें नहीं बैठती। कुछ नया बुक नहीं किया गया है।',
 };

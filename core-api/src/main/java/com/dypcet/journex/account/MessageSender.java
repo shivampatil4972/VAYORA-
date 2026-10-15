@@ -8,8 +8,11 @@ public interface MessageSender {
         PHONE
     }
 
-    /** Recorded wherever a message matters, so a record says whether it really went. */
-    String name();
+    /**
+     * Who sends messages of this kind, recorded wherever a message matters so a record says
+     * whether it really went.
+     */
+    String name(Channel channel);
 
     void send(Channel channel, String to, String text);
 }

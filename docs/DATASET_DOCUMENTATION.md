@@ -35,9 +35,10 @@ The vocabulary is frozen. Of the 22 types, these are written today: `search_issu
 `candidates_returned`, `candidate_ranked`, `booking_requested`, `booking_accepted`,
 `booking_rejected`, `booking_cancelled`, `seat_refilled`, `recovery_search`,
 `recovery_booked`, `hazard_scored`, `intervention_issued`, `intervention_responded`,
-`trip_started`, `trip_completed`, `trip_failed`. These six are defined but not yet
-written by anything: `tier_selected`, `driver_tier_selected`, `supply_gap_detected`,
-`nudge_issued`, `nudge_dismissed`, `nudge_converted`.
+`trip_started`, `trip_completed`, `trip_failed`, and, from core-api only,
+`tier_selected` (a passenger choosing a flexible tier; the default is not logged). These
+five are defined but not yet written by anything: `driver_tier_selected`,
+`supply_gap_detected`, `nudge_issued`, `nudge_dismissed`, `nudge_converted`.
 
 Contract the analysis relies on: `booking_cancelled` carries `departure_time`, so the
 late-cancellation share can be computed.

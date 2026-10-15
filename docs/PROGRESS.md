@@ -1,5 +1,23 @@
 # Progress
 
+## 2026-10-15 — real email, the driver's record, walking time, flexibility tiers
+
+- **Real email (63)** through any SMTP server, set by configuration; without one nothing
+  is emailed. Text messages stay simulated, and each channel says whether it really sends.
+  Tested against an SMTP server inside the tests (GreenMail, test-only).
+- **The driver's record in search (78)**: rides completed out of those completed or
+  withdrawn, from past rides only.
+- **Walking time (91, part)**: a rough walk to the pickup on each result, from the
+  straight-line distance.
+- **Flexibility tiers (81)**, as the team chose: this ride only, Flexible (rebooked
+  automatically within 2 hours) or any time that day, at the same price. Flexible is
+  suggested on a driver whose record shows withdrawals. `tier_selected` is now written,
+  for every non-default choice.
+- Testing found a real bug: a notification sent after a commit, from inside another
+  after-commit step, was silently never written. The rebooking notice now has its own
+  transaction.
+- Tests: 215 Java (7 new), 185 web.
+
 ## 2026-10-15 — rest stops and chargers, translated notifications, photos, push
 
 Built on the team's go-ahead for all four. Verified by 17 new Java tests (208 in all) and

@@ -79,9 +79,21 @@
             <artifactId>pdfbox</artifactId>
             <version>3.0.3</version>
         </dependency>
+        <!-- Sends email through an SMTP server when one is configured; otherwise nothing is emailed. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- A real SMTP server inside the tests, to check an email actually goes out. -->
+        <dependency>
+            <groupId>com.icegreen</groupId>
+            <artifactId>greenmail-junit5</artifactId>
+            <version>2.1.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>

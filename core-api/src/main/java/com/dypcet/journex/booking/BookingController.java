@@ -38,7 +38,9 @@ public class BookingController {
             @Min(1) @Max(8) int seats,
             @NotNull PaymentChoice.Method paymentMethod,
             // Mock provider only: "DECLINE" makes the payment fail.
-            @Size(max = 20) String mockOutcome) {
+            @Size(max = 20) String mockOutcome,
+            // What happens if the driver withdraws; left out, this ride only.
+            FlexTier tier) {
     }
 
     private static final int MAX_IDEMPOTENCY_KEY_LENGTH = 100;
@@ -85,7 +87,8 @@ public class BookingController {
         }
         return bookings.request(CurrentUser.id(jwt), request.rideId(), request.fromSeq(),
                 request.toSeq(), request.seats(),
-                new PaymentChoice(request.paymentMethod(), request.mockOutcome()), idempotencyKey);
+                new PaymentChoice(request.paymentMethod(), request.mockOutcome()), idempotencyKey,
+                request.tier() == null ? FlexTier.EXACT : request.tier());
     }
 
     /** How long a driver has to answer a request. The same for everyone, so open to all. */

@@ -153,7 +153,18 @@ export interface Candidate {
   luggage: Luggage | null;
   electric: boolean;
   womenOnly: boolean;
+  /** The driver's own past rides: none of it is a prediction. */
+  driverRidesCompleted: number;
+  driverRidesWithdrawn: number;
+  /** In a straight line at a set pace, so the real walk is longer. */
+  pickupWalkMinutes: number;
+  dropoffWalkMinutes: number;
+  /** The driver has withdrawn rides and completed fewer than the set share: from their record only. */
+  suggestFlexible: boolean;
 }
+
+/** What a passenger agrees to, when booking, should the driver withdraw the ride. */
+export type FlexTier = 'EXACT' | 'FLEXIBLE' | 'ANY_TIME';
 
 /** The newest durability estimate of one live booking. Administrators only. */
 export interface HazardScore {
@@ -461,6 +472,7 @@ export interface Booking {
   driverRated: boolean;
   /** The passenger's answer to whether a completed trip happened; null until given. */
   passengerConfirmed?: boolean | null;
+  flexTier?: FlexTier;
 }
 
 /** A completed trip its passenger says did not happen. */

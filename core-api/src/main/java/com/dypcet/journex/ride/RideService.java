@@ -136,13 +136,15 @@ public class RideService {
             BigDecimal serviceFee, BigDecimal total, long driverId, Double driverRating,
             int driverRatingCount, long pickupDistanceM, long dropoffDistanceM,
             boolean driverConfirmed, boolean maxTwoInBack, String vehicle, String comfort,
-            String luggage, boolean electric, boolean womenOnly) {
+            String luggage, boolean electric, boolean womenOnly, int driverRidesCompleted,
+            int driverRidesWithdrawn, int pickupWalkMinutes, int dropoffWalkMinutes, boolean suggestFlexible) {
 
         Candidate withSeatsAvailable(int seats) {
             return new Candidate(rideId, driverName, instantBooking, fromSeq, toSeq, fromStop, toStop,
                     boardingTime, arrivalTime, pricePerSeat, seats, fare, serviceFee, total, driverId,
                     driverRating, driverRatingCount, pickupDistanceM, dropoffDistanceM,
-                    driverConfirmed, maxTwoInBack, vehicle, comfort, luggage, electric, womenOnly);
+                    driverConfirmed, maxTwoInBack, vehicle, comfort, luggage, electric, womenOnly,
+                    driverRidesCompleted, driverRidesWithdrawn, pickupWalkMinutes, dropoffWalkMinutes, suggestFlexible);
         }
     }
 
@@ -265,6 +267,8 @@ public class RideService {
     private final Clock clock;
     private final double maxAccessMetres;
     private final BigDecimal suggestedRupeesPerKm;
+    private final double walkingKmh;
+    private final double suggestFlexibleBelow;
     private final SeatHolds holds;
     private final PassService passes;
     private final StopoverService stopovers;
@@ -273,6 +277,8 @@ public class RideService {
             ServiceFee serviceFee, RouteService routes, ObjectMapper mapper, Clock clock,
             @Value("${journex.search.max-access-km}") double maxAccessKm,
             @Value("${journex.pricing.suggested-rupees-per-km}") BigDecimal suggestedRupeesPerKm,
+            @Value("${journex.search.walking-kmh}") double walkingKmh,
+            @Value("${journex.tiers.suggest-below}") double suggestFlexibleBelow,
             SeatHolds holds, PassService passes, StopoverService stopovers) {
         this.stopovers = stopovers;
         this.passes = passes;
@@ -287,6 +293,8 @@ public class RideService {
         this.clock = clock;
         this.maxAccessMetres = maxAccessKm * 1000.0;
         this.suggestedRupeesPerKm = suggestedRupeesPerKm;
+        this.walkingKmh = walkingKmh;
+        this.suggestFlexibleBelow = suggestFlexibleBelow;
     }
 
     @Transactional
@@ -358,6 +366,19 @@ public class RideService {
     /** The same time of day on the corridor's clock, so many weeks on. */
     private static Instant weeksLater(Instant time, int weeks) {
         return time.atZone(CORRIDOR_ZONE).plusWeeks(weeks).toInstant();
+    }
+
+    /**
+     * Whether to suggest a flexible booking on this driver's ride: they have withdrawn rides,
+     * and completed fewer than the configured share. From the driver's own record only.
+     */
+    private boolean weakRecord(int completed, int withdrawn) {
+        return withdrawn > 0 && (double) completed / (completed + withdrawn) < suggestFlexibleBelow;
+    }
+
+    /** A rough walk, in a straight line at the configured pace, rounded up to the minute. */
+    private int walkMinutes(double metres) {
+        return (int) Math.ceil(metres / (walkingKmh * 1000.0) * 60.0);
     }
 
     /** The route through these stops, with a suggested price for each leg. */
@@ -601,6 +622,10 @@ public class RideService {
                                AS driver_rating,
                            (SELECT COUNT(*) FROM ratings WHERE ratee_id = r.driver_id)
                                AS driver_rating_count,
+                           (SELECT COUNT(*) FROM rides x WHERE x.driver_id = r.driver_id AND x.status = 'COMPLETED')
+                               AS driver_completed,
+                           (SELECT COUNT(*) FROM rides x WHERE x.driver_id = r.driver_id AND x.status = 'CANCELLED')
+                               AS driver_withdrawn,
                            o.seq AS from_seq, d.seq AS to_seq,
                            o.name AS from_stop, d.name AS to_stop,
                            r.departure_time + make_interval(mins => o.offset_minutes) AS boarding,
@@ -650,7 +675,10 @@ public class RideService {
                             rs.getBoolean("driver_confirmed"), rs.getBoolean("max_two_in_back"),
                             rs.getString("vehicle"), rs.getString("comfort"),
                             rs.getString("luggage"), rs.getBoolean("electric"),
-                            rs.getBoolean("women_only"));
+                            rs.getBoolean("women_only"), rs.getInt("driver_completed"),
+                            rs.getInt("driver_withdrawn"), walkMinutes(rs.getDouble("pickup_m")),
+                            walkMinutes(rs.getDouble("dropoff_m")),
+                            weakRecord(rs.getInt("driver_completed"), rs.getInt("driver_withdrawn")));
                 });
 
         candidates = candidates.stream()

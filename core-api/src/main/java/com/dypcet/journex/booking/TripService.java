@@ -81,6 +81,7 @@ public class TripService {
     private final JdbcTemplate jdbc;
     private final ReferralService referrals;
     private final BusService buses;
+    private final FlexibleRebooking flexible;
     private final BookingService bookings;
     private final PaymentService payments;
     private final NotificationService notifications;
@@ -93,7 +94,8 @@ public class TripService {
             NotificationService notifications, RideService rides,
             EventLogService events, Clock clock,
             @Value("${journex.trip.early-start}") Duration earlyStart, ReferralService referrals,
-            BusService buses) {
+            BusService buses, FlexibleRebooking flexible) {
+        this.flexible = flexible;
         this.referrals = referrals;
         this.buses = buses;
         this.jdbc = jdbc;
@@ -262,6 +264,7 @@ public class TripService {
                 bookings.move(booking, BookingStatus.CANCELLED);
                 bookings.recordCancelledBy(booking.id(), "driver");
                 payments.releaseInFull(booking.id(), RefundReason.DRIVER_CANCELLED);
+                flexible.afterWithdrawal(rideId, booking);
                 notifications.send(booking.passengerId(), Type.RIDE_CANCELLED,
                         Text.of("The driver cancelled the ride you booked for {seats}. Everything you paid has been"
                                 + " returned. {more}", "seats", BookingService.seatsText(booking),

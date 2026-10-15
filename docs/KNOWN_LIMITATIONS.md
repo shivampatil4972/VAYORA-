@@ -62,6 +62,11 @@ mistake for more. Updated 2026-10-13.
 - Rest stops, chargers and bus services are whatever administrators enter; none ship with
   the platform and nothing checks them. The suggested break assumes an even pace.
 - Photos are not moderated: nothing checks what a photo shows.
+- **Real email has never been sent through a real provider.** It is tested against an
+  SMTP server inside the tests. Messages are plain text, in English.
+- A flexible rebooking is a new booking with its own payment hold, made without the
+  passenger present. On a ride the driver approves it is a request the driver may decline.
+- Walking times are straight-line distances at 4.5 km/h, so a real walk is longer.
 
 - **Payments are simulated.** The only provider is a mock that approves every hold
   unless told to decline. No money moves and nothing is verified with any bank, card

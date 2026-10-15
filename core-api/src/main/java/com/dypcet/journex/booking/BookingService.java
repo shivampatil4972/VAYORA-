@@ -55,7 +55,7 @@ public class BookingService {
             int fromSeq, int toSeq, String fromStop, String toStop, int seats, BigDecimal price,
             BigDecimal serviceFee, BigDecimal total, BigDecimal refunded,
             BookingStatus status, Instant boardingTime, Instant createdAt,
-            boolean passengerRated, boolean driverRated, Boolean passengerConfirmed) {
+            boolean passengerRated, boolean driverRated, Boolean passengerConfirmed, FlexTier flexTier) {
     }
 
     /**
@@ -77,6 +77,19 @@ public class BookingService {
         @Override
         public Long actorId() {
             return null;
+        }
+    }
+
+    /** The passenger's choice of what happens if the driver withdraws. */
+    record TierSelected(long bookingId, long passengerId, String tier) implements HasActor {
+        @Override
+        public String actorType() {
+            return "passenger";
+        }
+
+        @Override
+        public Long actorId() {
+            return passengerId;
         }
     }
 
@@ -155,7 +168,7 @@ public class BookingService {
             rs.getObject("boarding", OffsetDateTime.class).toInstant(),
             rs.getObject("created_at", OffsetDateTime.class).toInstant(),
             rs.getBoolean("passenger_rated"), rs.getBoolean("driver_rated"),
-            (Boolean) rs.getObject("passenger_confirmed"));
+            (Boolean) rs.getObject("passenger_confirmed"), FlexTier.valueOf(rs.getString("flex_tier")));
 
     private final JdbcTemplate jdbc;
     private final EventLogService events;
@@ -200,6 +213,13 @@ public class BookingService {
     @Transactional
     public Booking request(long passengerId, long rideId, int fromSeq, int toSeq, int seats,
             PaymentChoice payment, String idempotencyKey) {
+        return request(passengerId, rideId, fromSeq, toSeq, seats, payment, idempotencyKey, FlexTier.EXACT);
+    }
+
+    /** @param tier what the passenger agrees to should the driver withdraw this ride */
+    @Transactional
+    public Booking request(long passengerId, long rideId, int fromSeq, int toSeq, int seats,
+            PaymentChoice payment, String idempotencyKey, FlexTier tier) {
         if (toSeq <= fromSeq) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "toSeq must come after fromSeq");
@@ -281,13 +301,13 @@ public class BookingService {
             bookingId = jdbc.queryForObject("""
                     INSERT INTO bookings (ride_id, passenger_id, from_seq, to_seq, seats, price,
                                           status, hazard_features, accepted_at, idempotency_key,
-                                          boarding_code)
-                    SELECT ?, ?, ?, ?, ?, SUM(price) * ?, ?, CAST(? AS jsonb), ?, ?, ?
+                                          boarding_code, flex_tier)
+                    SELECT ?, ?, ?, ?, ?, SUM(price) * ?, ?, CAST(? AS jsonb), ?, ?, ?, ?
                     FROM ride_segments WHERE ride_id = ? AND seq >= ? AND seq < ?
                     RETURNING id""",
                     Long.class, rideId, passengerId, fromSeq, toSeq, seats, seats, status.name(),
                     features, status == BookingStatus.CONFIRMED ? utc(now) : null, idempotencyKey,
-                    boardingCodes.newCode(), rideId, fromSeq, toSeq);
+                    boardingCodes.newCode(), tier.name(), rideId, fromSeq, toSeq);
         } catch (DuplicateKeyException e) {
             // The same key, sent for a different ride at the same moment.
             throw conflict("This request was already submitted");
@@ -302,6 +322,11 @@ public class BookingService {
 
         events.write(EventType.BOOKING_REQUESTED,
                 new Requested(bookingId, rideId, passengerId, fromSeq, toSeq, seats, boarding));
+        // Only a choice is logged: exact is what every booking was before tiers existed.
+        if (tier != FlexTier.EXACT) {
+            events.write(EventType.TIER_SELECTED,
+                    new TierSelected(bookingId, passengerId, tier.name().toLowerCase(java.util.Locale.ROOT)));
+        }
         if (status == BookingStatus.CONFIRMED) {
             events.write(EventType.BOOKING_ACCEPTED,
                     new Decided(bookingId, rideId, ride.driverId(), true));

@@ -30,8 +30,6 @@ Ordered by value to the research question first, then by size.
 
 | # | Feature | What is missing | Size |
 |---|---|---|---|
-| 78 | Reliability indicator in search results | Show the durability score to passengers, which needs a decision: today scores are shown to administrators only, on purpose | Small, but a policy question first |
-| 81 | Hazard-informed flexibility tiers | Needs the tier rules defined, and two frozen event types (`tier_selected`, `driver_tier_selected`) already reserved for it | Medium |
 | 93 | Supply-gap detection and nudging | Three event types already reserved (`nudge_*`, `supply_gap_detected`); nudge conversion must stay a swept parameter, never a result | Medium |
 | 89 | Corridor demand calibration | Needs real demand figures to calibrate against, which do not exist | Blocked on data |
 | 84, 76 | Mid-route seat allocation; two-sided match scoring | Need geography the simulator does not have (see B1, B2 below) | Large |
@@ -47,12 +45,12 @@ mock that says so, as payments and SMS already are.
 |---|---|---|
 | 2 | Google sign-in | A Google Cloud OAuth client |
 | 1, 6, 64 | Phone sign-up, real SMS codes and notifications | An SMS gateway account |
-| 63 | Email notifications | An email sending service |
+| 63 | Email with a real provider | Built for any SMTP server; needs an account with one to try it |
 | 61 | Masked calling | A telephony provider |
 | 46 | Card, UPI and wallet doing something different | A payment gateway in test mode |
 | 7, 8 | Government ID verification and a real verified badge | An identity verification provider, and a privacy review |
 | 58 | Insurance badge | An insurer |
-| 91 | Last-mile access | Rickshaw and bus data |
+| 91 | Last-mile access beyond walking | Rickshaw data, and walking routes rather than straight lines |
 
 ### C. Research work
 
