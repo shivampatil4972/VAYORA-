@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.dypcet.journex.PostgresIntegrationTest;
 import com.dypcet.journex.account.AccountService;
 import com.dypcet.journex.account.AccountService.ProfileUpdate;
+import com.dypcet.journex.account.MessageSender.Channel;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -80,6 +81,13 @@ class PhoneSignUpIntegrationTest extends PostgresIntegrationTest {
         long id = identity.registerByPhone(digits, "correct-horse-battery", "Asha", UserRole.PASSENGER).id();
         assertThatThrownBy(() -> accounts.update(id, new ProfileUpdate("", null, null, null, null, null, null, null)))
                 .isInstanceOf(ResponseStatusException.class).hasMessageContaining("cannot be removed");
+    }
+
+    @Test
+    void aMemberWithNoEmailIsToldSoWhenAskingForAnEmailCode() {
+        long id = identity.registerByPhone(digits, "correct-horse-battery", "Asha", UserRole.PASSENGER).id();
+        assertThatThrownBy(() -> accounts.requestCode(id, Channel.EMAIL))
+                .isInstanceOf(ResponseStatusException.class).hasMessageContaining("no email address");
     }
 
     @Test

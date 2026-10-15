@@ -137,7 +137,8 @@ public class AccountService {
         MyProfile profile = profile(userId);
         String destination = channel == Channel.EMAIL ? profile.email() : profile.phone();
         if (destination == null) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Add a phone number first");
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    channel == Channel.EMAIL ? "This account has no email address" : "Add a phone number first");
         }
         if (channel == Channel.EMAIL ? profile.emailVerified() : profile.phoneVerified()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "This is already verified");
