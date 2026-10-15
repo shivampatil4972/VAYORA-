@@ -36,9 +36,13 @@ The vocabulary is frozen. Of the 22 types, these are written today: `search_issu
 `booking_rejected`, `booking_cancelled`, `seat_refilled`, `recovery_search`,
 `recovery_booked`, `hazard_scored`, `intervention_issued`, `intervention_responded`,
 `trip_started`, `trip_completed`, `trip_failed`, and, from core-api only,
-`tier_selected` (a passenger choosing a flexible tier; the default is not logged). These
-five are defined but not yet written by anything: `driver_tier_selected`,
-`supply_gap_detected`, `nudge_issued`, `nudge_dismissed`, `nudge_converted`.
+`tier_selected` (a passenger choosing a flexible tier; the default is not logged),
+`supply_gap_detected`, `nudge_issued` and `nudge_converted` (feature 93). Two are defined
+but not written by anything: `driver_tier_selected` and `nudge_dismissed`.
+
+`nudge_converted` records that a nudged driver went on to offer the stretch that day. It is
+not evidence that the nudge caused it, and no report uses it as a result: CLAUDE.md makes
+driver response a swept assumption, because simulation cannot identify it.
 
 Contract the analysis relies on: `booking_cancelled` carries `departure_time`, so the
 late-cancellation share can be computed.

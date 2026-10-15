@@ -67,6 +67,9 @@ mistake for more. Updated 2026-10-13.
 - A flexible rebooking is a new booking with its own payment hold, made without the
   passenger present. On a ride the driver approves it is a request the driver may decline.
 - Walking times are straight-line distances at 4.5 km/h, so a real walk is longer.
+- Supply gaps know a search's day but not the hour wanted: searches carry a date only. A
+  nudge cannot be dismissed, and a search's ends are named by the nearest ride stop within
+  5 km, so a stretch nobody has ever driven is never a gap.
 
 - **Payments are simulated.** The only provider is a mock that approves every hold
   unless told to decline. No money moves and nothing is verified with any bank, card

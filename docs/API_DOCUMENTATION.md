@@ -41,6 +41,7 @@ territory.
 | `GET /api/v1/users/{id}/photo`, `GET /api/v1/vehicles/{id}/photo` | any | The photo as `image/jpeg`, or 404 |
 | `PUT /api/v1/me/photo`, `DELETE /api/v1/me/photo` | any | Own photo. The body is the image itself (JPEG or PNG, up to 5 MB) |
 | `PUT/DELETE /api/v1/vehicles/{id}/photo` | DRIVER, owner | A vehicle's photo; someone else's vehicle is a 404 |
+| `GET /api/v1/admin/supply-gaps` | ADMIN | Days in the coming week where at least three searches on one stretch found no ride, with how many drivers were told |
 | `GET /api/v1/me/push` | any | `publicKey` (null when push is off) and whether any of the member's browsers is subscribed |
 | `POST /api/v1/me/push-subscriptions`, `DELETE /api/v1/me/push-subscriptions?endpoint=` | any | A browser's push subscription, as `PushSubscription.toJSON()` gives it |
 | `GET /api/v1/me/profile` | any | Own profile, including phone and confirmation status |

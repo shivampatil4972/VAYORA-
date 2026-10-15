@@ -11,6 +11,7 @@ import com.dypcet.journex.routing.RouteService.Leg;
 import com.dypcet.journex.routing.RouteService.Point;
 import com.dypcet.journex.routing.RouteService.Route;
 import com.dypcet.journex.stopover.StopoverService;
+import com.dypcet.journex.supply.SupplyGapService;
 import com.dypcet.journex.vehicle.VehicleService;
 import com.dypcet.journex.vehicle.VehicleService.Comfort;
 import com.dypcet.journex.vehicle.VehicleService.Luggage;
@@ -272,6 +273,7 @@ public class RideService {
     private final SeatHolds holds;
     private final PassService passes;
     private final StopoverService stopovers;
+    private final SupplyGapService supply;
 
     public RideService(JdbcTemplate jdbc, VehicleService vehicles, EventLogService events,
             ServiceFee serviceFee, RouteService routes, ObjectMapper mapper, Clock clock,
@@ -279,7 +281,8 @@ public class RideService {
             @Value("${journex.pricing.suggested-rupees-per-km}") BigDecimal suggestedRupeesPerKm,
             @Value("${journex.search.walking-kmh}") double walkingKmh,
             @Value("${journex.tiers.suggest-below}") double suggestFlexibleBelow,
-            SeatHolds holds, PassService passes, StopoverService stopovers) {
+            SeatHolds holds, PassService passes, StopoverService stopovers, SupplyGapService supply) {
+        this.supply = supply;
         this.stopovers = stopovers;
         this.passes = passes;
         this.holds = holds;
@@ -314,9 +317,10 @@ public class RideService {
             long rideId = insert(driverId, ride, ride.stops(), ride.segmentPrices(),
                     weeksLater(ride.departureTime(), week), route, seriesId);
             first = first == null ? rideId : first;
+            supply.published(driverId, rideId);
             if (stopsBack != null) {
-                insert(driverId, ride, stopsBack, pricesBack,
-                        weeksLater(ride.returnDepartureTime(), week), routeBack, seriesId);
+                supply.published(driverId, insert(driverId, ride, stopsBack, pricesBack,
+                        weeksLater(ride.returnDepartureTime(), week), routeBack, seriesId));
             }
         }
         return get(first);

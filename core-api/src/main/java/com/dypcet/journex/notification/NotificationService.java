@@ -51,7 +51,8 @@ public class NotificationService {
         SOS_RAISED,
         REQUEST_EXPIRED,
         TRIP_DISPUTED,
-        RATING_REMINDER
+        RATING_REMINDER,
+        SUPPLY_NUDGE
     }
 
     /**

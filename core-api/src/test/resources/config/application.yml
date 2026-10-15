@@ -15,5 +15,8 @@ journex:
     # Most tests book rides that leave within the hour so that they can be started. The
     # real two-hour rule is tested on its own in BookingExpiryIntegrationTest.
     close-before-boarding: PT0S
+  supply:
+    # Run by the tests directly, never on a timer.
+    detection-cron: "-"
   rating:
     reminder-cron: "-"

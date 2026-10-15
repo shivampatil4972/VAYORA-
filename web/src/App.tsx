@@ -10,7 +10,7 @@ import { DurabilityPage } from './pages/AdminPages';
 import { WhatIfPage } from './pages/WhatIfPage';
 import { AccountPage } from './pages/AccountPage';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
-import { AdminBookingsPage, AdminRidesPage, AuditPage, BusServicesPage, DisputesPage, StopoversPage, MembersPage, OverviewPage, ReportsPage } from './pages/BackOfficePages';
+import { AdminBookingsPage, AdminRidesPage, AuditPage, BusServicesPage, DisputesPage, StopoversPage, SupplyGapsPage, MembersPage, OverviewPage, ReportsPage } from './pages/BackOfficePages';
 import { EarningsPage, PublishRidePage, RidesPage, VehiclesPage } from './pages/DriverPages';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { PassesPage } from './pages/PassesPage';
@@ -72,6 +72,7 @@ export function AppRoutes() {
           <Route path="admin/bookings" element={<AdminBookingsPage />} />
           <Route path="admin/buses" element={<BusServicesPage />} />
           <Route path="admin/stopovers" element={<StopoversPage />} />
+          <Route path="admin/supply-gaps" element={<SupplyGapsPage />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Route>

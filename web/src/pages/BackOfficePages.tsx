@@ -5,10 +5,9 @@ import { Link } from 'react-router-dom';
 import { reportReasons } from '../components/report';
 import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, StatusBadge, TextField } from '../components/ui';
 import { api } from '../lib/api';
-import { formatDateTime } from '../lib/format';
 import { msg, useT } from '../lib/i18n';
-import { formatRupees } from '../lib/format';
-import type { AdminOverview, AuditEntry, BookingStatus, BusService, DisputedTrip, Stopover, Member, MemberReport, ReportOutcome, RideStatus, Role } from '../lib/types';
+import { formatDate, formatDateTime, formatRupees } from '../lib/format';
+import type { AdminOverview, AuditEntry, BookingStatus, BusService, DisputedTrip, Stopover, SupplyGap, Member, MemberReport, ReportOutcome, RideStatus, Role } from '../lib/types';
 
 // The server's own codes, in words. A code with no entry here is shown as it is.
 const codeLabels: Record<string, string> = {
@@ -397,6 +396,52 @@ export function BusServicesPage() {
           </div>
         </Card>
       ))}
+    </Page>
+  );
+}
+
+/** Days ahead where passengers searched a stretch and found no ride. */
+export function SupplyGapsPage() {
+  const t = useT();
+  const gaps = useQuery({ queryKey: ['admin', 'supply-gaps'], queryFn: () => api<SupplyGap[]>('/admin/supply-gaps') });
+  return (
+    <Page title={t('Unmet demand')}>
+      <p className="text-sm text-slate-600">
+        {t('Days in the coming week where at least three searches on one stretch found no ride. Each morning, a few drivers who have driven the stretch are told, none more than once a week. Whether they then offer a ride is recorded, not reported as a result.')}
+      </p>
+      <QueryState
+        isPending={gaps.isPending}
+        error={gaps.error}
+        isEmpty={gaps.data?.length === 0}
+        empty={t('No gaps in the coming week.')}
+        onRetry={() => void gaps.refetch()}
+      />
+      {gaps.data && gaps.data.length > 0 && (
+        <Card>
+          <table className="w-full text-left text-sm">
+            <thead className="text-slate-600">
+              <tr>
+                <th className="py-2 pr-4 font-medium">{t('Date')}</th>
+                <th className="py-2 pr-4 font-medium">{t('Stretch')}</th>
+                <th className="py-2 pr-4 font-medium">{t('Searches with no ride')}</th>
+                <th className="py-2 font-medium">{t('Drivers told')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {gaps.data.map((gap) => (
+                <tr key={`${gap.date}-${gap.fromStop}-${gap.toStop}`} className="border-t border-slate-100">
+                  <td className="py-2 pr-4">{formatDate(gap.date)}</td>
+                  <td className="py-2 pr-4">
+                    {t(gap.fromStop)} → {t(gap.toStop)}
+                  </td>
+                  <td className="py-2 pr-4">{gap.emptySearches}</td>
+                  <td className="py-2">{gap.driversNudged}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
     </Page>
   );
 }

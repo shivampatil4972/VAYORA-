@@ -30,7 +30,6 @@ Ordered by value to the research question first, then by size.
 
 | # | Feature | What is missing | Size |
 |---|---|---|---|
-| 93 | Supply-gap detection and nudging | Three event types already reserved (`nudge_*`, `supply_gap_detected`); nudge conversion must stay a swept parameter, never a result | Medium |
 | 89 | Corridor demand calibration | Needs real demand figures to calibrate against, which do not exist | Blocked on data |
 | 84, 76 | Mid-route seat allocation; two-sided match scoring | Need geography the simulator does not have (see B1, B2 below) | Large |
 | 87 | Live what-if simulator | Saved sweeps can be explored; running a new simulation from the screen would need a service to run it, which the architecture rule does not provide | Large, placement first |

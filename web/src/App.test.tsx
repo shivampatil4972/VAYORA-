@@ -2358,3 +2358,16 @@ describe('flexibility tiers', () => {
     });
   });
 });
+
+describe('unmet demand', () => {
+  it('lists the coming gaps and how many drivers were told', async () => {
+    signIn('ADMIN');
+    serve({ 'GET /admin/supply-gaps': () => json([{ date: '2026-11-04', fromStop: 'Kolhapur', toStop: 'Pune', emptySearches: 7, driversNudged: 2 }]) });
+    open('/admin/supply-gaps');
+
+    const row = await screen.findByRole('row', { name: /Kolhapur → Pune/ });
+    expect(row).toHaveTextContent('7');
+    expect(row).toHaveTextContent('2');
+    expect(screen.getByText(/not reported as a result/)).toBeInTheDocument();
+  });
+});

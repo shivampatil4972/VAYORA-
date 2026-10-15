@@ -1351,4 +1351,19 @@ export const mr: Record<string, string> = {
     'विनंतीतील मजकूर अवैध आहे.',
   'Cannot reach the server. Check your connection and try again.':
     'सर्व्हरपर्यंत पोहोचता येत नाही. तुमचे कनेक्शन तपासा आणि पुन्हा प्रयत्न करा.',
+  // Unmet demand
+  'Passengers looked for a ride from {from} to {to} on {date} and found none. If you are driving then, you could offer seats.':
+    'प्रवाशांनी {date} रोजी {from} ते {to} राइड शोधली आणि एकही मिळाली नाही. तुम्ही तेव्हा जात असाल तर जागा देऊ शकता.',
+  'Unmet demand':
+    'अपूर्ण मागणी',
+  'Days in the coming week where at least three searches on one stretch found no ride. Each morning, a few drivers who have driven the stretch are told, none more than once a week. Whether they then offer a ride is recorded, not reported as a result.':
+    'येत्या आठवड्यातील असे दिवस जेव्हा एकाच टप्प्यावरील किमान तीन शोधांत एकही राइड मिळाली नाही. दररोज सकाळी, त्या टप्प्यावर चाललेल्या काही चालकांना कळवले जाते, कोणालाही आठवड्यातून एकदापेक्षा जास्त नाही. ते नंतर राइड देतात का हे नोंदवले जाते, निष्कर्ष म्हणून सांगितले जात नाही.',
+  'No gaps in the coming week.':
+    'येत्या आठवड्यात कोणतीही कमतरता नाही.',
+  'Stretch':
+    'टप्पा',
+  'Searches with no ride':
+    'राइड न मिळालेले शोध',
+  'Drivers told':
+    'कळवलेले चालक',
 };

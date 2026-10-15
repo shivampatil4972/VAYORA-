@@ -1351,4 +1351,19 @@ export const hi: Record<string, string> = {
     'अनुरोध की सामग्री अमान्य है।',
   'Cannot reach the server. Check your connection and try again.':
     'सर्वर तक नहीं पहुँच पा रहे। अपना कनेक्शन जाँचें और फिर कोशिश करें।',
+  // Unmet demand
+  'Passengers looked for a ride from {from} to {to} on {date} and found none. If you are driving then, you could offer seats.':
+    'यात्रियों ने {date} को {from} से {to} की सवारी खोजी और कोई नहीं मिली। अगर आप तब जा रहे हैं, तो सीटें दे सकते हैं।',
+  'Unmet demand':
+    'अपूरी माँग',
+  'Days in the coming week where at least three searches on one stretch found no ride. Each morning, a few drivers who have driven the stretch are told, none more than once a week. Whether they then offer a ride is recorded, not reported as a result.':
+    'आने वाले सप्ताह के वे दिन जब एक ही हिस्से पर कम से कम तीन खोजों में कोई सवारी नहीं मिली। हर सुबह, उस हिस्से पर चल चुके कुछ चालकों को बताया जाता है, किसी को सप्ताह में एक बार से अधिक नहीं। वे बाद में सवारी देते हैं या नहीं, यह दर्ज होता है, परिणाम के रूप में नहीं बताया जाता।',
+  'No gaps in the coming week.':
+    'आने वाले सप्ताह में कोई कमी नहीं।',
+  'Stretch':
+    'हिस्सा',
+  'Searches with no ride':
+    'बिना सवारी वाली खोजें',
+  'Drivers told':
+    'बताए गए चालक',
 };

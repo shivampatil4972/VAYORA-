@@ -100,6 +100,15 @@ export interface RoutePreview {
   alongRoute: AlongRoute[];
 }
 
+/** A day and stretch where passengers searched and were offered no ride. */
+export interface SupplyGap {
+  date: string;
+  fromStop: string;
+  toStop: string;
+  emptySearches: number;
+  driversNudged: number;
+}
+
 /** A place to stop, entered by an administrator; nothing checks it is open or working. */
 export interface Stopover {
   id: number;

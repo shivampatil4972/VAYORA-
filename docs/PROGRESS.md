@@ -1,5 +1,16 @@
 # Progress
 
+## 2026-10-15 — supply gaps and nudges
+
+- **Feature 93.** Each morning core-api reads the event log for searches in the coming
+  week that were offered no ride, groups them by day and stretch, and logs a
+  `supply_gap_detected` for each with three or more. Up to five drivers who drove that
+  stretch in the last 90 days are told, none more than once a week, and `nudge_issued` is
+  logged. A nudged driver who then offers the stretch that day is logged as
+  `nudge_converted`, for the record only. Administrators see the coming gaps on an
+  "Unmet demand" page. Verified by `SupplyGapIntegrationTest` and `App.test.tsx`.
+- Tests: 217 Java, 187 web.
+
 ## 2026-10-15 — server error messages translated
 
 - Every fixed error message core-api can send (88, with the client's own "cannot reach

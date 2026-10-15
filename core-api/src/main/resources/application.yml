@@ -101,6 +101,21 @@ journex:
     max-side-pixels: 800
     # Refused before decoding above this, so a small file cannot claim an enormous picture.
     max-source-pixels: 40000000
+  supply:
+    # Every morning, days from today to this many ahead are checked for searches that found
+    # no ride.
+    detection-cron: "0 0 6 * * *"
+    horizon-days: 7
+    # A day and stretch counts as a gap with at least this many such searches.
+    min-empty-searches: 3
+    # A search's ends are named by the nearest ride stop within this distance.
+    near-stop-km: 5
+    # Drivers who completed a ride on the stretch within this many days may be told...
+    driver-history-days: 90
+    # ...but no driver more than once in this many days...
+    days-between-nudges: 7
+    # ...and no more than this many drivers about one gap. All assumptions, not estimates.
+    most-nudges-per-gap: 5
   tiers:
     # A passenger who chose Flexible is booked on the closest other ride within this much of
     # the withdrawn one; Any time widens it to the whole day.
