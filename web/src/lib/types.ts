@@ -482,6 +482,10 @@ export interface Booking {
   /** The passenger's answer to whether a completed trip happened; null until given. */
   passengerConfirmed?: boolean | null;
   flexTier?: FlexTier;
+  /** Who drives, and in what: make, model and colour as the driver entered them. */
+  driverId?: number;
+  driverName?: string;
+  vehicle?: string | null;
 }
 
 /** A completed trip its passenger says did not happen. */

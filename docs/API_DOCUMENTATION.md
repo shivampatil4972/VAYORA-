@@ -64,6 +64,7 @@ territory.
 | `GET /api/v1/rides/mine` | D | Own rides |
 | `GET /api/v1/rides/{id}` | any | A ride with its stops, legs, route and notes |
 | `GET /api/v1/rides/{id}/membership` | any | Whether the caller is on the ride. Used by the gateway |
+| `GET /api/v1/bookings` | P | Own bookings, each with the driver's `driverId`, `driverName` and the car (`vehicle`: make, model and colour as entered) |
 | `GET /api/v1/rides/search` | any | Rides with a stop near each end on a day. Each result also carries the driver's `driverRidesCompleted` and `driverRidesWithdrawn`, a rough `pickupWalkMinutes` and `dropoffWalkMinutes`, and `suggestFlexible` |
 
 Search takes `originLat`, `originLon`, `destLat`, `destLon`, `date`, and optionally

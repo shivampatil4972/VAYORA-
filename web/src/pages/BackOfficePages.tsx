@@ -178,7 +178,7 @@ export function MembersPage() {
         }}
       >
         <div className="min-w-64 flex-1">
-          <TextField label={t('Name or email')} value={typed} onChange={(event) => setTyped(event.target.value)} />
+          <TextField label={t('Name, email or phone')} value={typed} onChange={(event) => setTyped(event.target.value)} />
         </div>
         <Button type="submit">{t('Search')}</Button>
       </form>

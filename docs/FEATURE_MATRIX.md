@@ -12,11 +12,13 @@ the team supplies it. Nothing here has been assigned a tier by guesswork.
 
 **Status** values: `Not started`, `Partial`, `Verified`, `Blocked`. `Verified` means the
 behaviour is exercised by an automated test that passes; a row says which layers. UI
-claims rest on component tests and a clean production build. On 2026-10-15 the full stack
-was also driven in a real browser (headless Microsoft Edge): a driver signing up, adding a
-vehicle and publishing over the real road route; a passenger searching and booking; the
-account page, notifications, Hindi, a phone-width sign-in and three administrator pages.
-Everything else on screen is still unseen by a person.
+claims rest on component tests and a clean production build. On 2026-10-15 and 16 the full
+stack was also driven in a real browser (headless Microsoft Edge), page by page: sign-up;
+a vehicle, electric included; publishing over the real road route; search and booking; a
+trip started, completed, confirmed and rated; payments and a receipt; passes; a public
+profile; the emergency panel; notifications; Hindi and Marathi; phone width; and every
+administrator page. Screens were checked by eye from screenshots, not by a person using
+the app.
 
 Last updated: 2026-10-15. Test suites and how to run them are in [TESTING.md](TESTING.md).
 

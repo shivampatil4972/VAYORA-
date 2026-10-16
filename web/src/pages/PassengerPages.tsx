@@ -613,6 +613,16 @@ export function BookingsPage() {
                   ? t('Leaves {time} · {n} seat', { time: formatDateTime(booking.boardingTime), n: booking.seats })
                   : t('Leaves {time} · {n} seats', { time: formatDateTime(booking.boardingTime), n: booking.seats })}
               </p>
+              {booking.driverName && (
+                <p className="mt-1 text-sm text-slate-600">
+                  {t('Driver')}{' '}
+                  <Link to={`/users/${booking.driverId}`} className="font-medium text-teal-800 underline">
+                    {booking.driverName}
+                  </Link>
+                  {/* What the driver typed: shown as text, not translated. */}
+                  {booking.vehicle && ` · ${booking.vehicle}`}
+                </p>
+              )}
               <p className="mt-1 text-sm text-slate-600">
                 {booking.total === null
                   ? t('Fare {amount}', { amount: formatRupees(booking.price) })

@@ -1,5 +1,20 @@
 # Progress
 
+## 2026-10-16 — the rest of the app seen in a browser
+
+- A second browser pass covered a whole trip (an electric car's range warning, publishing,
+  booking, starting, completing, the passenger confirming and rating), payments and a
+  receipt, passes, a driver's public profile, the emergency panel, Marathi, phone width and
+  every administrator page. Every page rendered.
+- **It found a real bug the tests had missed**: sending a rating showed "Unexpected end of
+  JSON input" although the rating was saved, because the API helper read the empty 201
+  answer as JSON. Fixed in the helper, for every such answer, with a test that fails
+  without the fix.
+- **And a gap**: a passenger's booking never named the driver or the car. Each booking now
+  shows both, the driver linked to their profile (core-api and web tests).
+- The members search says it takes a phone number too, as it has since phone sign-up.
+- Tests: 221 Java, 190 web.
+
 ## 2026-10-15 — the app seen in a browser
 
 - The whole stack was started with Docker and driven in headless Microsoft Edge through

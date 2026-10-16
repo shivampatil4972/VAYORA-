@@ -725,6 +725,18 @@ describe('notifications', () => {
   });
 });
 
+describe('who drives', () => {
+  it('names the driver and the car on a booking, with a link to the profile', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /bookings': () => json([{ ...booking, driverId: 7, driverName: 'Ravi Jadhav', vehicle: 'Maruti Ertiga, Silver' }]) });
+    open('/bookings');
+
+    const link = await screen.findByRole('link', { name: 'Ravi Jadhav' });
+    expect(link).toHaveAttribute('href', '/users/7');
+    expect(link.parentElement).toHaveTextContent('Driver Ravi Jadhav · Maruti Ertiga, Silver');
+  });
+});
+
 describe('ratings', () => {
   it('lets a passenger rate a completed trip, stars first', async () => {
     signIn('PASSENGER');
@@ -743,6 +755,10 @@ describe('ratings', () => {
     const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')!;
     expect(String(post[0])).toMatch(/\/bookings\/90\/rating$/);
     expect(JSON.parse(post[1]!.body as string)).toEqual({ stars: 4, comment: 'On time and careful.' });
+    // The server answers 201 with no body: that is success, not an error to show. (A real
+    // browser showed "Unexpected end of JSON input" here before the API helper allowed it.)
+    await waitFor(() => expect(send).toHaveTextContent('Send rating'));
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('asks for no rating on a trip already rated or not completed', async () => {

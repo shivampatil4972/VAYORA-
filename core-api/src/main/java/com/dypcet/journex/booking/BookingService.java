@@ -55,7 +55,8 @@ public class BookingService {
             int fromSeq, int toSeq, String fromStop, String toStop, int seats, BigDecimal price,
             BigDecimal serviceFee, BigDecimal total, BigDecimal refunded,
             BookingStatus status, Instant boardingTime, Instant createdAt,
-            boolean passengerRated, boolean driverRated, Boolean passengerConfirmed, FlexTier flexTier) {
+            boolean passengerRated, boolean driverRated, Boolean passengerConfirmed, FlexTier flexTier,
+            long driverId, String driverName, String vehicle) {
     }
 
     /**
@@ -143,6 +144,8 @@ public class BookingService {
 
     private static final String SELECT_BOOKING = """
             SELECT b.*, u.full_name AS passenger_name, s.name AS from_stop, t.name AS to_stop,
+                   r.driver_id, d.full_name AS driver_name,
+                   concat_ws(', ', v.make || ' ' || v.model, v.colour) AS vehicle,
                    r.departure_time + make_interval(mins => s.offset_minutes) AS boarding,
                    p.service_fee, p.amount AS total, f.amount AS refunded,
                    EXISTS (SELECT 1 FROM ratings g WHERE g.booking_id = b.id
@@ -152,6 +155,8 @@ public class BookingService {
             FROM bookings b
             JOIN rides r ON r.id = b.ride_id
             JOIN users u ON u.id = b.passenger_id
+            JOIN users d ON d.id = r.driver_id
+            JOIN vehicles v ON v.id = r.vehicle_id
             JOIN ride_stops s ON s.ride_id = b.ride_id AND s.seq = b.from_seq
             JOIN ride_stops t ON t.ride_id = b.ride_id AND t.seq = b.to_seq
             LEFT JOIN payment_intents p ON p.booking_id = b.id
@@ -168,7 +173,8 @@ public class BookingService {
             rs.getObject("boarding", OffsetDateTime.class).toInstant(),
             rs.getObject("created_at", OffsetDateTime.class).toInstant(),
             rs.getBoolean("passenger_rated"), rs.getBoolean("driver_rated"),
-            (Boolean) rs.getObject("passenger_confirmed"), FlexTier.valueOf(rs.getString("flex_tier")));
+            (Boolean) rs.getObject("passenger_confirmed"), FlexTier.valueOf(rs.getString("flex_tier")),
+            rs.getLong("driver_id"), rs.getString("driver_name"), rs.getString("vehicle"));
 
     private final JdbcTemplate jdbc;
     private final EventLogService events;

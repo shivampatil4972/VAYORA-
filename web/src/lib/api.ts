@@ -35,7 +35,10 @@ export async function api<T>(
   options: { method?: string; body?: unknown; headers?: Record<string, string> } = {},
 ): Promise<T> {
   const response = await send(path, options);
-  return response.status === 204 ? (undefined as T) : ((await response.json()) as T);
+  // An empty body is nothing, whatever the status: core-api answers some actions with
+  // 201 Created and no body, not only 204.
+  const text = await response.text();
+  return (text ? JSON.parse(text) : undefined) as T;
 }
 
 /**

@@ -6,7 +6,7 @@ Counts are from the runs on 2026-10-13. Every suite passed with no failures.
 |---|---|---|
 | core-api | `docker compose --profile test run --rm core-api-tests` | 221 |
 | Python (events, simulator, model, scheduler, experiments, intel API) | `docker compose --profile research run --rm research` | 177 |
-| web | `cd web && npm ci && npm test` | 189 |
+| web | `cd web && npm ci && npm test` | 190 |
 | gateway | `cd gateway && npm ci && npm test` | 25 |
 
 The first two need only Docker. The Python suite also needs PostgreSQL running:
@@ -134,6 +134,13 @@ Kept here because each is a class of mistake worth remembering.
 
 ## Bugs the tests did not find
 
+- **Found by driving the app in a browser** (headless Edge, 2026-10-16): **sending a rating
+  showed an error although the rating was saved.** core-api answers it with 201 and no
+  body; the app's API helper read every non-204 answer as JSON and failed. The web test
+  faked exactly that answer but checked only that the request went out, not what the
+  passenger saw. The helper now treats any empty body as no content, and the test checks
+  no error appears (it fails without the fix). Also: a passenger's booking never said who
+  the driver was or which car to look for; it now names both, with a link to the profile.
 - **Found by driving the app in a browser** (headless Edge, 2026-10-15): the sign-in and
   sign-up pages showed an empty box where the Google button goes when Google sign-in is
   off; and the publish form asked for "Minutes from Kolhapur to Kolhapur" on the first

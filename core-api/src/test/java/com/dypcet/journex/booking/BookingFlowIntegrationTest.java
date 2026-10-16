@@ -152,6 +152,9 @@ class BookingFlowIntegrationTest extends PostgresIntegrationTest {
 
         assertThat(booking.status()).isEqualTo(BookingStatus.CONFIRMED);
         assertThat(booking.price()).isEqualByComparingTo("1040.00"); // (150 + 120 + 250) x 2
+        // The passenger is told who will drive and in what, so they know whom to meet.
+        assertThat(booking.driverName()).startsWith("Test");
+        assertThat(booking.vehicle()).isNotBlank();
         assertThat(eventTypes()).containsExactly("booking_requested", "booking_accepted");
         assertThat(jdbc.queryForObject("""
                 SELECT actor_type || ':' || actor_id FROM events

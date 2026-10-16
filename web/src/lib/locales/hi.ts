@@ -184,7 +184,7 @@ export const hi: Record<string, string> = {
   'Warn member': 'सदस्य को चेतावनी दें',
   'Suspend member': 'सदस्य को निलंबित करें',
   'Yes, suspend {name}': 'हाँ, {name} को निलंबित करें',
-  'Name or email': 'नाम या ईमेल',
+  'Name, email or phone': 'नाम, ईमेल या फ़ोन',
   Search: 'खोजें',
   'No member matches.': 'कोई सदस्य नहीं मिला।',
   'Members, newest first': 'सदस्य, सबसे नए पहले',
