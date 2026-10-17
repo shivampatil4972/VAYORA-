@@ -19,8 +19,9 @@ below is the authors' recommendation, with reasons.
 
 ## Where things stand
 
-As of 2026-10-15: of 95 features, **45 verified, 19 partial, 31 not started**, about 57%
-counting a partial feature as half.
+As of 2026-10-17: of 95 features, **72 verified, 15 partial, 8 not started**, about 84%
+counting a partial feature as half. Everything left needs a decision, an outside service
+or data that does not exist; nothing remains that is only a matter of building.
 
 ## What is left, by what it needs
 
@@ -70,23 +71,24 @@ mock that says so, as payments and SMS already are.
 
 | Item | Who |
 |---|---|
-| Open the app in a browser and use every screen | The team. Three broken screens were found once by reading, not by tests |
+| Use every screen as a person would, on a phone | The team. A script drove every screen in headless Edge (2026-10-15 to 17) and found eight faults the tests had missed; nobody has yet used the app by hand |
 | Native-speaker review of the Hindi and Marathi text | The team |
 | Confirm or replace the assumed values in `world.yaml`, `B5.yaml`, pass prices | The team |
 | Decide how to present a central hypothesis the simulator did not support | The team and the guide |
 
 ## Proposed order
 
-1. **The browser check (D).** It costs an afternoon and has already been shown to find
-   what tests miss.
-2. **The research items (C), starting with the time-tolerance sweep.** The report's main
-   claim rests on them, and they need no outside service.
-3. **Small platform items from A** that complete features already partly built: boarding
-   code, completion confirmation, rating reminder, response rate, reproducibility capsule.
-4. **The two reserved event families (81, 93)**, once their rules are defined, since the
-   vocabulary already makes room for them.
+1. ~~The browser check (D)~~: done by script, 2026-10-15 to 17. A person using it on a
+   phone is still owed.
+2. ~~The research items (C)~~: done except those waiting on a decision (the "offered no
+   ride" split, B6 to B11, the hotel dataset).
+3. ~~Small platform items from A~~: boarding code, completion confirmation, rating
+   reminder, response rate and the reproducibility capsule are all built.
+4. ~~The two reserved event families (81, 93)~~: flexibility tiers and supply-gap nudges
+   are built.
 5. **Group B, one service at a time**, only if the team gets the accounts. Otherwise
    leave them as clearly labelled mocks and say so in the report.
+6. **Group A, each once its policy or placement is decided.**
 
 ## What will not be built
 
