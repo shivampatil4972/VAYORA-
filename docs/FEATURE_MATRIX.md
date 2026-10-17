@@ -12,15 +12,15 @@ the team supplies it. Nothing here has been assigned a tier by guesswork.
 
 **Status** values: `Not started`, `Partial`, `Verified`, `Blocked`. `Verified` means the
 behaviour is exercised by an automated test that passes; a row says which layers. UI
-claims rest on component tests and a clean production build. On 2026-10-15 and 16 the full
+claims rest on component tests and a clean production build. From 2026-10-15 to 17 the full
 stack was also driven in a real browser (headless Microsoft Edge), page by page: sign-up;
 a vehicle, electric included; publishing over the real road route; search and booking; a
 trip started, completed, confirmed and rated; payments and a receipt; passes; a public
-profile; the emergency panel; notifications; Hindi and Marathi; phone width; and every
-administrator page. Screens were checked by eye from screenshots, not by a person using
-the app.
+profile; the emergency panel; notifications; Hindi and Marathi; phone width; every
+administrator page; and live position between a driver's and a passenger's browser.
+Screens were checked by eye from screenshots, not by a person using the app.
 
-Last updated: 2026-10-15. Test suites and how to run them are in [TESTING.md](TESTING.md).
+Last updated: 2026-10-17. Test suites and how to run them are in [TESTING.md](TESTING.md).
 
 ## Identity and profile
 
@@ -30,7 +30,7 @@ Last updated: 2026-10-15. Test suites and how to run them are in [TESTING.md](TE
 | 2 | Google OAuth login | TBD | TBD | Partial: "Sign in with Google" on the sign-in and sign-up pages, checked as Google documents (signature against Google's keys, issuer, our client ID, expiry, a confirmed email); links an existing account with the same address, or creates one after the person chooses passenger or driver. API and UI tested against a stand-in for Google. **Off until a Google client ID is configured, and never tried with Google itself** |
 | 3 | Profile photo upload | TBD | TBD | Verified (API and UI tests): a member adds, replaces or removes a photo on the account page; it shows on their profile. Stored in PostgreSQL as a re-encoded JPEG at most 800 px, without the file's metadata (a phone photo can carry where it was taken) |
 | 4 | Bio, age, and gender | TBD | TBD | Verified (API and UI tests): bio and an approximate age on the profile; gender is stored and shown to nobody |
-| 5 | Email verification | TBD | TBD | Verified (API and UI tests), simulated sender, nothing is sent: the code is read from an administrator-only outbox |
+| 5 | Email verification | TBD | TBD | Verified (API and UI tests): the code goes by real email when an SMTP server is configured (see 63); otherwise the sender is simulated, nothing is sent, and the code is read from an administrator-only outbox |
 | 6 | Phone OTP verification | TBD | TBD | Verified (API and UI tests), simulated sender, nothing is sent: the code is read from an administrator-only outbox |
 | 7 | Government ID verification | TBD | TBD | Not started |
 | 8 | Verified-profile badge | TBD | TBD | Partial: "Email confirmed" and "Phone confirmed" on the profile, which also says no identity document was checked |
@@ -128,7 +128,7 @@ Last updated: 2026-10-15. Test suites and how to run them are in [TESTING.md](TE
 |---|---|---|---|---|
 | 66 | Booking reference and boarding code | TBD | TBD | Verified (API and UI tests): the passenger sees a reference and a 4-digit code; the driver can check a code but is never sent it. Checking changes nothing about the booking |
 | 67 | Meeting-point details and map | TBD | TBD | Verified: meeting point and route on a booking. UI tested with a stand-in map; the real map has not been seen in a browser |
-| 68 | Live GPS tracking | TBD | TBD | Partial: the driver shares their position while the ride is under way and passengers see the latest point on a map. Verified in gateway and UI tests and a live run; the browser's own location reading and the real map are unseen |
+| 68 | Live GPS tracking | TBD | TBD | Verified (gateway and UI tests): the driver shares their position while the ride is under way and passengers see the latest point on a map. Also driven between two browsers with the browser's own location reading (emulated): shared, seen on the real map, kept through a moment without a fix, stopped. **Never tried on a phone with real GPS**; at most one reading per 5 s is sent, and one inside that window is dropped, not sent later |
 | 69 | Two-sided completion confirmation | TBD | TBD | Verified (API and UI tests): the passenger confirms a completed trip or says it did not happen; a denial is listed for administrators and reverses nothing |
 | 70 | Post-trip rating prompt | TBD | TBD | Verified (API and UI tests): a rating form on completed trips, and one reminder a day later to each side that has not rated |
 

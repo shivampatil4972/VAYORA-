@@ -1,13 +1,13 @@
 # Testing
 
-Counts are from the runs on 2026-10-13. Every suite passed with no failures.
+Counts are from the runs on 2026-10-17. Every suite passed with no failures.
 
 | Suite | Command, from the repository root | Tests |
 |---|---|---|
 | core-api | `docker compose --profile test run --rm core-api-tests` | 221 |
 | Python (events, simulator, model, scheduler, experiments, intel API) | `docker compose --profile research run --rm research` | 177 |
-| web | `cd web && npm ci && npm test` | 190 |
-| gateway | `cd gateway && npm ci && npm test` | 25 |
+| web | `cd web && npm ci && npm test` | 192 |
+| gateway | `cd gateway && npm ci && npm test` | 28 |
 
 The first two need only Docker. The Python suite also needs PostgreSQL running:
 `docker compose up -d --wait postgres core-api` (core-api's Flyway creates the tables).
@@ -64,7 +64,7 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 |---|---|---|
 | `App.test.tsx` | 92 | Invitations, Withdrawing a series, browsing rides and bookings, Notification preferences, Levels on profiles, the driver's record page, more search filters, Confirming or disputing a trip, disputed trips for administrators, Boarding codes for passenger and driver, A driver's response rate on the profile, The two main reasons for a durability estimate, Downloading a receipt with the session token, Buying a pass, running, waiting and ended passes, Women-only rides offered and filtered only where the profile allows, A passenger's payments and refunds, Publishing a ride through the page, a driver accepting and declining requests, starting, marking a no-show and completing, each irreversible step only after confirming, The deadline shown on a pending request, Holding seats and being told it is not a booking, Adding a vehicle through the page, the car named on a search result, How many rides a form will publish, driver notes shown as text, Search filters sent only when set and only on Search, the account page, confirmation by code, emergency contacts, **the emergency panel puts 112 first and says the contacts were not messaged**, the administrator emergency queue and simulated outbox, route protection by role, sign-in, search and booking with fee and payment method, idempotency key reuse, refund terms, earnings, ratings and profiles, notifications, reporting and moderation, the back office, maps and location search, the route planner, failure and retry states |
 | `lib/schemas.test.ts` | 26 | Vehicle details and their request mapping, A return that leaves before arrival is refused, repeat and notes limits, Form validation and the publish request mapping |
-| `components/RideChat.test.tsx` | 15 | Joining with the session token, history, sending, **a message shown once and only when relayed**, text rendered as text, refusal and outage states, rejoining after a dropped connection, position shown to passengers, sharing offered to the driver only while under way |
+| `components/RideChat.test.tsx` | 17 | Joining with the session token, history, sending, **a message shown once and only when relayed**, text rendered as text, refusal and outage states, rejoining after a dropped connection, position shown to passengers, sharing offered to the driver only while under way, including a chat opened before the ride started, **a moment without a fix does not end sharing**, a refused permission does |
 | `lib/i18n.test.tsx` | 21 | **Every marked string has a Hindi and a Marathi entry with the same placeholders**, no unused entries, **no screen has text that bypasses translation**, fallback to English, switching and remembering the language, the same digits for money in every language |
 | `lib/api.test.ts` | 7 | Token header, problem-document errors, unreachable server, sign-out on a rejected token, **no sign-out on a stale rejection** |
 
@@ -74,6 +74,7 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 |---|---|---|
 | `test/realtime.test.js` | 19 | Connection refused without a valid token, **a non-member cannot join and a missing ride looks the same**, **a message never reaches another ride**, the sender is named by the server, validation, rate limit, history on join, **someone who cancels stops receiving even if silent**, only the driver may send a position and only under way, rejoin after a dropped connection, a failing store, the membership call to core-api |
 | `test/auth.test.js` | 6 | Token verification |
+| `test/connect.test.js` | 3 | **Keeps trying to reach MongoDB until it answers**, a capped pause between attempts, index setup tried again if it fails |
 
 No web test can reach a real server: `fetch` is replaced before every test. The map
 library is replaced by a stand-in that renders what the map was given as plain elements,
@@ -134,6 +135,22 @@ Kept here because each is a class of mistake worth remembering.
 
 ## Bugs the tests did not find
 
+- **Found by driving live position between two browsers** (headless Edge, emulated
+  location, 2026-10-17), four faults:
+  - **The gateway never reached MongoDB if MongoDB was slower to start.** The driver's
+    first automatic connection failed, kept the closed connection, and every chat and
+    position call then failed with "Topology is closed" until the gateway restarted. Its
+    tests use an in-memory store, and the live check ran with MongoDB already up. The
+    gateway now keeps trying (`test/connect.test.js`).
+  - **A driver who opened the chat before starting the ride was never offered sharing**:
+    the chat learnt the ride's status only when it joined. It now also takes the status
+    from the page.
+  - **One moment without a fix ended sharing for good.** Every geolocation error turned
+    sharing off, though only a refused permission is final; the test's stand-in only ever
+    raised an error with no code. Only a refusal stops it now. Both web faults have a test
+    that fails without the fix.
+  - Leaving a page while its map was still animating threw a Leaflet error. The map now
+    moves without animation.
 - **Found by driving the app in a browser** (headless Edge, 2026-10-16): **sending a rating
   showed an error although the rating was saved.** core-api answers it with 201 and no
   body; the app's API helper read every non-204 answer as JSON and failed. The web test
@@ -166,9 +183,11 @@ Kept here because each is a class of mistake worth remembering.
 
 - Confirming a phone number through the screen. The API path is tested; the screen is
   the same component as for email and is tested for email only.
-- The device position on a real device: the emergency panel is tested with a stand-in.
-- **No screen has been viewed in a browser**, and there is no browser end-to-end test.
-  The real map has therefore never been seen to draw.
+- The device position on a real device: the emergency panel is tested with a stand-in,
+  and live position was driven with a location the browser emulated, never a phone's GPS.
+- **There is no browser end-to-end test in the repository.** Every screen was driven in
+  headless Edge from 2026-10-15 to 17 and checked by eye from screenshots (see
+  FEATURE_MATRIX.md); those scripts were throwaway and are not kept or rerun.
 - No load, security-scan or accessibility-audit tooling has been run.
 - Duplicate provider callbacks: the feature does not exist.
 - A hold lapsing in real time. The test moves a clock; nobody waited five minutes.

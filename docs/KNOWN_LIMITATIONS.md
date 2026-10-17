@@ -1,7 +1,7 @@
 # Known limitations
 
 What the project does not do, does only in part, or does in a way a reader could
-mistake for more. Updated 2026-10-13.
+mistake for more. Updated 2026-10-17.
 
 ## Nothing here is evidence about real people
 
@@ -131,6 +131,10 @@ mistake for more. Updated 2026-10-13.
   re-checked on that interval, not pushed.
 - Live position is the latest point only. There is no trail, no estimated arrival, and
   nothing tells passengers when the driver stops sharing.
+- The driver's device sends at most one position every 5 seconds, and a reading that
+  comes sooner is dropped, not sent later. A device that reports only when it moves can
+  leave passengers with a point up to 5 seconds of travel old until it moves again.
+  Never tried on a phone's GPS; the browser check used an emulated location.
 - Chat messages are kept indefinitely; only GPS points expire (after 7 days).
 - Trip state is not pushed. A passenger's screen does not change when the driver starts
   the ride until they reload or reopen the chat.
@@ -193,18 +197,16 @@ mistake for more. Updated 2026-10-13.
 
 ## Interface
 
-- **No screen has been viewed in a browser.** The UI is checked by component tests and
-  a production build only. The map in particular is tested through a stand-in, so
-  whether tiles load and pins land where intended is unverified.
+- **Screens were viewed in a browser only by a script, its screenshots checked by eye**
+  (headless Edge, 2026-10-15 to 17), not by a person using the app, and not on a phone. The map draws its tiles and pins there; the component tests still use
+  a stand-in for it.
 - Map tiles come from OpenStreetMap's public servers, which is acceptable for a
   demonstration and not for sustained use.
-- The vehicle, publish-ride and my-rides pages have no page-level test, so the driver's
-  accept, start, no-show and complete buttons are untested in the UI.
 - **The Hindi and Marathi translations have had no native review.** I wrote them. The
   wording on refunds, payments and the emergency notice matters most and should be
   checked first.
-- Text written by the server stays in English in every language: error explanations,
-  notification messages and audit entries.
+- Some text written by the server stays in English in every language: error messages
+  built from numbers, web pushes, and audit entries (shown as recorded).
 - Plurals use one form for one and another for the rest, which is right for these three
   languages and would not be for others.
 - No end-to-end browser test.

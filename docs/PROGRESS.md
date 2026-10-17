@@ -1,5 +1,25 @@
 # Progress
 
+## 2026-10-17 — live position seen between two browsers
+
+- A third browser pass drove live position (feature 68) with two browsers: a driver whose
+  browser reports an (emulated) location starts a ride and shares it; the passenger opens
+  the chat and sees the driver on the real map; the driver stops. It now works end to end,
+  and 68 is marked Verified, with "never tried on a phone's GPS" stated on the row.
+- **It found four faults the tests had missed**, all fixed:
+  - the gateway gave up on MongoDB for good if MongoDB started after it ("Topology is
+    closed" on every chat call until a restart). It now keeps trying, and compose starts
+    it after MongoDB is healthy;
+  - a driver who opened the chat before starting the ride was never offered sharing;
+  - one moment without a GPS fix turned sharing off; now only a refused permission does;
+  - leaving a page while its map was still animating threw a Leaflet error.
+  Each web fault has a test that fails without the fix; the gateway has a reconnect test.
+- Documents brought up to date where they had fallen behind: email codes go by real
+  email when SMTP is configured (feature 5), and KNOWN_LIMITATIONS no longer says no
+  screen was seen in a browser or that the driver's pages have no page test.
+- Tests: 221 Java, 177 Python, 192 web, 28 gateway, all passing.
+- Feature count: 72 Verified, 15 Partial, 8 Not started of 95.
+
 ## 2026-10-16 — the rest of the app seen in a browser
 
 - A second browser pass covered a whole trip (an electric car's range warning, publishing,
