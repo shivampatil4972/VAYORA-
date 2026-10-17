@@ -39,6 +39,7 @@ Access is through `JdbcTemplate` with hand-written SQL. There is no ORM.
 | V25 | On bookings: `flex_tier` (`EXACT`, `FLEXIBLE` or `ANY_TIME`) |
 | V26 | On users: `google_sub`, the Google account a member signs in with (unique) |
 | V27 | On rides: `started_at`, when the driver actually started it |
+| V28 | On vehicles: `insurer` and `insured_until`, as the driver declares them (both or neither) |
 
 ### Tables
 

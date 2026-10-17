@@ -53,6 +53,8 @@ was decided while building within them.
 
 | Decision | Why | Cost |
 |---|---|---|
+| Insurance is the driver's declaration, shown as such, with no policy number kept | No insurer is connected, so nothing can be checked; a policy number would be personal data for no purpose | A passenger has only the driver's word |
+| A masked call is simulated, only between confirmed numbers, from 24 hours before boarding while the booking is confirmed, and the other side is told | No telephony provider; a real relay must never ring a number nobody proved | Nobody can actually call; the chat is the working channel |
 | One role per account: passenger, driver or administrator | Simpler permissions | A person cannot be both passenger and driver |
 | Administrators cannot sign up; they are created from configuration | So nobody can make themselves one | |
 | Another member's booking, ride or contact answers 404, not 403 | Ids cannot be probed | Debugging is a little harder |

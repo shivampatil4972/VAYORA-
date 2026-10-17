@@ -59,13 +59,15 @@ territory.
 |---|---|---|
 | `POST /api/v1/vehicles` | D | Add a vehicle |
 | `GET /api/v1/vehicles` | D | Own vehicles |
+| `PUT /api/v1/vehicles/{id}/insurance` | D | Declare the insurer and `insuredUntil` (not checked, no policy number) |
+| `DELETE /api/v1/vehicles/{id}/insurance` | D | Remove the declaration |
 | `POST /api/v1/rides/route-preview` | D | Road route through some stops, with a suggested price per leg |
 | `POST /api/v1/rides` | D | Publish a ride; optionally its return and up to 8 weekly repeats, all or nothing |
 | `GET /api/v1/rides/mine` | D | Own rides |
 | `GET /api/v1/rides/{id}` | any | A ride with its stops, legs, route and notes |
 | `GET /api/v1/rides/{id}/membership` | any | Whether the caller is on the ride. Used by the gateway |
 | `GET /api/v1/bookings` | P | Own bookings, each with the driver's `driverId`, `driverName` and the car (`vehicle`: make, model and colour as entered) |
-| `GET /api/v1/rides/search` | any | Rides with a stop near each end on a day. Each result also carries the driver's `driverRidesCompleted` and `driverRidesWithdrawn`, a rough `pickupWalkMinutes` and `dropoffWalkMinutes`, `suggestFlexible`, `keptRides` when the driver's record earns the lower service fee (already applied to `serviceFee`), and `underWay` for a ride already on the road (offered only from a stop it is due at 30 minutes or more ahead, and only if it confirms instantly) |
+| `GET /api/v1/rides/search` | any | Rides with a stop near each end on a day. Each result also carries the driver's `driverRidesCompleted` and `driverRidesWithdrawn`, a rough `pickupWalkMinutes` and `dropoffWalkMinutes`, `suggestFlexible`, `keptRides` when the driver's record earns the lower service fee (already applied to `serviceFee`), `insurer` and `insuredUntil` as the driver declared them, only while they cover the trip's date, and `underWay` for a ride already on the road (offered only from a stop it is due at 30 minutes or more ahead, and only if it confirms instantly) |
 
 Search takes `originLat`, `originLon`, `destLat`, `destLon`, `date`, and optionally
 `seats` (default 1), `sort` (`TIME`, `PRICE`, `RATING`, `PROXIMITY`), and filters
@@ -100,6 +102,7 @@ returns the booking the first request made instead of making another.
 | Method and path | Who | What |
 |---|---|---|
 | `POST /api/v1/rides/{id}/start` | D | Start the ride, up to an hour early |
+| `POST /api/v1/bookings/{id}/call` | P, D | Simulated masked call to the other side of a confirmed booking, from 24 hours before boarding, between confirmed phone numbers. Returns `{provider: "mock", calleeName}` and never a number; the other side is notified |
 | `POST /api/v1/bookings/{id}/no-show` | D | Mark a passenger who did not board; their seat goes back on sale for later stops |
 | `POST /api/v1/rides/{id}/complete` | D | Complete the ride and pay out |
 | `POST /api/v1/rides/{id}/cancel` | D | Withdraw the ride; passengers are refunded in full and told of other rides |

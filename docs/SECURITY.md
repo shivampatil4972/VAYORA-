@@ -29,6 +29,7 @@ test. It must not be put on the public internet as it stands; the last section s
 
 | Control | Detail | Checked by |
 |---|---|---|
+| A simulated call returns no phone number | The answer names the other side and nothing else; only confirmed numbers may be put through, as a real relay would require | `CallIntegrationTest` |
 | Public profiles carry no contact details | No email, phone, birth year or gender. Gender is used, unshown, to decide who may see and book a women-only ride | `RatingFlowIntegrationTest`, `AccountIntegrationTest` |
 | Confirmation codes are stored only as hashes | Expire in 10 minutes, work once, are spent after 5 wrong guesses, one a minute | `AccountIntegrationTest` |
 | Search positions are coarsened in the research log | Three decimals, about 100 metres | `RoutingIntegrationTest` |

@@ -19,7 +19,7 @@ below is the authors' recommendation, with reasons.
 
 ## Where things stand
 
-As of 2026-10-17: of 95 features, **74 verified, 15 partial, 6 not started**, about 86%
+As of 2026-10-17: of 95 features, **74 verified, 17 partial, 4 not started**, about 87%
 counting a partial feature as half. Everything left needs a decision, an outside service
 or data that does not exist; nothing remains that is only a matter of building.
 
@@ -47,10 +47,10 @@ mock that says so, as payments and SMS already are.
 | 2 | Google sign-in, tried for real | A Google Cloud OAuth client ID; everything else is built |
 | 1, 6, 64 | Phone sign-up, real SMS codes and notifications | An SMS gateway account |
 | 63 | Email with a real provider | Built for any SMTP server; needs an account with one to try it |
-| 61 | Masked calling | A telephony provider |
+| 61 | Masked calling | A telephony provider; built as a labelled mock on 2026-10-17 |
 | 46 | Card, UPI and wallet doing something different | A payment gateway in test mode |
 | 7, 8 | Government ID verification and a real verified badge | An identity verification provider, and a privacy review |
-| 58 | Insurance badge | An insurer |
+| 58 | Insurance badge | An insurer; built as a labelled mock (the driver's declaration) on 2026-10-17 |
 | 91 | Last-mile access beyond walking | Rickshaw data, and walking routes rather than straight lines |
 
 ### C. Research work

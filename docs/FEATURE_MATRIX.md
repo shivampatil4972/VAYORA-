@@ -108,7 +108,7 @@ Last updated: 2026-10-17. Test suites and how to run them are in [TESTING.md](TE
 | 55 | Report a user | TBD | TBD | Verified (API and UI tests): only someone you shared a booking with; one open report per pair |
 | 56 | Admin moderation queue | TBD | TBD | Verified (API and UI tests): dismiss, warn or suspend; suspension is enforced on every request |
 | 57 | SOS and emergency-contact workflow | TBD | TBD | Verified (API and UI tests), simulated: the alert reaches an administrator queue; **emergency contacts are not messaged** and the screen says so and points to 112 |
-| 58 | Insurance coverage badge | TBD | TBD | Not started |
+| 58 | Insurance coverage badge | TBD | TBD | Partial, a labelled mock (API and UI tests, seen in a browser): a driver declares the insurer and the date the cover runs to; passengers see it on a result while it covers the trip, marked "declared by the driver, not checked". **No insurer is connected and nothing is checked**; no policy number is asked for |
 | 59 | Women-only ride option | TBD | TBD | Verified (API and UI tests, live run): offered, shown, booked and held only by members whose own profile says they are a woman. **Nobody checks that declaration** |
 
 ## Communication
@@ -116,7 +116,7 @@ Last updated: 2026-10-17. Test suites and how to run them are in [TESTING.md](TE
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
 | 60 | Socket.IO chat | TBD | TBD | Verified (gateway and UI tests, live run): one chat per ride for its driver and booked passengers, stored in MongoDB |
-| 61 | Masked calling | TBD | TBD | Not started |
+| 61 | Masked calling | TBD | TBD | Partial, a labelled mock (API and UI tests, seen in a browser): the passenger and the driver of a confirmed booking can "call" each other from 24 hours before boarding, between confirmed phone numbers; the other side is told someone tried. **No telephony provider is connected: nothing is dialled**, every answer says so, and no phone number is ever returned |
 | 62 | Web push | TBD | TBD | Verified (API and UI tests): standard Web Push, written with the JDK alone and checked against RFC 8291's worked example; turned on per browser on the account page. **Off until the server's key pair is configured**, and never seen arriving in a real browser. Pushes carry the English |
 | 63 | Email notifications | TBD | TBD | Verified (API and UI tests): a copy of each notification, and confirmation codes, by real email through any SMTP server set with `SPRING_MAIL_HOST`; tested against an in-process SMTP server. **Without one configured, nothing is emailed** and copies go to the simulated outbox as before. Never tried with a real provider |
 | 64 | SMS notifications | TBD | TBD | Partial: as for email, to a confirmed phone; **simulated, nothing is really sent** |

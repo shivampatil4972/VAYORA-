@@ -1,5 +1,22 @@
 # Progress
 
+## 2026-10-17 (night) — insurance and calling, as labelled mocks
+
+- **Insurance badge (58).** A driver declares the insurer and the date the cover runs to,
+  on the vehicles page. Passengers see it on a search result while it covers the trip's
+  date, as "declared by the driver ... Not checked". No insurer is connected and no
+  policy number is asked for.
+- **Masked calling (61).** The passenger and the driver of a confirmed booking can "call"
+  each other from 24 hours before boarding, only between confirmed phone numbers, as a
+  real relay would need. Nothing is dialled: the caller is told so in full, the other side
+  gets a notification that someone tried, and no phone number is ever returned (a test
+  checks the HTTP answer).
+- Both seen in a browser, in English and Marathi, including a call refused for want of a
+  confirmed phone.
+- Both are Partial: each needs an outside service to be real.
+- Tests: 240 Java, 181 Python, 200 web, 28 gateway, all passing.
+- Feature count: 74 Verified, 17 Partial, 4 Not started of 95.
+
 ## 2026-10-17 (evening) — a lower fee on rides by drivers who keep their rides
 
 - **Driver commitment pricing (94)**, in the form chosen today: passengers on rides by a
