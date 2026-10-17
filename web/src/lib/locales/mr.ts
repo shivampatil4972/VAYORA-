@@ -1365,6 +1365,14 @@ export const mr: Record<string, string> = {
     "प्रवाशांना विमा कंपनी आणि तारीख दिसते, 'तपासलेले नाही' अशा खुणेसह. कोणताही पॉलिसी नंबर विचारला जात नाही.",
   'Insurance declared by the driver: {insurer}, until {date}. Not checked.':
     'चालकाने नोंदवलेला विमा: {insurer}, {date} पर्यंत. तपासलेले नाही.',
+  'Free: a reward for an invitation':
+    'मोफत: निमंत्रणाचे बक्षीस',
+  'When someone you invite completes a first trip, each of you who travels as a passenger gets a free {pass}. Drivers get none: a pass only waives the fee a passenger pays.':
+    'तुम्ही निमंत्रित केलेली व्यक्ती पहिला प्रवास पूर्ण करते तेव्हा तुमच्यापैकी जो प्रवासी म्हणून प्रवास करतो त्याला मोफत {pass} मिळतो. चालकांना काहीही मिळत नाही: पास फक्त प्रवासी भरत असलेले शुल्क माफ करतो.',
+  '{name} joined with your invitation and completed a first trip, so you have a free travel pass. It waives the service fee while it runs: see Passes.':
+    '{name} तुमच्या निमंत्रणाने सामील झाले आणि पहिला प्रवास पूर्ण केला, म्हणून तुम्हाला मोफत प्रवास पास मिळाला आहे. तो चालू असेपर्यंत सेवा शुल्क माफ करतो: पास पहा.',
+  'You completed your first trip after joining with an invitation, so you have a free travel pass. It waives the service fee while it runs: see Passes.':
+    'निमंत्रणाने सामील झाल्यानंतर तुम्ही पहिला प्रवास पूर्ण केला, म्हणून तुम्हाला मोफत प्रवास पास मिळाला आहे. तो चालू असेपर्यंत सेवा शुल्क माफ करतो: पास पहा.',
   'Those stops are not on this ride':
     'हे थांबे या राइडवर नाहीत',
   'Too many wrong attempts. Request a new code.':

@@ -6,14 +6,9 @@ import { ReceiptButton } from '../components/receipt';
 import { Button, Card, Notice, Page, QueryState, SelectField } from '../components/ui';
 import { api } from '../lib/api';
 import { formatDateTime, formatRupees } from '../lib/format';
-import { msg, useT } from '../lib/i18n';
+import { useT } from '../lib/i18n';
+import { passKindLabels as kindLabels } from '../lib/passes';
 import type { PassKind, PassOffer, PaymentMethod, TravelPass } from '../lib/types';
-
-const kindLabels: Record<PassKind, string> = {
-  WEEKLY: msg('Weekly pass'),
-  MONTHLY: msg('Monthly pass'),
-  ANNUAL: msg('Annual pass'),
-};
 
 /** Buying and seeing travel passes. A pass waives the service fee; the fare is the driver's. */
 export function PassesPage() {
@@ -61,7 +56,7 @@ export function PassesPage() {
                     ? t('Running until {end}', { end: formatDateTime(pass.endsAt) })
                     : t('Ended {end}', { end: formatDateTime(pass.endsAt) })}
                 {' · '}
-                {formatRupees(pass.price)}
+                {pass.reward ? t('Free: a reward for an invitation') : formatRupees(pass.price)}
               </p>
               <p className="mt-2">
                 <ReceiptButton path={`/passes/${pass.id}/receipt`} filename={`journex-pass-${pass.id}.pdf`} />

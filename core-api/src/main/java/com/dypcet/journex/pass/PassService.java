@@ -27,10 +27,16 @@ import org.springframework.web.server.ResponseStatusException;
 @EnableConfigurationProperties(PassProperties.class)
 public class PassService {
 
-    /** @param price what was charged for it, through the provider named */
+    /**
+     * @param price  what was charged for it, through the provider named; nothing for a reward
+     * @param reward given free for a referral (feature 72), not bought
+     */
     public record Pass(long id, Kind kind, BigDecimal price, Instant startsAt, Instant endsAt,
-            String provider) {
+            String provider, boolean reward) {
     }
+
+    /** The provider recorded on a pass given as a referral reward: no payment behind it. */
+    public static final String REFERRAL = "REFERRAL";
 
     private final JdbcTemplate jdbc;
     private final PaymentProvider provider;
@@ -62,12 +68,7 @@ public class PassService {
                         "That pass is not on sale"));
         // One purchase at a time per passenger, so two cannot both start at the same moment.
         jdbc.queryForObject("SELECT id FROM users WHERE id = ? FOR UPDATE", Long.class, passengerId);
-        // To the microsecond, which is what PostgreSQL keeps: the pass handed back is the pass
-        // read back later.
-        Instant now = clock.instant().truncatedTo(ChronoUnit.MICROS);
-        OffsetDateTime latest = jdbc.queryForObject(
-                "SELECT MAX(ends_at) FROM passes WHERE passenger_id = ?", OffsetDateTime.class, passengerId);
-        Instant start = latest == null || !latest.toInstant().isAfter(now) ? now : latest.toInstant();
+        Instant start = nextStart(passengerId);
         Instant end = start.plus(Duration.ofDays(offer.days()));
 
         String hold = provider.hold(offer.price(), choice).orElseThrow(
@@ -80,19 +81,52 @@ public class PassService {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id""",
                 Long.class, passengerId, kind.name(), offer.price(), utc(start), utc(end),
                 choice.method().name(), provider.name(), hold);
-        return new Pass(id, kind, offer.price(), start, end, provider.name());
+        return new Pass(id, kind, offer.price(), start, end, provider.name(), false);
+    }
+
+    /**
+     * Gives a pass free, as a referral reward: once per passenger per referral, however often
+     * it is asked for. Like a bought one, it starts when any pass still running ends.
+     *
+     * @param refereeId the invited member whose first trip earned it
+     * @return whether a pass was given this time
+     */
+    @Transactional
+    public boolean reward(long passengerId, Kind kind, long refereeId) {
+        Offer offer = properties.offers().stream().filter(o -> o.kind() == kind).findFirst()
+                .orElseThrow(() -> new IllegalStateException("No pass of kind " + kind + " is defined"));
+        jdbc.queryForObject("SELECT id FROM users WHERE id = ? FOR UPDATE", Long.class, passengerId);
+        Instant start = nextStart(passengerId);
+        return jdbc.update("""
+                INSERT INTO passes (passenger_id, kind, price, starts_at, ends_at, provider, reward_for_referee)
+                VALUES (?, ?, 0, ?, ?, ?, ?)
+                ON CONFLICT (passenger_id, reward_for_referee) WHERE reward_for_referee IS NOT NULL
+                DO NOTHING""",
+                passengerId, kind.name(), utc(start), utc(start.plus(Duration.ofDays(offer.days()))),
+                REFERRAL, refereeId) == 1;
+    }
+
+    /** Now, or when the passenger's last pass ends if that is later. The caller holds the user lock. */
+    private Instant nextStart(long passengerId) {
+        // To the microsecond, which is what PostgreSQL keeps: the pass handed back is the pass
+        // read back later.
+        Instant now = clock.instant().truncatedTo(ChronoUnit.MICROS);
+        OffsetDateTime latest = jdbc.queryForObject(
+                "SELECT MAX(ends_at) FROM passes WHERE passenger_id = ?", OffsetDateTime.class, passengerId);
+        return latest == null || !latest.toInstant().isAfter(now) ? now : latest.toInstant();
     }
 
     /** The passenger's passes, latest first: running and future ones, then past ones. */
     public List<Pass> of(long passengerId) {
         return jdbc.query("""
-                SELECT id, kind, price, starts_at, ends_at, provider FROM passes
+                SELECT id, kind, price, starts_at, ends_at, provider,
+                       reward_for_referee IS NOT NULL AS reward FROM passes
                 WHERE passenger_id = ? ORDER BY ends_at DESC, id DESC""",
                 (rs, n) -> new Pass(rs.getLong("id"), Kind.valueOf(rs.getString("kind")),
                         rs.getBigDecimal("price"),
                         rs.getObject("starts_at", OffsetDateTime.class).toInstant(),
                         rs.getObject("ends_at", OffsetDateTime.class).toInstant(),
-                        rs.getString("provider")),
+                        rs.getString("provider"), rs.getBoolean("reward")),
                 passengerId);
     }
 

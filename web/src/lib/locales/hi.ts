@@ -1365,6 +1365,14 @@ export const hi: Record<string, string> = {
     "यात्री बीमा कंपनी और तारीख देखते हैं, 'जाँचा नहीं गया' के निशान के साथ। कोई पॉलिसी नंबर नहीं माँगा जाता।",
   'Insurance declared by the driver: {insurer}, until {date}. Not checked.':
     'चालक द्वारा बताया गया बीमा: {insurer}, {date} तक। जाँचा नहीं गया।',
+  'Free: a reward for an invitation':
+    'मुफ़्त: एक निमंत्रण का इनाम',
+  'When someone you invite completes a first trip, each of you who travels as a passenger gets a free {pass}. Drivers get none: a pass only waives the fee a passenger pays.':
+    'जब आपका आमंत्रित कोई व्यक्ति अपनी पहली यात्रा पूरी करता है, तो आप दोनों में से जो यात्री के रूप में सफ़र करता है, उसे मुफ़्त {pass} मिलता है। चालकों को कुछ नहीं मिलता: पास केवल वह शुल्क माफ़ करता है जो यात्री देता है।',
+  '{name} joined with your invitation and completed a first trip, so you have a free travel pass. It waives the service fee while it runs: see Passes.':
+    '{name} आपके निमंत्रण से जुड़े और पहली यात्रा पूरी की, इसलिए आपको एक मुफ़्त यात्रा पास मिला है। यह चलने तक सेवा शुल्क माफ़ करता है: पास देखें।',
+  'You completed your first trip after joining with an invitation, so you have a free travel pass. It waives the service fee while it runs: see Passes.':
+    'आपने निमंत्रण से जुड़ने के बाद अपनी पहली यात्रा पूरी की, इसलिए आपको एक मुफ़्त यात्रा पास मिला है। यह चलने तक सेवा शुल्क माफ़ करता है: पास देखें।',
   'Those stops are not on this ride':
     'ये स्टॉप इस सवारी पर नहीं हैं',
   'Too many wrong attempts. Request a new code.':

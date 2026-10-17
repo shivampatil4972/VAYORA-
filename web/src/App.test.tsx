@@ -2560,3 +2560,35 @@ describe('calling the other side: simulated', () => {
     expect(screen.queryByRole('button', { name: 'Call the driver' })).not.toBeInTheDocument();
   });
 });
+
+describe('the referral reward', () => {
+  it('says what an invitation earns, and that drivers get none', async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /me/profile': () => json({ email: 'user@example.test', emailVerified: false, phone: null, phoneVerified: false,
+        bio: null, birthYear: null, gender: null, smoking: null, pets: null, music: null, chattiness: null }),
+      'GET /me/emergency-contacts': () => json([]),
+      'GET /me/referral': () => json({ code: 'K7QX2M', signedUp: 3, qualified: 1, rewardPass: 'WEEKLY' }),
+    });
+    open('/account');
+
+    const section = within(await screen.findByRole('region', { name: 'Invite friends' }));
+    expect(await section.findByText(/each of you who travels as a passenger gets a free weekly pass\. Drivers get none/)).toBeInTheDocument();
+    expect(section.queryByText(/no reward has been decided/)).not.toBeInTheDocument();
+  });
+
+  it('shows a reward pass as free, not as a price paid', async () => {
+    signIn('PASSENGER');
+    const now = Date.now();
+    serve({
+      'GET /passes/offers': () => json([{ kind: 'WEEKLY', days: 7, price: 99 }]),
+      'GET /passes': () =>
+        json([{ id: 4, kind: 'WEEKLY', price: 0, startsAt: new Date(now - 1000).toISOString(),
+          endsAt: new Date(now + 7 * 24 * 3600 * 1000).toISOString(), provider: 'REFERRAL', reward: true }]),
+    });
+    open('/passes');
+
+    expect(await screen.findByText(/Running until .* · Free: a reward for an invitation/)).toBeInTheDocument();
+    expect(screen.queryByText(/₹0/)).not.toBeInTheDocument();
+  });
+});

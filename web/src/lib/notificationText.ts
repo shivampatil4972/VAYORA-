@@ -33,6 +33,8 @@ const TEMPLATES = new Set([
   msg('You chose a flexible booking, but no other ride with seats fits it. Nothing new has been booked.'),
   msg('Passengers looked for a ride from {from} to {to} on {date} and found none. If you are driving then, you could offer seats.'),
   msg("{name} tried to call you through JOURNEX. Calls are simulated, so no call came through. Reply in the ride's chat."),
+  msg('{name} joined with your invitation and completed a first trip, so you have a free travel pass. It waives the service fee while it runs: see Passes.'),
+  msg('You completed your first trip after joining with an invitation, so you have a free travel pass. It waives the service fee while it runs: see Passes.'),
 ]);
 
 const known = (text: NotificationText): boolean =>

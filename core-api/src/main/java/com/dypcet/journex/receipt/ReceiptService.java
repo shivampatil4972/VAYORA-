@@ -95,7 +95,7 @@ public class ReceiptService {
     public byte[] forPass(long passengerId, long passId) {
         List<List<String>> found = jdbc.query("""
                 SELECT p.id, u.full_name AS passenger, p.kind, p.price, p.starts_at, p.ends_at,
-                       p.method, p.provider, p.created_at
+                       p.method, p.provider, p.created_at, p.reward_for_referee IS NOT NULL AS reward
                 FROM passes p JOIN users u ON u.id = p.passenger_id
                 WHERE p.id = ? AND p.passenger_id = ?""",
                 (rs, n) -> {
@@ -107,7 +107,19 @@ public class ReceiptService {
                             "Runs from " + when(rs.getObject("starts_at", OffsetDateTime.class))
                                     + " to " + when(rs.getObject("ends_at", OffsetDateTime.class)),
                             "No service fee is charged on bookings requested while it runs.",
-                            "",
+                            ""));
+                    if (rs.getBoolean("reward")) {
+                        // Nothing was paid, so there is no provider to name.
+                        lines.addAll(List.of(
+                                "Given free on " + when(rs.getObject("created_at", OffsetDateTime.class))
+                                        + " as a reward for an invitation. Nothing was paid.",
+                                "Total: " + rupees(rs.getBigDecimal("price")),
+                                "",
+                                "This is not a tax invoice.",
+                                "JOURNEX, Kolhapur to Pune"));
+                        return lines;
+                    }
+                    lines.addAll(List.of(
                             "Paid: " + when(rs.getObject("created_at", OffsetDateTime.class))
                                     + " by " + rs.getString("method"),
                             "Total: " + rupees(rs.getBigDecimal("price"))));

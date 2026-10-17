@@ -53,7 +53,8 @@ public class NotificationService {
         TRIP_DISPUTED,
         RATING_REMINDER,
         SUPPLY_NUDGE,
-        CALL_REQUESTED
+        CALL_REQUESTED,
+        REFERRAL_REWARD
     }
 
     /**

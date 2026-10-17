@@ -432,6 +432,8 @@ export interface TravelPass {
   endsAt: string;
   /** `MOCK` means no money moved. */
   provider: string;
+  /** Given free for an invitation, not bought. */
+  reward: boolean;
 }
 
 /** One of a passenger's payments, with what came back. */
