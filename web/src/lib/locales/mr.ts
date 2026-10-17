@@ -387,6 +387,8 @@ export const mr: Record<string, string> = {
     'हे डिव्हाइस आपले स्थान सांगू शकत नाही.',
   'Your position is not available. Check that location access is allowed.':
     'तुमचे स्थान उपलब्ध नाही. स्थानाची परवानगी दिली आहे का ते तपासा.',
+  'Your position cannot be found just now. Sharing stays on and carries on once it is found.':
+    'तुमचे स्थान आत्ता सापडत नाही. शेअर करणे चालू राहील आणि स्थान सापडताच पुन्हा सुरू होईल.',
   'Stop sharing my position':
     'माझे स्थान शेअर करणे थांबवा',
   'Share my position with passengers':

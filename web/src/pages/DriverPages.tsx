@@ -631,7 +631,7 @@ function RideBookings({ ride }: { ride: Ride }) {
           </Button>
         )}
       </div>
-      {live && chatOpen && <RideChat rideId={ride.id} />}
+      {live && chatOpen && <RideChat rideId={ride.id} rideStatus={ride.status} />}
       {open && (
         <div className="mt-3 space-y-2">
           {decide.error && <Notice tone="error">{decide.error.message}</Notice>}

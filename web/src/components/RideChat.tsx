@@ -4,12 +4,16 @@ import { useAuth } from '../lib/auth';
 import { formatTime } from '../lib/format';
 import { msg, useT } from '../lib/i18n';
 import { useRideChannel, type RealtimeError } from '../lib/realtime';
+import type { RideStatus } from '../lib/types';
 import { RouteMap } from './RouteMap';
 import { Button, Notice } from './ui';
 
 const MAX_LENGTH = 500;
 // A position is sent at most this often, well inside what the gateway accepts.
 const POSITION_INTERVAL_MS = 5000;
+// GeolocationPositionError.PERMISSION_DENIED. The other two codes (no fix, too slow) pass:
+// the watch keeps running, so a moment without signal must not end sharing.
+const PERMISSION_DENIED = 1;
 
 const problems: Record<RealtimeError, string> = {
   invalid: msg('That message cannot be sent. Check it is not empty or too long.'),
@@ -27,9 +31,11 @@ function SharePosition({ send }: { send: (lat: number, lon: number) => Promise<{
   const t = useT();
   const [sharing, setSharing] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
+  const [lost, setLost] = useState(false);
   const lastSent = useRef(0);
 
   useEffect(() => {
+    setLost(false);
     if (!sharing) return;
     if (!('geolocation' in navigator)) {
       setProblem(msg('This device cannot report its position.'));
@@ -38,6 +44,7 @@ function SharePosition({ send }: { send: (lat: number, lon: number) => Promise<{
     }
     const watch = navigator.geolocation.watchPosition(
       (position) => {
+        setLost(false);
         if (Date.now() - lastSent.current < POSITION_INTERVAL_MS) return;
         lastSent.current = Date.now();
         void send(position.coords.latitude, position.coords.longitude).then((sent) => {
@@ -47,7 +54,11 @@ function SharePosition({ send }: { send: (lat: number, lon: number) => Promise<{
           }
         });
       },
-      () => {
+      (error) => {
+        if (error.code !== PERMISSION_DENIED) {
+          setLost(true);
+          return;
+        }
         setProblem(msg('Your position is not available. Check that location access is allowed.'));
         setSharing(false);
       },
@@ -59,6 +70,7 @@ function SharePosition({ send }: { send: (lat: number, lon: number) => Promise<{
   return (
     <div className="space-y-2">
       {problem && <Notice tone="error">{t(problem)}</Notice>}
+      {sharing && lost && <Notice tone="info">{t('Your position cannot be found just now. Sharing stays on and carries on once it is found.')}</Notice>}
       <Button
         tone="secondary"
         aria-pressed={sharing}
@@ -74,8 +86,14 @@ function SharePosition({ send }: { send: (lat: number, lon: number) => Promise<{
   );
 }
 
-/** Chat between everyone on a ride, and the driver's position while it is under way. */
-export function RideChat({ rideId }: { rideId: number }) {
+/**
+ * Chat between everyone on a ride, and the driver's position while it is under way.
+ *
+ * @param rideStatus the ride's status as the page knows it now. The chat learns the status
+ *                   only when it joins, so a driver who opened it before starting the ride
+ *                   would otherwise never be offered position sharing.
+ */
+export function RideChat({ rideId, rideStatus }: { rideId: number; rideStatus?: RideStatus }) {
   const t = useT();
   const { user } = useAuth();
   const inputId = useId();
@@ -101,7 +119,7 @@ export function RideChat({ rideId }: { rideId: number }) {
 
   return (
     <div className="mt-3 space-y-3 rounded-md border border-slate-200 bg-white p-3">
-      {channel.role === 'DRIVER' && channel.rideStatus === 'IN_PROGRESS' && <SharePosition send={channel.sendPosition} />}
+      {channel.role === 'DRIVER' && (rideStatus ?? channel.rideStatus) === 'IN_PROGRESS' && <SharePosition send={channel.sendPosition} />}
 
       {channel.position && channel.role === 'PASSENGER' && (
         <div className="space-y-2">

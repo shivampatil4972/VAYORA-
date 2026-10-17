@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -49,14 +49,14 @@ function joinedAs(role: 'DRIVER' | 'PASSENGER', rideStatus = 'SCHEDULED', extra:
   gateway.state.answers['ride:join'] = () => ({ ok: true, role, rideStatus, messages: [message], location: null, ...extra });
 }
 
-function openChat(role: 'DRIVER' | 'PASSENGER' = 'PASSENGER') {
+function openChat(role: 'DRIVER' | 'PASSENGER' = 'PASSENGER', rideStatus?: 'SCHEDULED' | 'IN_PROGRESS') {
   sessionStorage.setItem(
     'journex.session',
     JSON.stringify({ accessToken: 'session-token', expiresInSeconds: 3600, user: { id: role === 'DRIVER' ? 7 : 1, email: 'a@example.test', fullName: 'Asha Patil', role } }),
   );
   return render(
     <AuthProvider>
-      <RideChat rideId={12} />
+      <RideChat rideId={12} rideStatus={rideStatus} />
     </AuthProvider>,
   );
 }
@@ -210,6 +210,21 @@ describe('live position', () => {
     expect(await screen.findByRole('button', { name: 'Share my position with passengers' })).toHaveAttribute('aria-pressed', 'false');
   });
 
+  it('offers position sharing once the ride starts, though the chat was opened before', async () => {
+    // Found in a real browser: the chat joined while the ride was scheduled and kept that.
+    joinedAs('DRIVER', 'SCHEDULED');
+    const { rerender } = openChat('DRIVER', 'SCHEDULED');
+    await screen.findByText('Leaving in ten minutes.');
+    expect(screen.queryByRole('button', { name: 'Share my position with passengers' })).not.toBeInTheDocument();
+
+    rerender(
+      <AuthProvider>
+        <RideChat rideId={12} rideStatus="IN_PROGRESS" />
+      </AuthProvider>,
+    );
+    expect(await screen.findByRole('button', { name: 'Share my position with passengers' })).toBeInTheDocument();
+  });
+
   it('never offers position sharing to a passenger', async () => {
     joinedAs('PASSENGER', 'IN_PROGRESS');
     openChat();
@@ -242,11 +257,14 @@ describe('live position', () => {
     expect(clearWatch).toHaveBeenCalledWith(42);
   });
 
-  it('turns sharing off and says why when the device will not give a position', async () => {
+  it('turns sharing off and says why when location access is refused', async () => {
     joinedAs('DRIVER', 'IN_PROGRESS');
     vi.stubGlobal('navigator', {
       ...navigator,
-      geolocation: { watchPosition: (_ok: unknown, onError: () => void) => (onError(), 1), clearWatch: vi.fn() },
+      geolocation: {
+        watchPosition: (_ok: unknown, onError: (error: { code: number }) => void) => (onError({ code: 1 }), 1),
+        clearWatch: vi.fn(),
+      },
     });
     openChat('DRIVER');
 
@@ -254,5 +272,36 @@ describe('live position', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Your position is not available. Check that location access is allowed.');
     expect(screen.getByRole('button', { name: 'Share my position with passengers' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  // Found driving the app in a browser: one moment without a fix ended sharing for good.
+  it('keeps sharing through a moment without a position, and says so until one arrives', async () => {
+    joinedAs('DRIVER', 'IN_PROGRESS');
+    gateway.state.answers['location:update'] = () => ({ ok: true });
+    let report: { ok: (position: { coords: { latitude: number; longitude: number } }) => void; fail: (error: { code: number }) => void } | undefined;
+    const clearWatch = vi.fn();
+    vi.stubGlobal('navigator', {
+      ...navigator,
+      geolocation: {
+        watchPosition: (ok: NonNullable<typeof report>['ok'], fail: NonNullable<typeof report>['fail']) => {
+          report = { ok, fail };
+          return 7;
+        },
+        clearWatch,
+      },
+    });
+    openChat('DRIVER');
+    await userEvent.click(await screen.findByRole('button', { name: 'Share my position with passengers' }));
+
+    act(() => report?.fail({ code: 2 }));
+
+    expect(await screen.findByText(/cannot be found just now/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Stop sharing my position' })).toHaveAttribute('aria-pressed', 'true');
+    expect(clearWatch).not.toHaveBeenCalled();
+
+    act(() => report?.ok({ coords: { latitude: 16.95, longitude: 74.25 } }));
+
+    await waitFor(() => expect(screen.queryByText(/cannot be found just now/)).not.toBeInTheDocument());
+    expect(gateway.state.requests.at(-1)).toEqual(['location:update', { rideId: 12, lat: 16.95, lon: 74.25 }]);
   });
 });
