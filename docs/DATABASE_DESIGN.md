@@ -38,6 +38,7 @@ Access is through `JdbcTemplate` with hand-written SQL. There is no ORM.
 | V24 | `push_subscriptions` (one row per browser; the address is unique) |
 | V25 | On bookings: `flex_tier` (`EXACT`, `FLEXIBLE` or `ANY_TIME`) |
 | V26 | On users: `google_sub`, the Google account a member signs in with (unique) |
+| V27 | On rides: `started_at`, when the driver actually started it |
 
 ### Tables
 
@@ -56,7 +57,7 @@ Access is through `JdbcTemplate` with hand-written SQL. There is no ORM.
 | Table | One row is | Notes |
 |---|---|---|
 | `vehicles` | A driver's car | Seats include the driver's. Battery figures only if `electric`, by a check constraint |
-| `rides` | One departure | Driver, vehicle, departure time, seats offered, status, the route as a PostGIS line, optional notes, `series_id` shared by rides published together |
+| `rides` | One departure | Driver, vehicle, departure time, seats offered, status, the route as a PostGIS line, optional notes, `series_id` shared by rides published together, `started_at` once under way |
 | `ride_stops` | A stop on a ride | Sequence number, name, position (`geography` point, GiST index), minutes after departure |
 | `ride_segments` | The leg between two consecutive stops | Price per seat, total seats, seats available. **Seat inventory lives here** |
 | `bookings` | A passenger's place on a stretch of a ride | From-stop and to-stop sequence numbers, seats, fare, status, the model features as they stood at the request |

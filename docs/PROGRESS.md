@@ -18,9 +18,15 @@ Both approved on 2026-10-17.
   seat holds share the rule, and a result says the ride is on the road and that its time
   at the stop is the timetable's. A booking made on the road writes its `trip_started`
   at once, so started = completed + failed still holds. Decisions in DECISIONS.md.
+- **Driven in a browser, it found a hole**: a ride started early (allowed up to an hour
+  ahead) was still sold from the stop it had just left, because its timetable put that
+  stop beyond the margin. Rides now record when they started (V27), and a stop is
+  judged by the earlier of the timetable and the start. Rerun, the browser check passed:
+  booked from Karad on a ride under way, refused from Kolhapur, and a no-show's seat
+  back on sale. A result now says the ride may reach the stop before the time shown.
 - KNOWN_LIMITATIONS had said there was no profile photo and no price, music or
   conversation filter; all exist. Corrected.
-- Tests: 226 Java, 181 Python, 193 web, 28 gateway, all passing.
+- Tests: 227 Java, 181 Python, 193 web, 28 gateway, all passing.
 - Feature count: 73 Verified, 15 Partial, 7 Not started of 95.
 
 ## 2026-10-17 — live position seen between two browsers

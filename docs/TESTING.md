@@ -4,7 +4,7 @@ Counts are from the runs on 2026-10-17. Every suite passed with no failures.
 
 | Suite | Command, from the repository root | Tests |
 |---|---|---|
-| core-api | `docker compose --profile test run --rm core-api-tests` | 226 |
+| core-api | `docker compose --profile test run --rm core-api-tests` | 227 |
 | Python (events, simulator, model, scheduler, experiments, intel API) | `docker compose --profile research run --rm research` | 181 |
 | web | `cd web && npm ci && npm test` | 193 |
 | gateway | `cd gateway && npm ci && npm test` | 28 |
@@ -21,7 +21,7 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 | `BookingStatusTest` | 6 | Allowed and forbidden status transitions |
 | `BookingFlowIntegrationTest` | 11 | Per-leg inventory, a full middle leg, **8 concurrent requests for the last seat**, approval hold, release on reject and cancel exactly once, ownership, search, events |
 | `TripFlowIntegrationTest` | 6 | Start, no-show, complete, driver withdrawal; started = completed + failed |
-| `MidRouteIntegrationTest` | 5 | **A ride under way sold from a stop it is not yet near and from no other**, only if it confirms instantly, **a no-show's seat sold again from a later stop**, the late booking's trip counted from start to finish, holds by the same rule |
+| `MidRouteIntegrationTest` | 6 | **A ride under way sold from a stop it is not yet near and from no other**, **a ride started early judged from its start**, only if it confirms instantly, **a no-show's seat sold again from a later stop**, the late booking's trip counted from start to finish, holds by the same rule |
 | `PaymentFlowIntegrationTest` | 16 | Hold on request, **a declined payment leaves no booking and no seat taken**, every refund tier, driver cancellation, payouts, **the ledger balances and cannot be rewritten**, idempotency key, the published terms |
 | `RefundPolicyTest` | 5 | Tier boundaries, rounding, invalid tier configurations |
 | `RatingFlowIntegrationTest` | 8 | One rating per side per completed trip, who may rate, averages, profiles expose no contact details |
@@ -136,6 +136,13 @@ Kept here because each is a class of mistake worth remembering.
 
 ## Bugs the tests did not find
 
+- **Found by driving seats on a ride under way in a browser** (headless Edge, 2026-10-17):
+  **a ride started early was still sold from the stop it had just left.** Its timetable
+  put that stop more than the 30-minute margin away, and a driver may start up to an hour
+  early. The tests had started rides early too, but never asked about a stop the
+  timetable put outside the margin and the early start put inside it.
+  Rides now record when they started, and a stop is judged by the earlier of the
+  timetable and the start; the test that covers it fails without the fix.
 - **Found by driving live position between two browsers** (headless Edge, emulated
   location, 2026-10-17), four faults:
   - **The gateway never reached MongoDB if MongoDB was slower to start.** The driver's

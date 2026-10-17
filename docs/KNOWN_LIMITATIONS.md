@@ -137,9 +137,10 @@ mistake for more. Updated 2026-10-17.
 - Chat messages are kept indefinitely; only GPS points expire (after 7 days).
 - Trip state is not pushed. A passenger's screen does not change when the driver starts
   the ride until they reload or reopen the chat.
-- **A ride under way is sold by its timetable.** A ride running early can pass a stop
-  before a passenger who booked it there arrives, and nothing warns either of them; the
-  30-minute margin only makes it less likely. Like everyone on a ride under way, such a
+- **A ride under way is sold by its timetable, moved earlier if it started early.** A
+  ride that gains time on the road can still pass a stop before a passenger who booked
+  it there arrives, and nothing warns either of them; the 30-minute margin only makes it
+  less likely. Displayed times stay the timetable's, with a note that it may be early. Like everyone on a ride under way, such a
   passenger cannot cancel.
 - **Travel passes only waive the service fee**, because that is the only part of a price
   the platform owns. Pass prices are assumptions. A pass cannot be cancelled or

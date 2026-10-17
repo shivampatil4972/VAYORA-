@@ -75,7 +75,7 @@ was decided while building within them.
 | A filter only ever narrows a search | Predictability | |
 | Smoking and pets filters leave out drivers who have not said | Silence is not a promise | Today they leave out nearly everyone |
 | Search positions are rounded to about 100 m in the event log | Research needs the area, not the doorstep | |
-| A ride under way is sold only from a stop it is due at 30 minutes or more ahead, by its timetable | The timetable is all core-api knows of a ride's progress; live position is the gateway's and is not kept as truth | A ride running early can leave before a late booker arrives; the margin is in `application.yml` |
+| A ride under way is sold only from a stop it is due at 30 minutes or more ahead, by its timetable or by its actual start if that was earlier | The timetable and the start are all core-api knows of a ride's progress; live position is the gateway's and is not kept as truth. A ride may start up to an hour early | A ride that gains time on the road can still beat a late booker to the stop; the margin is in `application.yml` |
 | A ride under way is sold only if it confirms instantly | A driver at the wheel must not be answering requests | Rides that need approval lose these seats |
 | A no-show gives the seat back | The seat is empty for the rest of the ride, and an empty seat refilled is the project's whole idea | The no-show passenger has still paid, so the seat may earn twice |
 | A booking on a ride under way writes `trip_started` when it is made | Every `trip_completed` or `trip_failed` must have a start, and there is no boarding event | Its start is when it was booked, not when the passenger got in |
