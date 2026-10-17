@@ -153,6 +153,12 @@ journex:
   pricing:
     # Per seat. Only a suggestion offered to the driver, never applied automatically.
     suggested-rupees-per-km: 2.0
+  reminders:
+    # A passenger with a confirmed seat is asked, once, this long before boarding, to release
+    # it if their plans have changed (feature 79): everyone alike, never chosen by predicted
+    # risk, and nothing is cancelled for them. "-" in the cron turns it off.
+    release-before: PT48H
+    release-cron: ${RELEASE_REMINDER_CRON:0 */10 * * * *}
   referral:
     # What each side of a referral who is a passenger gets once the invited member completes a
     # first trip (feature 72): a free pass of this kind (WEEKLY, MONTHLY or ANNUAL), or NONE.

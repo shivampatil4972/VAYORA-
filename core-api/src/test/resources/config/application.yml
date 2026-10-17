@@ -20,3 +20,6 @@ journex:
     detection-cron: "-"
   rating:
     reminder-cron: "-"
+  reminders:
+    # Run by the tests directly, never on a timer.
+    release-cron: "-"

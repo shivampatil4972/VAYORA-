@@ -35,6 +35,7 @@ const TEMPLATES = new Set([
   msg("{name} tried to call you through JOURNEX. Calls are simulated, so no call came through. Reply in the ride's chat."),
   msg('{name} joined with your invitation and completed a first trip, so you have a free travel pass. It waives the service fee while it runs: see Passes.'),
   msg('You completed your first trip after joining with an invitation, so you have a free travel pass. It waives the service fee while it runs: see Passes.'),
+  msg('Your seat from {from} to {to} leaves {when}. If your plans have changed, cancelling now lets someone else take it, and Rs {refund} of your Rs {fare} fare comes back. If you are still travelling, there is nothing to do.'),
 ]);
 
 const known = (text: NotificationText): boolean =>

@@ -1373,6 +1373,8 @@ export const mr: Record<string, string> = {
     '{name} तुमच्या निमंत्रणाने सामील झाले आणि पहिला प्रवास पूर्ण केला, म्हणून तुम्हाला मोफत प्रवास पास मिळाला आहे. तो चालू असेपर्यंत सेवा शुल्क माफ करतो: पास पहा.',
   'You completed your first trip after joining with an invitation, so you have a free travel pass. It waives the service fee while it runs: see Passes.':
     'निमंत्रणाने सामील झाल्यानंतर तुम्ही पहिला प्रवास पूर्ण केला, म्हणून तुम्हाला मोफत प्रवास पास मिळाला आहे. तो चालू असेपर्यंत सेवा शुल्क माफ करतो: पास पहा.',
+  'Your seat from {from} to {to} leaves {when}. If your plans have changed, cancelling now lets someone else take it, and Rs {refund} of your Rs {fare} fare comes back. If you are still travelling, there is nothing to do.':
+    '{from} ते {to} तुमची जागा {when} ला निघते. तुमचे नियोजन बदलले असल्यास, आत्ता रद्द केल्याने दुसरे कोणी ती घेऊ शकते, आणि तुमच्या Rs {fare} भाड्यापैकी Rs {refund} परत मिळतात. तुम्ही अजूनही प्रवास करत असल्यास, काहीही करण्याची गरज नाही.',
   'Those stops are not on this ride':
     'हे थांबे या राइडवर नाहीत',
   'Too many wrong attempts. Request a new code.':
