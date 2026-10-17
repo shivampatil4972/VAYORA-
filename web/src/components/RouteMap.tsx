@@ -13,8 +13,10 @@ function FitTo({ points }: { points: [number, number][] }) {
   const map = useMap();
   const key = points.map((p) => p.join(',')).join(';');
   useEffect(() => {
-    if (points.length === 1) map.setView(points[0], 13);
-    else if (points.length > 1) map.fitBounds(points, { padding: [24, 24] });
+    // Without animation: a map removed mid-animation (leaving the page just after the route
+    // is drawn) throws "Cannot read properties of undefined (reading '_leaflet_pos')".
+    if (points.length === 1) map.setView(points[0], 13, { animate: false });
+    else if (points.length > 1) map.fitBounds(points, { padding: [24, 24], animate: false });
     // Refit only when the points themselves change, not on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, map]);
