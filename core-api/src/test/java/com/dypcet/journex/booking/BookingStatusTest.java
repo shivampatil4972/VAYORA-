@@ -52,11 +52,11 @@ class BookingStatusTest {
     }
 
     @Test
-    void onlyRejectedAndCancelledBookingsGiveTheirSeatsBack() {
+    void rejectedCancelledAndNoShowBookingsGiveTheirSeatsBack() {
         assertThat(PENDING.holdsSeats()).isTrue();
         assertThat(CONFIRMED.holdsSeats()).isTrue();
         assertThat(COMPLETED.holdsSeats()).isTrue();
-        assertThat(NO_SHOW.holdsSeats()).isTrue();
+        assertThat(NO_SHOW.holdsSeats()).isFalse();
         assertThat(REJECTED.holdsSeats()).isFalse();
         assertThat(CANCELLED.holdsSeats()).isFalse();
     }

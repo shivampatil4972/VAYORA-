@@ -153,6 +153,10 @@ journex:
     # is this old, or once boarding is this near, whichever comes first.
     answer-within: PT12H
     close-before-boarding: PT2H
+    # A ride already on the road can still be booked from a stop it is due at no sooner
+    # than this, and only if it confirms instantly: a driver at the wheel answers nothing.
+    # The schedule is all the platform knows of a ride's progress, hence the margin.
+    mid-route-lead: PT30M
     # How often unanswered requests are looked for. "-" turns it off.
     expiry-cron: ${BOOKING_EXPIRY_CRON:0 */5 * * * *}
   levels:

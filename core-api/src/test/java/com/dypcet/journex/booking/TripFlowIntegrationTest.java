@@ -110,14 +110,15 @@ class TripFlowIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
-    void aStartedRideAcceptsNoNewBookingsAndNoPassengerCancellations() {
+    void aStartedRideTakesNoCancellationsAndNoBookingsFromAStopItIsNear() {
         long rideId = rideLeavingIn(Duration.ofMinutes(30), true);
         long passenger = user(UserRole.PASSENGER);
         Booking booking = bookings.request(passenger, rideId, 0, 2, 1, PaymentChoice.card(), null);
         trips.start(driverId, rideId);
 
         assertConflict(() -> bookings.cancel(passenger, booking.id()));
-        assertConflict(() -> bookings.request(user(UserRole.PASSENGER), rideId, 1, 2, 1, PaymentChoice.card(), null));
+        // Kolhapur is where it is leaving from. Later stops: MidRouteIntegrationTest.
+        assertConflict(() -> bookings.request(user(UserRole.PASSENGER), rideId, 0, 1, 1, PaymentChoice.card(), null));
         assertThat(rides.search(passenger, new Point(16.7050, 74.2433), new Point(18.5204, 73.8567), today(), 1,
                 Sort.TIME))
                 .noneMatch(c -> c.rideId() == rideId);

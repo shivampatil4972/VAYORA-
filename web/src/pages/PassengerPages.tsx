@@ -511,6 +511,11 @@ export function SearchPage() {
                         : t('{n} seats left', { n: candidate.seatsAvailable })}{' '}
                       · {candidate.instantBooking ? t('Confirms instantly') : t('Driver approves each request')}
                     </p>
+                    {candidate.underWay && (
+                      <p className="mt-1 text-sm text-amber-800">
+                        {t('Already on the road. The time at {stop} is from the timetable: be there early.', { stop: t(candidate.fromStop) })}
+                      </p>
+                    )}
                     {/* `vehicle` is what the driver typed: shown as text, not translated. */}
                     {candidate.vehicle && <p className="mt-1 text-sm text-slate-600">{[candidate.vehicle, ...vehiclePhrases(candidate, t)].join(' · ')}</p>}
                     <p className="mt-1 text-sm text-slate-600">

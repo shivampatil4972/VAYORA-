@@ -170,6 +170,8 @@ export interface Candidate {
   dropoffWalkMinutes: number;
   /** The driver has withdrawn rides and completed fewer than the set share: from their record only. */
   suggestFlexible: boolean;
+  /** Already on the road: offered only from stops it is not yet near, and its times are the timetable's. */
+  underWay: boolean;
 }
 
 /** What a passenger agrees to, when booking, should the driver withdraw the ride. */

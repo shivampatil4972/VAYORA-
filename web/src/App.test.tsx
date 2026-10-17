@@ -99,6 +99,7 @@ const candidate: Candidate = {
   pickupWalkMinutes: 4,
   dropoffWalkMinutes: 0,
   suggestFlexible: false,
+  underWay: false,
   vehicle: 'Maruti Ertiga',
   comfort: null,
   luggage: null,
@@ -2375,6 +2376,25 @@ describe('flexibility tiers', () => {
       const post = fetchMock.mock.calls.find(([url, init]) => init?.method === 'POST' && String(url).endsWith('/bookings'));
       expect(JSON.parse(String(post?.[1]?.body))).toMatchObject({ tier: 'FLEXIBLE' });
     });
+  });
+});
+
+describe('a ride already on the road', () => {
+  it('says so, and that the time at the stop is the timetable’s, only on such a ride', async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /rides/search': () =>
+        json([
+          { ...candidate, rideId: 1, fromStop: 'Karad', underWay: true },
+          { ...candidate, rideId: 2 },
+        ]),
+    });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+
+    expect(await screen.findByText('Already on the road. The time at Karad is from the timetable: be there early.')).toBeInTheDocument();
+    expect(screen.getAllByText(/Already on the road/)).toHaveLength(1);
   });
 });
 

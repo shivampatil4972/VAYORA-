@@ -187,15 +187,18 @@ public class BookingService {
     private final BoardingService boardingCodes;
     private final Duration answerWithin;
     private final Duration closeBeforeBoarding;
+    private final Duration midRouteLead;
 
     public BookingService(JdbcTemplate jdbc, EventLogService events,
             HazardFeatures hazardFeatures, PaymentService payments,
             NotificationService notifications, ObjectMapper mapper, Clock clock,
             SeatHolds holds, BoardingService boardingCodes,
             @Value("${journex.booking.answer-within}") Duration answerWithin,
-            @Value("${journex.booking.close-before-boarding}") Duration closeBeforeBoarding) {
+            @Value("${journex.booking.close-before-boarding}") Duration closeBeforeBoarding,
+            @Value("${journex.booking.mid-route-lead}") Duration midRouteLead) {
         this.answerWithin = answerWithin;
         this.closeBeforeBoarding = closeBeforeBoarding;
+        this.midRouteLead = midRouteLead;
         this.holds = holds;
         this.boardingCodes = boardingCodes;
         this.jdbc = jdbc;
@@ -241,8 +244,13 @@ public class BookingService {
                 return repeat;
             }
         }
-        if (!"SCHEDULED".equals(ride.status())) {
+        boolean underWay = "IN_PROGRESS".equals(ride.status());
+        if (!"SCHEDULED".equals(ride.status()) && !underWay) {
             throw conflict("This ride is not open for booking");
+        }
+        // A driver at the wheel cannot answer a request.
+        if (underWay && !ride.instantBooking()) {
+            throw conflict("This ride is already on the road, and its driver approves each request");
         }
         // As declared on the passenger's own profile; nothing stronger is available.
         if (ride.womenOnly() && !Boolean.TRUE.equals(jdbc.queryForObject(
@@ -266,6 +274,9 @@ public class BookingService {
         Instant now = clock.instant();
         if (!boarding.isAfter(now)) {
             throw conflict("This ride has already left that stop");
+        }
+        if (underWay && !boarding.isAfter(now.plus(midRouteLead))) {
+            throw conflict("This ride is on the road and due at that stop too soon to book");
         }
 
         // A request that would be closed unanswered at the next check is not taken at all.
@@ -336,6 +347,12 @@ public class BookingService {
         if (status == BookingStatus.CONFIRMED) {
             events.write(EventType.BOOKING_ACCEPTED,
                     new Decided(bookingId, rideId, ride.driverId(), true));
+        }
+        // The ride's trip has begun for this booking too, as it did for those on board at
+        // the start: every trip_completed or trip_failed then has its trip_started.
+        if (underWay) {
+            events.write(EventType.TRIP_STARTED,
+                    new TripService.Trip(bookingId, rideId, passengerId, ride.driverId()));
         }
         Booking booking = load(bookingId);
         notifications.send(ride.driverId(), Type.BOOKING_REQUESTED,

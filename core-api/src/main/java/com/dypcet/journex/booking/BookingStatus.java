@@ -21,11 +21,11 @@ public enum BookingStatus {
     }
 
     /**
-     * Whether the booking's seats count against the ride's inventory. REJECTED and
-     * CANCELLED give them back. A NO_SHOW keeps them: refilling an empty seat mid-route
-     * is a separate, later feature.
+     * Whether the booking's seats count against the ride's inventory. REJECTED, CANCELLED
+     * and NO_SHOW give them back: a seat nobody boarded can be sold again from a later
+     * stop while the ride is under way.
      */
     public boolean holdsSeats() {
-        return this != REJECTED && this != CANCELLED;
+        return this != REJECTED && this != CANCELLED && this != NO_SHOW;
     }
 }

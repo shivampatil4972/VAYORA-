@@ -1168,6 +1168,8 @@ export const hi: Record<string, string> = {
     'उस दिन कभी भी',
   'This driver has withdrawn some rides. A flexible booking would move you to another ride automatically.':
     'इस चालक ने कुछ सवारियाँ वापस ली हैं। लचीली बुकिंग आपको अपने आप दूसरी सवारी पर ले जाएगी।',
+  'Already on the road. The time at {stop} is from the timetable: be there early.':
+    'सवारी पहले ही रास्ते में है। {stop} का समय समय-सारणी से है: वहाँ पहले पहुँचें।',
   'If the driver withdraws, you are booked on another ride within 2 hours.':
     'यदि चालक सवारी वापस लेता है, तो आपको 2 घंटे के भीतर दूसरी सवारी पर बुक किया जाएगा।',
   'If the driver withdraws, you are booked on another ride that day.':
@@ -1323,6 +1325,10 @@ export const hi: Record<string, string> = {
     'यह सवारी बुकिंग के लिए खुली नहीं है',
   'This ride is not part of a series with rides still to run':
     'यह सवारी ऐसी शृंखला का हिस्सा नहीं है जिसकी सवारियाँ अभी बाकी हों',
+  'This ride is on the road and due at that stop too soon to book':
+    'यह सवारी रास्ते में है और उस स्टॉप पर इतनी जल्दी पहुँचेगी कि बुकिंग नहीं हो सकती',
+  'This ride is already on the road, and its driver approves each request':
+    'यह सवारी पहले ही रास्ते में है, और इसका चालक हर अनुरोध को मंज़ूरी देता है',
   'Those stops are not on this ride':
     'ये स्टॉप इस सवारी पर नहीं हैं',
   'Too many wrong attempts. Request a new code.':
