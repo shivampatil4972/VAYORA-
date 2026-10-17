@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { connectWithRetry } from './connect.js';
+import { connectWithRetry } from '../src/connect.js';
 
 test('keeps trying until MongoDB answers, then sets up once', async () => {
   let calls = 0;
