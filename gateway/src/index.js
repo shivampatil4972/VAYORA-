@@ -3,6 +3,7 @@ import express from 'express';
 import { MongoClient } from 'mongodb';
 import { Server } from 'socket.io';
 import { socketAuth } from './auth.js';
+import { connectWithRetry } from './connect.js';
 import { coreApiMembership } from './membership.js';
 import { attachRealtime } from './realtime.js';
 import { MongoStore } from './store.js';
@@ -30,9 +31,15 @@ io.use(socketAuth(JWT_SECRET));
 
 const mongo = new MongoClient(MONGO_URI, { serverSelectionTimeoutMS: 2000 });
 const store = new MongoStore(mongo.db());
-// Not awaited: the gateway serves /health and accepts sockets while MongoDB comes up,
-// and a store call made too early fails as a server_error to that one client.
-store.ensureIndexes().catch((error) => console.error('could not create indexes:', error.message));
+// Not awaited: the gateway serves /health and accepts sockets while MongoDB comes up, and
+// a store call made too early fails as a server_error to that one client. It keeps trying:
+// a first attempt that fails must not leave the gateway without MongoDB for good.
+void connectWithRetry(mongo, {
+  onConnected: async () => {
+    await store.ensureIndexes();
+    console.log('connected to MongoDB');
+  },
+});
 
 attachRealtime(io, { membership: coreApiMembership(CORE_API_URL), store });
 

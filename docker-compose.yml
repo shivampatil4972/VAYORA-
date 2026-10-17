@@ -125,6 +125,10 @@ services:
 
   gateway:
     build: ./gateway
+    # The gateway also retries on its own; this only spares it a slow start.
+    depends_on:
+      mongo:
+        condition: service_healthy
     environment:
       JWT_SECRET: ${JWT_SECRET:-dev-only-change-me-dev-only-change-me}
       MONGO_URI: mongodb://mongo:27017/${MONGO_DB:-journex}
