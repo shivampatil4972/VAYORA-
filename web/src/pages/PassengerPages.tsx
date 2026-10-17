@@ -542,6 +542,9 @@ export function SearchPage() {
                           fee: formatRupees(candidate.serviceFee),
                         })}
                       </span>
+                      {candidate.keptRides && Number(candidate.serviceFee) > 0 && (
+                        <span className="block text-xs text-emerald-800">{t('A lower fee: this driver keeps their rides')}</span>
+                      )}
                     </p>
                     <Button disabled={book.isPending} onClick={() => book.mutate(candidate)}>
                       {candidate.instantBooking ? t('Book') : t('Request')}

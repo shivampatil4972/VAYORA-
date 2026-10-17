@@ -50,6 +50,14 @@ journex:
   payment:
     # The platform's fee, as a fraction of the fare, charged on top of it.
     service-fee-rate: 0.10
+    # A lower fee on rides by a driver who keeps their rides (feature 94): at least
+    # min-completed rides completed, and none withdrawn among those due to leave within the
+    # window before now, or later. From the record alone, never from a prediction, and
+    # never above the standard rate. The values are the authors' assumptions.
+    kept-rides:
+      fee-rate: 0.07
+      min-completed: 10
+      window: P90D
   pass:
     # On sale to passengers. A pass waives the service fee on bookings requested while it
     # runs. Prices are the authors' assumptions, not market research.

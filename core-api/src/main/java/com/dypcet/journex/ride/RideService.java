@@ -5,6 +5,7 @@ import com.dypcet.journex.eventlog.EventType;
 import com.dypcet.journex.eventlog.HasActor;
 import com.dypcet.journex.hold.SeatHolds;
 import com.dypcet.journex.pass.PassService;
+import com.dypcet.journex.payment.KeptRides;
 import com.dypcet.journex.payment.ServiceFee;
 import com.dypcet.journex.routing.RouteService;
 import com.dypcet.journex.routing.RouteService.Leg;
@@ -139,7 +140,7 @@ public class RideService {
             boolean driverConfirmed, boolean maxTwoInBack, String vehicle, String comfort,
             String luggage, boolean electric, boolean womenOnly, int driverRidesCompleted,
             int driverRidesWithdrawn, int pickupWalkMinutes, int dropoffWalkMinutes, boolean suggestFlexible,
-            boolean underWay) {
+            boolean underWay, boolean keptRides) {
 
         Candidate withSeatsAvailable(int seats) {
             return new Candidate(rideId, driverName, instantBooking, fromSeq, toSeq, fromStop, toStop,
@@ -147,7 +148,7 @@ public class RideService {
                     driverRating, driverRatingCount, pickupDistanceM, dropoffDistanceM,
                     driverConfirmed, maxTwoInBack, vehicle, comfort, luggage, electric, womenOnly,
                     driverRidesCompleted, driverRidesWithdrawn, pickupWalkMinutes, dropoffWalkMinutes, suggestFlexible,
-                    underWay);
+                    underWay, keptRides);
         }
     }
 
@@ -272,6 +273,7 @@ public class RideService {
     private final BigDecimal suggestedRupeesPerKm;
     private final double walkingKmh;
     private final Duration midRouteLead;
+    private final KeptRides keptRides;
     private final double suggestFlexibleBelow;
     private final SeatHolds holds;
     private final PassService passes;
@@ -285,7 +287,9 @@ public class RideService {
             @Value("${journex.search.walking-kmh}") double walkingKmh,
             @Value("${journex.tiers.suggest-below}") double suggestFlexibleBelow,
             @Value("${journex.booking.mid-route-lead}") Duration midRouteLead,
-            SeatHolds holds, PassService passes, StopoverService stopovers, SupplyGapService supply) {
+            SeatHolds holds, PassService passes, StopoverService stopovers, SupplyGapService supply,
+            KeptRides keptRides) {
+        this.keptRides = keptRides;
         this.supply = supply;
         this.stopovers = stopovers;
         this.passes = passes;
@@ -583,6 +587,7 @@ public class RideService {
                 .addValue("dayEnd", utc(date.plusDays(1).atStartOfDay(CORRIDOR_ZONE).toInstant()))
                 .addValue("now", utc(clock.instant()))
                 .addValue("midRouteCutoff", utc(clock.instant().plus(midRouteLead)))
+                .addValue("keptSince", utc(keptRides.windowStart()))
                 .addValue("seats", seats)
                 .addValue("passenger", passengerId)
                 .addValue("zone", CORRIDOR_ZONE.getId())
@@ -636,6 +641,9 @@ public class RideService {
                                AS driver_completed,
                            (SELECT COUNT(*) FROM rides x WHERE x.driver_id = r.driver_id AND x.status = 'CANCELLED')
                                AS driver_withdrawn,
+                           (SELECT COUNT(*) FROM rides x WHERE x.driver_id = r.driver_id AND x.status = 'CANCELLED'
+                                   AND x.departure_time >= :keptSince)
+                               AS driver_withdrawn_lately,
                            o.seq AS from_seq, d.seq AS to_seq,
                            o.name AS from_stop, d.name AS to_stop,
                            r.departure_time + make_interval(mins => o.offset_minutes) AS boarding,
@@ -678,7 +686,9 @@ public class RideService {
                 params,
                 (rs, n) -> {
                     BigDecimal fare = rs.getBigDecimal("price").multiply(BigDecimal.valueOf(seats));
-                    BigDecimal fee = covered ? BigDecimal.ZERO.setScale(2) : serviceFee.on(fare);
+                    // The same rule PaymentService charges by: the fee shown is the fee held.
+                    boolean kept = keptRides.qualifies(rs.getInt("driver_completed"), rs.getInt("driver_withdrawn_lately"));
+                    BigDecimal fee = covered ? BigDecimal.ZERO.setScale(2) : serviceFee.on(fare, kept);
                     return new Candidate(rs.getLong("id"), rs.getString("full_name"),
                             rs.getBoolean("instant_booking"), rs.getInt("from_seq"),
                             rs.getInt("to_seq"), rs.getString("from_stop"), rs.getString("to_stop"),
@@ -695,7 +705,7 @@ public class RideService {
                             rs.getInt("driver_withdrawn"), walkMinutes(rs.getDouble("pickup_m")),
                             walkMinutes(rs.getDouble("dropoff_m")),
                             weakRecord(rs.getInt("driver_completed"), rs.getInt("driver_withdrawn")),
-                            rs.getBoolean("under_way"));
+                            rs.getBoolean("under_way"), kept);
                 });
 
         candidates = candidates.stream()

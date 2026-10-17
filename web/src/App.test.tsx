@@ -100,6 +100,7 @@ const candidate: Candidate = {
   dropoffWalkMinutes: 0,
   suggestFlexible: false,
   underWay: false,
+  keptRides: false,
   vehicle: 'Maruti Ertiga',
   comfort: null,
   luggage: null,
@@ -2376,6 +2377,26 @@ describe('flexibility tiers', () => {
       const post = fetchMock.mock.calls.find(([url, init]) => init?.method === 'POST' && String(url).endsWith('/bookings'));
       expect(JSON.parse(String(post?.[1]?.body))).toMatchObject({ tier: 'FLEXIBLE' });
     });
+  });
+});
+
+describe('a driver who keeps their rides', () => {
+  it('says why the fee is lower, only on their rides and only when there is a fee', async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /rides/search': () =>
+        json([
+          { ...candidate, rideId: 1, keptRides: true },
+          { ...candidate, rideId: 2, keptRides: true, serviceFee: 0 },
+          { ...candidate, rideId: 3 },
+        ]),
+    });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+
+    expect(await screen.findByText('A lower fee: this driver keeps their rides')).toBeInTheDocument();
+    expect(screen.getAllByText('A lower fee: this driver keeps their rides')).toHaveLength(1);
   });
 });
 

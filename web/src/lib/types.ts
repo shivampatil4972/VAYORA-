@@ -172,6 +172,8 @@ export interface Candidate {
   suggestFlexible: boolean;
   /** Already on the road: offered only from stops it is not yet near, and it may reach them before the time shown. */
   underWay: boolean;
+  /** The driver has completed enough rides and withdrawn none lately, so the service fee is lower: from their record only. */
+  keptRides: boolean;
 }
 
 /** What a passenger agrees to, when booking, should the driver withdraw the ride. */

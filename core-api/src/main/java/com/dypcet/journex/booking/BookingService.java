@@ -337,7 +337,7 @@ public class BookingService {
         }
         BigDecimal fare = jdbc.queryForObject(
                 "SELECT price FROM bookings WHERE id = ?", BigDecimal.class, bookingId);
-        payments.hold(bookingId, passengerId, fare, payment);
+        payments.hold(bookingId, passengerId, ride.driverId(), fare, payment);
 
         // The seats are theirs now, so a hold on this ride has done its job.
         holds.of(passengerId).filter(hold -> hold.rideId() == rideId)
