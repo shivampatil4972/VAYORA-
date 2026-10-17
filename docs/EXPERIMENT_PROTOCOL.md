@@ -339,9 +339,8 @@ is kept here so the record shows what was believed and why it changed.
 
 ### Still to run
 
-- Split "offered no ride" into no ride in the time window and no seats on the rides in
-  it. This needs the simulator to say which, and so a payload change that needs
-  approval under the frozen vocabulary.
+- ~~Split "offered no ride" into no ride in the time window and no seats on the rides in
+  it.~~ Approved and run: section 16.
 - B5 with requests chosen at random within the same limits.
 - ~~The time-tolerance sweep the finding above points to.~~ Run: section 9.
 - Still open from section 7: a sweep of the survival threshold, B4 with `h1-km`, and
@@ -392,7 +391,7 @@ payload change already awaiting the team's approval.
 
 ### Still to run
 
-- The split above, once approved.
+- ~~The split above, once approved.~~ Run: section 16.
 - A sweep of how far ahead rides are published, which tests the second explanation
   without any payload change.
 
@@ -419,7 +418,8 @@ whole booking horizon.
 - **So most empty searches are full rides.** The configuration agrees, by arithmetic on
   its own assumptions rather than by measurement: 12 rides a day at an average of 2.56
   seats offer about 31 seats a day, while 60 searches a day at an average party of 1.4 ask
-  for about 84.
+  for about 84. Since measured (section 16): two empty searches in three meet only full
+  rides.
 - **Early release still adds nothing, and costs a little where everything is published
   early** (−0.05 at 7 days). It moves cancellations earlier at every setting.
 
@@ -631,3 +631,41 @@ passengers who all release the moment they are asked, gains under a quarter of a
 ride per 100 searches. The chance of putting off a passenger who would have travelled is
 not swept: the oracle asks no such passenger, and a 3 × 3 grid run first gave identical
 rows for every value of it.
+
+## 16. Why a search is offered nothing
+
+Run on 2026-10-17. Synthetic data; 30 seeds per variant; the ladder (`...003`) and the
+robustness runs (`...004`) rebuilt with `candidates_returned` now carrying
+`rides_in_window`: the published rides leaving inside the passenger's time window, counted
+before the seat check. A search offered nothing then met either no ride at that time or
+only full ones. Logging the count draws no random number, and the rebuild changed no
+figure already in either report: it only added rows. Query: `empty_search_reasons` in
+`metrics.sql`. Reports: `experiments/reports/ladder-7a1c0de0-0000-4000-8000-000000000003.md`
+and `...004.md`.
+
+| Share of all searches | B0 | B3 | B4 | B5 | ORACLE |
+|---|---|---|---|---|---|
+| Offered no ride | 0.550 | 0.545 | 0.542 | 0.544 | 0.543 |
+| of which every ride at that time was full | 0.355 | 0.349 | 0.346 | 0.347 | 0.346 |
+| of which no published ride was left at that time | 0.196 | 0.196 | 0.196 | 0.196 | 0.196 |
+
+The two parts add to the first row up to rounding.
+
+### What this shows
+
+- **Two empty searches in three meet only full rides.** Section 10 reached this by
+  arithmetic on the world's assumptions; it is now measured. One in three finds no
+  published ride in the window at all, and no variant moves that share by more than
+  0.001: none changes when rides run or are published.
+- **Every variant's effect on empty searches is on full rides.** B3's lower empty share
+  than B0's (−0.006) is entirely fewer searches meeting full rides, and B4 lowers that a
+  little more (−0.003 against B3, 27 of 30 seeds), consistent with seats released early
+  coming free while someone is still looking.
+- **So seats are what is scarce, and early release frees too few of them to matter.**
+  About 35 searches in every 100 meet full rides; B4 turns about 0.3 of them into
+  searches offered a seat. This fits section 8: the extra refills go to passengers who
+  would have booked another ride anyway, and the completed-ride gain stays within noise.
+  It is an explanation that fits, not a proof.
+
+The live platform does not log `rides_in_window`: its seat check is one of many filters in
+the same query, so "full" has no single meaning there.

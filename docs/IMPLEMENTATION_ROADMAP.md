@@ -56,7 +56,7 @@ mock that says so, as payments and SMS already are.
 
 | Item | What it is | Why it matters |
 |---|---|---|
-| Split "offered no ride" | Record whether a search failed for want of a ride at that time or want of seats | Section 8 of EXPERIMENT_PROTOCOL.md points here; needs approval for a new payload key |
+| ~~Split "offered no ride"~~ | Done: two empty searches in three meet only full rides (EXPERIMENT_PROTOCOL.md section 16) | |
 | ~~Time-tolerance sweep~~ | Done: a wider window does not help (EXPERIMENT_PROTOCOL.md section 9) | |
 | ~~Publishing-lead sweep~~ | Done: late publishing explains little; most empty searches are full rides (EXPERIMENT_PROTOCOL.md section 10) | |
 | ~~Refills by release timing~~ | Done: early releases are refilled 94%, late ones 68%; B4 moves too few (EXPERIMENT_PROTOCOL.md section 11) | |
@@ -80,8 +80,8 @@ mock that says so, as payments and SMS already are.
 
 1. ~~The browser check (D)~~: done by script, 2026-10-15 to 17. A person using it on a
    phone is still owed.
-2. ~~The research items (C)~~: done except those waiting on a decision (the "offered no
-   ride" split, B6 to B11, the hotel dataset).
+2. ~~The research items (C)~~: done except those waiting on a decision (B6 to B11, the
+   hotel dataset).
 3. ~~Small platform items from A~~: boarding code, completion confirmation, rating
    reminder, response rate and the reproducibility capsule are all built.
 4. ~~The two reserved event families (81, 93)~~: flexibility tiers and supply-gap nudges
