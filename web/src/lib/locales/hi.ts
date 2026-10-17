@@ -1331,6 +1331,40 @@ export const hi: Record<string, string> = {
     'यह सवारी रास्ते में है और उस स्टॉप पर इतनी जल्दी पहुँचेगी कि बुकिंग नहीं हो सकती',
   'This ride is already on the road, and its driver approves each request':
     'यह सवारी पहले ही रास्ते में है, और इसका चालक हर अनुरोध को मंज़ूरी देता है',
+  'That insurance has already ended':
+    'वह बीमा पहले ही समाप्त हो चुका है',
+  'A call can only be made while the booking is confirmed':
+    'कॉल केवल तभी की जा सकती है जब बुकिंग पक्की हो',
+  'It is too early to call: calls open shortly before the trip':
+    'कॉल करने के लिए अभी बहुत जल्दी है: कॉल यात्रा से कुछ पहले खुलती हैं',
+  'Confirm your phone number on your account page before calling':
+    'कॉल करने से पहले अपने खाते के पेज पर अपना फ़ोन नंबर पक्का करें',
+  'They have no confirmed phone number. Use the chat instead.':
+    'उनका कोई पक्का फ़ोन नंबर नहीं है। इसके बजाय चैट का उपयोग करें।',
+  "{name} tried to call you through JOURNEX. Calls are simulated, so no call came through. Reply in the ride's chat.":
+    '{name} ने JOURNEX के ज़रिए आपको कॉल करने की कोशिश की। कॉल सिम्युलेटेड हैं, इसलिए कोई कॉल नहीं आई। सवारी की चैट में जवाब दें।',
+  'Call the driver':
+    'चालक को कॉल करें',
+  'Call {name}':
+    '{name} को कॉल करें',
+  "Calling is simulated. With a real phone service you would now be connected to {name} through a masked number, so neither of you sees the other's number. No call was placed, and {name} has been told you tried.":
+    'कॉल सिम्युलेटेड है। असली फ़ोन सेवा के साथ अब आप एक छिपे हुए नंबर के ज़रिए {name} से जुड़ जाते, ताकि कोई किसी का नंबर न देखे। कोई कॉल नहीं की गई, और {name} को बता दिया गया है कि आपने कोशिश की।',
+  'Insurance: {insurer}, until {date}. As you declared it: JOURNEX has not checked it with the insurer.':
+    'बीमा: {insurer}, {date} तक। जैसा आपने बताया: JOURNEX ने बीमा कंपनी से इसकी जाँच नहीं की है।',
+  'Remove the insurance':
+    'बीमा हटाएँ',
+  'Insurance':
+    'बीमा',
+  'Insurer':
+    'बीमा कंपनी',
+  'Insured until':
+    'बीमा कब तक',
+  'Declare insurance':
+    'बीमा बताएँ',
+  'Passengers see the insurer and the date, marked as not checked. No policy number is asked for.':
+    "यात्री बीमा कंपनी और तारीख देखते हैं, 'जाँचा नहीं गया' के निशान के साथ। कोई पॉलिसी नंबर नहीं माँगा जाता।",
+  'Insurance declared by the driver: {insurer}, until {date}. Not checked.':
+    'चालक द्वारा बताया गया बीमा: {insurer}, {date} तक। जाँचा नहीं गया।',
   'Those stops are not on this ride':
     'ये स्टॉप इस सवारी पर नहीं हैं',
   'Too many wrong attempts. Request a new code.':

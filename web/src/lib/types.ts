@@ -32,6 +32,9 @@ export interface Vehicle {
   consumptionKwhPer100Km: number | null;
   /** What the two figures above imply on a full charge. Not a measured range. */
   estimatedRangeKm: number | null;
+  /** Insurance as the driver declares it, never checked; both null if not said. */
+  insurer: string | null;
+  insuredUntil: string | null;
 }
 
 export type Comfort = 'BASIC' | 'COMFORT' | 'PREMIUM';
@@ -174,6 +177,9 @@ export interface Candidate {
   underWay: boolean;
   /** The driver has completed enough rides and withdrawn none lately, so the service fee is lower: from their record only. */
   keptRides: boolean;
+  /** Insurance the driver declares, never checked: only while it covers the trip's date. */
+  insurer: string | null;
+  insuredUntil: string | null;
 }
 
 /** What a passenger agrees to, when booking, should the driver withdraw the ride. */

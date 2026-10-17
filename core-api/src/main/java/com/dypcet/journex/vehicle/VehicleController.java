@@ -13,14 +13,19 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -45,6 +50,10 @@ public class VehicleController {
             BigDecimal consumptionKwhPer100Km) {
     }
 
+    /** Insurance as the driver declares it; never checked. */
+    public record InsuranceRequest(@NotBlank @Size(max = 60) String insurer, @NotNull LocalDate insuredUntil) {
+    }
+
     private final VehicleService vehicles;
 
     public VehicleController(VehicleService vehicles) {
@@ -64,5 +73,16 @@ public class VehicleController {
     @GetMapping
     public List<Vehicle> mine(@AuthenticationPrincipal Jwt jwt) {
         return vehicles.ownedBy(CurrentUser.id(jwt));
+    }
+
+    @PutMapping("/{id}/insurance")
+    public Vehicle declareInsurance(@AuthenticationPrincipal Jwt jwt, @PathVariable long id,
+            @Valid @RequestBody InsuranceRequest request) {
+        return vehicles.declareInsurance(id, CurrentUser.id(jwt), request.insurer(), request.insuredUntil());
+    }
+
+    @DeleteMapping("/{id}/insurance")
+    public Vehicle clearInsurance(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
+        return vehicles.clearInsurance(id, CurrentUser.id(jwt));
     }
 }

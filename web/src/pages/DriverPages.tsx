@@ -7,6 +7,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { SimulatedPaymentNotice } from '../components/payment';
 import { RateForm } from '../components/rating';
 import { CheckCode } from '../components/boarding';
+import { CallButton } from '../components/call';
+import { InsuranceEditor } from '../components/insurance';
 import { RideChat } from '../components/RideChat';
 import { initialsOf, PhotoEditor } from '../components/photo';
 import { RouteMap } from '../components/RouteMap';
@@ -73,6 +75,7 @@ export function VehiclesPage() {
               {t('About {km} km on a full charge, from the figures you gave. Not a measured range.', { km: vehicle.estimatedRangeKm })}
             </p>
           )}
+          <InsuranceEditor vehicle={vehicle} />
         </Card>
       ))}
 
@@ -696,6 +699,11 @@ function RideBookings({ ride }: { ride: Ride }) {
                     )}
                   </div>
                 </div>
+                {booking.status === 'CONFIRMED' && (
+                  <div className="mt-2">
+                    <CallButton bookingId={booking.id} label={t('Call {name}', { name: booking.passengerName })} />
+                  </div>
+                )}
                 {booking.status === 'COMPLETED' && !booking.driverRated && (
                   <RateForm bookingId={booking.id} legend={t('Rate {name}', { name: booking.passengerName })} />
                 )}

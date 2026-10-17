@@ -2,6 +2,9 @@ package com.dypcet.journex.vehicle;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
@@ -43,10 +46,13 @@ public class VehicleService {
      * @param estimatedRangeKm battery divided by consumption: what the driver's two figures
      *                         imply on a full charge, not a measured range; null unless both
      *                         were given
+     * @param insurer          the insurer the driver says covers the car, until
+     *                         {@code insuredUntil}; declared, never checked; both null if not said
      */
     public record Vehicle(long id, long ownerId, String make, String model, Integer year,
             String colour, int seats, Comfort comfort, Luggage luggage, boolean electric,
-            BigDecimal batteryKwh, BigDecimal consumptionKwhPer100Km, Integer estimatedRangeKm) {
+            BigDecimal batteryKwh, BigDecimal consumptionKwhPer100Km, Integer estimatedRangeKm,
+            String insurer, LocalDate insuredUntil) {
     }
 
     private static final RowMapper<Vehicle> MAPPER = (rs, n) -> {
@@ -57,7 +63,8 @@ public class VehicleService {
                 (Integer) rs.getObject("year"), rs.getString("colour"), rs.getInt("seats"),
                 rs.getString("comfort") == null ? null : Comfort.valueOf(rs.getString("comfort")),
                 rs.getString("luggage") == null ? null : Luggage.valueOf(rs.getString("luggage")),
-                rs.getBoolean("electric"), battery, consumption, rangeKm(battery, consumption));
+                rs.getBoolean("electric"), battery, consumption, rangeKm(battery, consumption),
+                rs.getString("insurer"), rs.getObject("insured_until", LocalDate.class));
     };
 
     /** Kilometres on a full battery at the stated consumption, rounded down. */
@@ -69,10 +76,14 @@ public class VehicleService {
                 .divide(consumptionKwhPer100Km, 0, RoundingMode.DOWN).intValueExact();
     }
 
-    private final JdbcTemplate jdbc;
+    private static final ZoneId CORRIDOR_ZONE = ZoneId.of("Asia/Kolkata");
 
-    public VehicleService(JdbcTemplate jdbc) {
+    private final JdbcTemplate jdbc;
+    private final Clock clock;
+
+    public VehicleService(JdbcTemplate jdbc, Clock clock) {
         this.jdbc = jdbc;
+        this.clock = clock;
     }
 
     public Vehicle create(long ownerId, String make, String model, Integer year, String colour,
@@ -96,6 +107,29 @@ public class VehicleService {
                 details.luggage() == null ? null : details.luggage().name(),
                 details.electric(), details.batteryKwh(), details.consumptionKwhPer100Km());
         return findOwned(id, ownerId);
+    }
+
+    /**
+     * Records the insurance the driver says covers this car (feature 58). Nothing is checked
+     * with the insurer, and no policy number is asked for.
+     */
+    public Vehicle declareInsurance(long vehicleId, long ownerId, String insurer, LocalDate insuredUntil) {
+        if (insuredUntil.isBefore(LocalDate.now(clock.withZone(CORRIDOR_ZONE)))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "That insurance has already ended");
+        }
+        if (jdbc.update("UPDATE vehicles SET insurer = ?, insured_until = ? WHERE id = ? AND owner_id = ?",
+                insurer.strip(), insuredUntil, vehicleId, ownerId) == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Vehicle not found");
+        }
+        return findOwned(vehicleId, ownerId);
+    }
+
+    public Vehicle clearInsurance(long vehicleId, long ownerId) {
+        if (jdbc.update("UPDATE vehicles SET insurer = NULL, insured_until = NULL WHERE id = ? AND owner_id = ?",
+                vehicleId, ownerId) == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Vehicle not found");
+        }
+        return findOwned(vehicleId, ownerId);
     }
 
     public List<Vehicle> ownedBy(long ownerId) {

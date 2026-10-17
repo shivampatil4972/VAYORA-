@@ -11,10 +11,11 @@ import { BoardingPassView } from '../components/boarding';
 import { BusAlternatives } from '../components/bus';
 import { TripConfirmation } from '../components/tripConfirmation';
 import { RouteMap, type MapPoint } from '../components/RouteMap';
+import { CallButton } from '../components/call';
 import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, StatusBadge, TextField } from '../components/ui';
 import { api } from '../lib/api';
 import { CORRIDOR } from '../lib/corridor';
-import { answerBy, formatDateTime, formatRupees, formatTime, todayInCorridor } from '../lib/format';
+import { answerBy, formatDate, formatDateTime, formatRupees, formatTime, todayInCorridor } from '../lib/format';
 import { msg, useT, useUnits } from '../lib/i18n';
 import { comfortLabels, luggageLabels, vehiclePhrases } from '../lib/vehicle';
 import { searchSchema, type SearchForm } from '../lib/schemas';
@@ -518,6 +519,14 @@ export function SearchPage() {
                     )}
                     {/* `vehicle` is what the driver typed: shown as text, not translated. */}
                     {candidate.vehicle && <p className="mt-1 text-sm text-slate-600">{[candidate.vehicle, ...vehiclePhrases(candidate, t)].join(' · ')}</p>}
+                    {candidate.insurer && candidate.insuredUntil && (
+                      <p className="mt-1 text-sm text-slate-600">
+                        {t('Insurance declared by the driver: {insurer}, until {date}. Not checked.', {
+                          insurer: candidate.insurer,
+                          date: formatDate(candidate.insuredUntil),
+                        })}
+                      </p>
+                    )}
                     <p className="mt-1 text-sm text-slate-600">
                       {t('Pickup {pickup} from your start · drop-off {dropoff} from your destination', {
                         pickup: units.distance(candidate.pickupDistanceM),
@@ -687,6 +696,11 @@ export function BookingsPage() {
               )}
             </div>
           </div>
+          {booking.status === 'CONFIRMED' && (
+            <div className="mt-3">
+              <CallButton bookingId={booking.id} label={t('Call the driver')} />
+            </div>
+          )}
           {meetingShown === booking.id && <RideRoute rideId={booking.rideId} fromSeq={booking.fromSeq} toSeq={booking.toSeq} />}
           {chatShown === booking.id && cancellable(booking) && <RideChat rideId={booking.rideId} />}
           {booking.status === 'COMPLETED' && booking.passengerConfirmed == null && <TripConfirmation bookingId={booking.id} />}

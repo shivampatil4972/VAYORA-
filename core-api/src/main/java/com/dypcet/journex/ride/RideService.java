@@ -140,7 +140,7 @@ public class RideService {
             boolean driverConfirmed, boolean maxTwoInBack, String vehicle, String comfort,
             String luggage, boolean electric, boolean womenOnly, int driverRidesCompleted,
             int driverRidesWithdrawn, int pickupWalkMinutes, int dropoffWalkMinutes, boolean suggestFlexible,
-            boolean underWay, boolean keptRides) {
+            boolean underWay, boolean keptRides, String insurer, LocalDate insuredUntil) {
 
         Candidate withSeatsAvailable(int seats) {
             return new Candidate(rideId, driverName, instantBooking, fromSeq, toSeq, fromStop, toStop,
@@ -148,7 +148,7 @@ public class RideService {
                     driverRating, driverRatingCount, pickupDistanceM, dropoffDistanceM,
                     driverConfirmed, maxTwoInBack, vehicle, comfort, luggage, electric, womenOnly,
                     driverRidesCompleted, driverRidesWithdrawn, pickupWalkMinutes, dropoffWalkMinutes, suggestFlexible,
-                    underWay, keptRides);
+                    underWay, keptRides, insurer, insuredUntil);
         }
     }
 
@@ -633,6 +633,13 @@ public class RideService {
                            r.id, u.full_name, r.instant_booking, r.driver_id, r.max_two_in_back,
                            r.women_only, r.status = 'IN_PROGRESS' AS under_way,
                            v.make || ' ' || v.model AS vehicle, v.comfort, v.luggage, v.electric,
+                           -- Declared insurance, only while it covers the day the trip ends.
+                           CASE WHEN v.insured_until >= ((r.departure_time + make_interval(mins => d.offset_minutes))
+                                                         AT TIME ZONE :zone)::date
+                                THEN v.insurer END AS insurer,
+                           CASE WHEN v.insured_until >= ((r.departure_time + make_interval(mins => d.offset_minutes))
+                                                         AT TIME ZONE :zone)::date
+                                THEN v.insured_until END AS insured_until,
                            (SELECT AVG(stars)::float8 FROM ratings WHERE ratee_id = r.driver_id)
                                AS driver_rating,
                            (SELECT COUNT(*) FROM ratings WHERE ratee_id = r.driver_id)
@@ -705,7 +712,8 @@ public class RideService {
                             rs.getInt("driver_withdrawn"), walkMinutes(rs.getDouble("pickup_m")),
                             walkMinutes(rs.getDouble("dropoff_m")),
                             weakRecord(rs.getInt("driver_completed"), rs.getInt("driver_withdrawn")),
-                            rs.getBoolean("under_way"), kept);
+                            rs.getBoolean("under_way"), kept, rs.getString("insurer"),
+                            rs.getObject("insured_until", LocalDate.class));
                 });
 
         candidates = candidates.stream()

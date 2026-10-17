@@ -153,6 +153,10 @@ journex:
   pricing:
     # Per seat. Only a suggestion offered to the driver, never applied automatically.
     suggested-rupees-per-km: 2.0
+  calling:
+    # Masked calls (simulated, feature 61) between the two sides of a confirmed booking
+    # open this long before boarding.
+    opens-before: PT24H
   trip:
     # How long before the scheduled departure a driver may start the ride.
     early-start: PT1H

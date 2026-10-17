@@ -1331,6 +1331,40 @@ export const mr: Record<string, string> = {
     'ही राइड रस्त्यावर आहे आणि त्या थांब्यावर इतक्या लवकर पोहोचेल की बुकिंग होऊ शकत नाही',
   'This ride is already on the road, and its driver approves each request':
     'ही राइड आधीच रस्त्यावर आहे, आणि तिचा चालक प्रत्येक विनंती मंजूर करतो',
+  'That insurance has already ended':
+    'तो विमा आधीच संपला आहे',
+  'A call can only be made while the booking is confirmed':
+    'बुकिंग निश्चित असतानाच कॉल करता येतो',
+  'It is too early to call: calls open shortly before the trip':
+    'कॉल करण्यासाठी अजून खूप लवकर आहे: प्रवासाच्या थोडे आधी कॉल सुरू होतात',
+  'Confirm your phone number on your account page before calling':
+    'कॉल करण्यापूर्वी तुमच्या खाते पानावर तुमचा फोन नंबर निश्चित करा',
+  'They have no confirmed phone number. Use the chat instead.':
+    'त्यांचा कोणताही निश्चित फोन नंबर नाही. त्याऐवजी चॅट वापरा.',
+  "{name} tried to call you through JOURNEX. Calls are simulated, so no call came through. Reply in the ride's chat.":
+    '{name} यांनी JOURNEX मार्फत तुम्हाला कॉल करण्याचा प्रयत्न केला. कॉल सिम्युलेटेड आहेत, त्यामुळे कोणताही कॉल आला नाही. राइडच्या चॅटमध्ये उत्तर द्या.',
+  'Call the driver':
+    'चालकाला कॉल करा',
+  'Call {name}':
+    '{name} यांना कॉल करा',
+  "Calling is simulated. With a real phone service you would now be connected to {name} through a masked number, so neither of you sees the other's number. No call was placed, and {name} has been told you tried.":
+    'कॉल सिम्युलेटेड आहे. खऱ्या फोन सेवेसह तुम्ही आता लपवलेल्या नंबरद्वारे {name} यांच्याशी जोडले गेले असता, त्यामुळे कोणालाही दुसऱ्याचा नंबर दिसत नाही. कोणताही कॉल केला गेला नाही, आणि तुम्ही प्रयत्न केल्याचे {name} यांना सांगितले आहे.',
+  'Insurance: {insurer}, until {date}. As you declared it: JOURNEX has not checked it with the insurer.':
+    'विमा: {insurer}, {date} पर्यंत. तुम्ही सांगितल्याप्रमाणे: JOURNEX ने विमा कंपनीकडे याची तपासणी केलेली नाही.',
+  'Remove the insurance':
+    'विमा काढा',
+  'Insurance':
+    'विमा',
+  'Insurer':
+    'विमा कंपनी',
+  'Insured until':
+    'विमा कधीपर्यंत',
+  'Declare insurance':
+    'विमा नोंदवा',
+  'Passengers see the insurer and the date, marked as not checked. No policy number is asked for.':
+    "प्रवाशांना विमा कंपनी आणि तारीख दिसते, 'तपासलेले नाही' अशा खुणेसह. कोणताही पॉलिसी नंबर विचारला जात नाही.",
+  'Insurance declared by the driver: {insurer}, until {date}. Not checked.':
+    'चालकाने नोंदवलेला विमा: {insurer}, {date} पर्यंत. तपासलेले नाही.',
   'Those stops are not on this ride':
     'हे थांबे या राइडवर नाहीत',
   'Too many wrong attempts. Request a new code.':

@@ -32,6 +32,7 @@ const TEMPLATES = new Set([
   msg('As you chose a flexible booking, you have asked for a seat on the {time} ride from {stop} with {driver}. The driver will answer.'),
   msg('You chose a flexible booking, but no other ride with seats fits it. Nothing new has been booked.'),
   msg('Passengers looked for a ride from {from} to {to} on {date} and found none. If you are driving then, you could offer seats.'),
+  msg("{name} tried to call you through JOURNEX. Calls are simulated, so no call came through. Reply in the ride's chat."),
 ]);
 
 const known = (text: NotificationText): boolean =>

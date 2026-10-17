@@ -101,6 +101,8 @@ const candidate: Candidate = {
   suggestFlexible: false,
   underWay: false,
   keptRides: false,
+  insurer: null,
+  insuredUntil: null,
   vehicle: 'Maruti Ertiga',
   comfort: null,
   luggage: null,
@@ -2466,5 +2468,95 @@ describe('Google sign-in', () => {
       { idToken: 'google-id-token' },
       { idToken: 'google-id-token', role: 'DRIVER' },
     ]);
+  });
+});
+
+describe('declared insurance: the driver’s word, never checked', () => {
+  const car = { id: 3, make: 'Maruti', model: 'Ertiga', year: 2022, colour: 'Silver', seats: 7, insurer: null, insuredUntil: null };
+  const insured = { ...car, insurer: 'New India Assurance', insuredUntil: '2027-03-12' };
+
+  it('sends what the driver declares, and asks for no policy number', async () => {
+    signIn('DRIVER');
+    const fetchMock = serve({
+      'GET /vehicles': () => json([car]),
+      'PUT /vehicles/3/insurance': () => json(insured),
+    });
+    open('/vehicles');
+
+    await userEvent.type(await screen.findByLabelText('Insurer'), 'New India Assurance');
+    fireEvent.change(screen.getByLabelText('Insured until'), { target: { value: '2027-03-12' } });
+    expect(screen.queryByLabelText(/policy/i)).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Declare insurance' }));
+
+    await waitFor(() => {
+      const put = fetchMock.mock.calls.find(([, init]) => init?.method === 'PUT');
+      expect(JSON.parse(String(put?.[1]?.body))).toEqual({ insurer: 'New India Assurance', insuredUntil: '2027-03-12' });
+    });
+  });
+
+  it('shows a declared insurance as not checked, and removes it', async () => {
+    signIn('DRIVER');
+    const fetchMock = serve({
+      'GET /vehicles': () => json([insured]),
+      'DELETE /vehicles/3/insurance': () => json(car),
+    });
+    open('/vehicles');
+
+    expect(await screen.findByText(/Insurance: New India Assurance, until .*2027\. As you declared it: JOURNEX has not checked it/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Remove the insurance' }));
+
+    await waitFor(() =>
+      expect(fetchMock.mock.calls.some(([url, init]) => init?.method === 'DELETE' && String(url).endsWith('/vehicles/3/insurance'))).toBe(true),
+    );
+  });
+
+  it('tells a passenger the insurance is declared and not checked', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /rides/search': () => json([{ ...candidate, insurer: 'New India Assurance', insuredUntil: '2027-03-12' }]) });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+
+    expect(await screen.findByText(/Insurance declared by the driver: New India Assurance, until .*2027\. Not checked\./)).toBeInTheDocument();
+  });
+});
+
+describe('calling the other side: simulated', () => {
+  it('says plainly that no call was placed, and that the other side was told', async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /bookings': () => json([{ ...booking, status: 'CONFIRMED' }]),
+      'POST /bookings/90/call': () => json({ provider: 'mock', calleeName: 'Ravi Jadhav' }),
+    });
+    open('/bookings');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Call the driver' }));
+
+    const said = await screen.findByText(/^Calling is simulated\./);
+    expect(said).toHaveTextContent('connected to Ravi Jadhav through a masked number');
+    expect(said).toHaveTextContent('No call was placed, and Ravi Jadhav has been told you tried.');
+    expect(said).not.toHaveTextContent(/\d{5}/);
+  });
+
+  it('shows why a call cannot be made', async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /bookings': () => json([{ ...booking, status: 'CONFIRMED' }]),
+      'POST /bookings/90/call': () => json({ detail: 'They have no confirmed phone number. Use the chat instead.' }, 409),
+    });
+    open('/bookings');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Call the driver' }));
+
+    expect(await screen.findByText('They have no confirmed phone number. Use the chat instead.')).toBeInTheDocument();
+  });
+
+  it('offers no call on a booking that is not confirmed', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /bookings': () => json([booking]) });
+    open('/bookings');
+
+    expect(await screen.findByText('Kolhapur → Pune')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Call the driver' })).not.toBeInTheDocument();
   });
 });
