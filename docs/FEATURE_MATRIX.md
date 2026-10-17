@@ -157,7 +157,7 @@ Last updated: 2026-10-17. Test suites and how to run them are in [TESTING.md](TE
 | 88 | Cascade-aware recovery | TBD | TBD | Partial: when a driver withdraws a ride, each passenger is told of up to three other rides on the same stretch within 3 hours with seats for their party (API tested). A suggestion only: nothing is rebooked, and the simulator does not model it |
 | 89 | Corridor demand calibration | TBD | TBD | Not started |
 | 93 | Supply-gap detection and nudging | TBD | TBD | Verified (API and UI tests): each morning, days in the coming week where at least three searches on one stretch found no ride are logged (`supply_gap_detected`), and up to five drivers who drove the stretch in the last 90 days are told, none more than once a week (`nudge_issued`). A nudged driver who then offers the stretch that day is logged (`nudge_converted`), **for the record, never as a result**. Administrators see the coming gaps. There is no way to dismiss a nudge, so `nudge_dismissed` is unused |
-| 94 | Driver commitment pricing | TBD | TBD | Not started |
+| 94 | Driver commitment pricing | TBD | TBD | Verified (API and UI tests): passengers on rides by a driver who keeps their rides (at least 10 completed, none withdrawn among rides due to leave in the last 90 days or later) pay a 7% service fee instead of 10%, and the search result says why. From the record alone, never from a prediction, and never above the standard fee (the setting is refused otherwise). Seen in a browser: ₹32 against ₹46 on a ₹460 fare, and ₹32 held. The thresholds and rate are the authors' assumptions; whether it changes what drivers do is not measured |
 
 ## Advanced extensions
 

@@ -142,6 +142,10 @@ mistake for more. Updated 2026-10-17.
   it there arrives, and nothing warns either of them; the 30-minute margin only makes it
   less likely. Displayed times stay the timetable's, with a note that it may be early. Like everyone on a ride under way, such a
   passenger cannot cancel.
+- **The lower fee for drivers who keep their rides is an untested incentive.** Its
+  thresholds (10 completed rides, 90 days) and rate (7%) are assumptions, and nothing
+  measures whether drivers withdraw less because of it. A driver with fewer than 10
+  completed rides cannot earn it, however reliable.
 - **Travel passes only waive the service fee**, because that is the only part of a price
   the platform owns. Pass prices are assumptions. A pass cannot be cancelled or
   refunded, and a pass purchase is not in the money ledger, which records booking

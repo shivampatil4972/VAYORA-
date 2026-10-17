@@ -1,5 +1,19 @@
 # Progress
 
+## 2026-10-17 (evening) — a lower fee on rides by drivers who keep their rides
+
+- **Driver commitment pricing (94)**, in the form chosen today: passengers on rides by a
+  driver with at least 10 completed rides and none withdrawn among rides due to leave in
+  the last 90 days or later pay a 7% service fee instead of 10%. Drivers already keep the
+  whole fare, so the platform's own fee is the only price it can move. The rule reads
+  the driver's record only, never the durability model, and the setting is refused if
+  the lower rate would exceed the standard. Search and the payment hold use the same
+  check, so the fee shown is the fee held; the result says why it is lower.
+- Whether it makes drivers withdraw less is not measured, and simulation could not
+  identify it: drivers in the simulator do not respond to prices.
+- Tests: 232 Java, 181 Python, 194 web, 28 gateway, all passing.
+- Feature count: 74 Verified, 15 Partial, 6 Not started of 95.
+
 ## 2026-10-17 (later) — why searches find nothing; seats on a ride under way
 
 Both approved on 2026-10-17.

@@ -65,7 +65,7 @@ territory.
 | `GET /api/v1/rides/{id}` | any | A ride with its stops, legs, route and notes |
 | `GET /api/v1/rides/{id}/membership` | any | Whether the caller is on the ride. Used by the gateway |
 | `GET /api/v1/bookings` | P | Own bookings, each with the driver's `driverId`, `driverName` and the car (`vehicle`: make, model and colour as entered) |
-| `GET /api/v1/rides/search` | any | Rides with a stop near each end on a day. Each result also carries the driver's `driverRidesCompleted` and `driverRidesWithdrawn`, a rough `pickupWalkMinutes` and `dropoffWalkMinutes`, `suggestFlexible`, and `underWay` for a ride already on the road (offered only from a stop it is due at 30 minutes or more ahead, and only if it confirms instantly) |
+| `GET /api/v1/rides/search` | any | Rides with a stop near each end on a day. Each result also carries the driver's `driverRidesCompleted` and `driverRidesWithdrawn`, a rough `pickupWalkMinutes` and `dropoffWalkMinutes`, `suggestFlexible`, `keptRides` when the driver's record earns the lower service fee (already applied to `serviceFee`), and `underWay` for a ride already on the road (offered only from a stop it is due at 30 minutes or more ahead, and only if it confirms instantly) |
 
 Search takes `originLat`, `originLon`, `destLat`, `destLon`, `date`, and optionally
 `seats` (default 1), `sort` (`TIME`, `PRICE`, `RATING`, `PROXIMITY`), and filters
