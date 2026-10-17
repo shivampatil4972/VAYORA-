@@ -142,6 +142,9 @@ mistake for more. Updated 2026-10-17.
   it there arrives, and nothing warns either of them; the 30-minute margin only makes it
   less likely. Displayed times stay the timetable's, with a note that it may be early. Like everyone on a ride under way, such a
   passenger cannot cancel.
+- **A referral earns a driver nothing.** The reward is a pass, which only waives a
+  passenger's fee; nothing has been decided for drivers. The weekly pass itself is an
+  assumption.
 - **Insurance and calling are labelled mocks.** A driver's insurance is their own
   declaration, never checked with an insurer. A call is never placed: no telephony
   provider is connected, and the other side only gets a notification saying someone

@@ -46,6 +46,7 @@ was decided while building within them.
 | A travel pass waives only the service fee | Drivers set fares; the only price the platform can discount is its own fee | A pass is worth 10% of fares, which may be too little to be attractive |
 | Refund terms and booking deadlines are fetched from the server, not repeated in the app | One source of truth | One more request per page |
 | Receipts are not tax invoices | The platform handles no GST | |
+| A referral earns each passenger of the pair a free weekly pass, once, when the invited member completes a first trip | The pass is the platform's own fee to give away; a first trip, not a sign-up, so fake accounts earn nothing | Drivers earn nothing, as passes are worth nothing to them |
 | Commitment pricing lowers the passenger's service fee on a reliable driver's ride, and never raises anything | Drivers keep the whole fare, so the only price the platform can move is its own fee; the project's rules forbid pricing on predicted risk and punitive prices | The platform gives up 3 points of fee on those rides; a new driver cannot earn it until they have 10 completed rides |
 | "Keeps their rides" means at least 10 completed and none withdrawn among rides due to leave in the last 90 days or later | Observed behaviour only, simple enough to explain on the result | A withdrawal for good reason costs the driver the same as any other |
 

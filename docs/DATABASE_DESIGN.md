@@ -40,6 +40,7 @@ Access is through `JdbcTemplate` with hand-written SQL. There is no ORM.
 | V26 | On users: `google_sub`, the Google account a member signs in with (unique) |
 | V27 | On rides: `started_at`, when the driver actually started it |
 | V28 | On vehicles: `insurer` and `insured_until`, as the driver declares them (both or neither) |
+| V29 | On passes: `reward_for_referee`; a reward pass is free with no payment method, one per person per referral |
 
 ### Tables
 

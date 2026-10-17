@@ -36,7 +36,7 @@ territory.
 | `POST /api/v1/auth/google` | public | `idToken` from Google, and `role` only to create an account; returns a token. 409 when no account exists and no role was given |
 | `POST /api/v1/auth/login` | public | Exactly one of `email` or `phone`, with `password`. Returns a token valid for 12 hours |
 | `GET /api/v1/me` | any | The signed-in account |
-| `GET /api/v1/me/referral` | any | Own invitation code and how many used it |
+| `GET /api/v1/me/referral` | any | Own invitation code, how many used it, and `rewardPass`: the pass a qualified referral earns each passenger (null if none) |
 | `GET /api/v1/bus-alternatives?from=&to=&after=HH:mm` | any | Up to five administrator-entered buses between two towns, earliest first; not checked against the operator |
 | `GET/POST /api/v1/admin/bus-services`, `DELETE /api/v1/admin/bus-services/{id}` | ADMIN | List, add and remove bus services; adding and removing are audited |
 | `GET/POST /api/v1/admin/stopovers`, `DELETE /api/v1/admin/stopovers/{id}` | ADMIN | Rest stops and chargers; audited. The route preview (`POST /api/v1/rides/route-preview`) now also returns `alongRoute`: those near the route, in order, with `kmAlong`, `kmOffRoute` and `suggestedBreak` |
@@ -116,7 +116,7 @@ returns the booking the first request made instead of making another.
 | `GET /api/v1/payments` | P | Own payments |
 | `GET /api/v1/settlements` | D | Own payouts |
 | `GET /api/v1/passes/offers` | any | Passes on sale |
-| `GET /api/v1/passes` | P | Own passes |
+| `GET /api/v1/passes` | P | Own passes; `reward` marks one given free for an invitation |
 | `POST /api/v1/passes` | P | Buy a pass; one bought while another runs starts when it ends |
 | `GET /api/v1/bookings/{id}/receipt` | P | PDF receipt for the payment on own booking |
 | `GET /api/v1/passes/{id}/receipt` | P | PDF receipt for own pass |

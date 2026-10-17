@@ -1,5 +1,16 @@
 # Progress
 
+## 2026-10-17 (late night) — a reward for invitations
+
+- **Referral reward (72)**, as chosen: once an invited member completes a first trip, each
+  of the pair who is a passenger gets a free weekly pass, once, and is told. It starts
+  when any pass already running ends, waives the service fee like a bought one, and its
+  receipt says nothing was paid. Drivers get none: a pass only waives a passenger's fee.
+  A first trip rather than a sign-up earns it, so made-up accounts earn nothing. The pass
+  kind is set in `application.yml`, and NONE turns the reward off.
+- Tests: 243 Java, 181 Python, 202 web, 28 gateway, all passing.
+- Feature count: 75 Verified, 16 Partial, 4 Not started of 95.
+
 ## 2026-10-17 (night) — insurance and calling, as labelled mocks
 
 - **Insurance badge (58).** A driver declares the insurer and the date the cover runs to,
