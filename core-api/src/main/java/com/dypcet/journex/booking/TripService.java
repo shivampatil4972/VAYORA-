@@ -26,7 +26,9 @@ import com.dypcet.journex.routing.RouteService.Point;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -122,6 +124,8 @@ public class TripService {
             throw conflict("It is too early to start this ride");
         }
         setStatus(rideId, "IN_PROGRESS");
+        jdbc.update("UPDATE rides SET started_at = ? WHERE id = ?",
+                OffsetDateTime.ofInstant(clock.instant(), ZoneOffset.UTC), rideId);
         for (Booking unanswered : bookings.lockAll(rideId, BookingStatus.PENDING)) {
             bookings.move(unanswered, BookingStatus.REJECTED);
             // Never answered: not the driver's decision, whoever started the ride.

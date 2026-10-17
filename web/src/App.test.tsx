@@ -2380,7 +2380,7 @@ describe('flexibility tiers', () => {
 });
 
 describe('a ride already on the road', () => {
-  it('says so, and that the time at the stop is the timetable’s, only on such a ride', async () => {
+  it('says so, and that it may reach the stop early, only on such a ride', async () => {
     signIn('PASSENGER');
     serve({
       'GET /rides/search': () =>
@@ -2393,7 +2393,7 @@ describe('a ride already on the road', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
 
-    expect(await screen.findByText('Already on the road. The time at Karad is from the timetable: be there early.')).toBeInTheDocument();
+    expect(await screen.findByText('Already on the road: it may reach Karad before the time shown, so be there early.')).toBeInTheDocument();
     expect(screen.getAllByText(/Already on the road/)).toHaveLength(1);
   });
 });

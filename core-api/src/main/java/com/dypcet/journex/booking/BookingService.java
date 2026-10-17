@@ -275,7 +275,13 @@ public class BookingService {
         if (!boarding.isAfter(now)) {
             throw conflict("This ride has already left that stop");
         }
-        if (underWay && !boarding.isAfter(now.plus(midRouteLead))) {
+        // A ride started early may be ahead of its timetable by as much: judged by whichever
+        // puts it at the stop sooner.
+        if (underWay && !jdbc.queryForObject("""
+                SELECT LEAST(r.departure_time, r.started_at) + make_interval(mins => s.offset_minutes)
+                FROM rides r JOIN ride_stops s ON s.ride_id = r.id AND s.seq = ?
+                WHERE r.id = ?""",
+                OffsetDateTime.class, fromSeq, rideId).toInstant().isAfter(now.plus(midRouteLead))) {
             throw conflict("This ride is on the road and due at that stop too soon to book");
         }
 

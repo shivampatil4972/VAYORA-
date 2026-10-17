@@ -658,11 +658,13 @@ public class RideService {
                         FROM ride_segments s
                         WHERE s.ride_id = r.id AND s.seq >= o.seq AND s.seq < d.seq
                     ) legs
-                    -- A ride already on the road only from a stop it is not yet near, and only
-                    -- if it confirms instantly; BookingService.request applies the same rule.
+                    -- A ride already on the road only from a stop it is not yet near, counted
+                    -- from its start if that was early, and only if it confirms instantly.
+                    -- BookingService.request and SeatHoldController apply the same rule.
                     WHERE (r.status = 'SCHEDULED'
                            OR r.status = 'IN_PROGRESS' AND r.instant_booking
-                              AND r.departure_time + make_interval(mins => o.offset_minutes) > :midRouteCutoff)
+                              AND LEAST(r.departure_time, r.started_at)
+                                  + make_interval(mins => o.offset_minutes) > :midRouteCutoff)
                       AND r.departure_time + make_interval(mins => o.offset_minutes) >= :dayStart
                       AND r.departure_time + make_interval(mins => o.offset_minutes) < :dayEnd
                       AND r.departure_time + make_interval(mins => o.offset_minutes) > :now

@@ -57,7 +57,8 @@ public class SeatHoldController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "toSeq must come after fromSeq");
         }
         // What is free now on each leg, for a ride still open and not yet past that stop. A
-        // ride already on the road, as for booking: instant only, and not yet near the stop.
+        // ride already on the road, as for booking: instant only, and not yet near the stop,
+        // counted from its start if that was early.
         OffsetDateTime now = OffsetDateTime.ofInstant(clock.instant(), ZoneOffset.UTC);
         List<Integer> free = jdbc.queryForList("""
                 SELECT g.seats_available
@@ -68,7 +69,8 @@ public class SeatHoldController {
                   AND (r.status = 'SCHEDULED'
                          AND r.departure_time + make_interval(mins => s.offset_minutes) > ?
                        OR r.status = 'IN_PROGRESS' AND r.instant_booking
-                         AND r.departure_time + make_interval(mins => s.offset_minutes) > ?)
+                         AND LEAST(r.departure_time, r.started_at)
+                             + make_interval(mins => s.offset_minutes) > ?)
                   AND (NOT r.women_only OR EXISTS (
                       SELECT 1 FROM profiles w WHERE w.user_id = ? AND w.gender = 'FEMALE'))
                 ORDER BY g.seq""",

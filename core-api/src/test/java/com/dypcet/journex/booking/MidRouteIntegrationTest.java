@@ -121,6 +121,30 @@ class MidRouteIntegrationTest extends PostgresIntegrationTest {
         assertThat(count("trip_started")).isZero();
     }
 
+    // Found in a browser: a ride started early was still sold from the stop it had left,
+    // because its timetable said that stop was more than the margin away.
+    @Test
+    void aRideStartedEarlyIsJudgedFromItsStartNotItsTimetable() {
+        Point shiroli = new Point(16.7525, 74.2720);
+        long vehicleId = vehicles.create(driverId, "Maruti", "Ertiga", 2022, "Silver", 7).id();
+        // Due at Shiroli 20 minutes after leaving: 50 minutes away by the timetable, but 20
+        // from its start half an hour early, which is inside the margin.
+        long rideId = rides.publish(driverId, new PublishRide(vehicleId,
+                Instant.now().plus(Duration.ofMinutes(30)), 3, true, List.of(
+                        new StopInput("Kolhapur", KOLHAPUR.lat(), KOLHAPUR.lon(), 0),
+                        new StopInput("Shiroli", shiroli.lat(), shiroli.lon(), 20),
+                        new StopInput("Pune", PUNE.lat(), PUNE.lon(), 270)), PRICES)).id();
+        trips.start(driverId, rideId);
+        long passenger = user(UserRole.PASSENGER);
+
+        assertThat(jdbc.queryForObject("SELECT started_at IS NOT NULL FROM rides WHERE id = ?",
+                Boolean.class, rideId)).isTrue();
+        assertThat(found(passenger, shiroli, rideId)).isEmpty();
+        assertThatThrownBy(() -> bookings.request(passenger, rideId, 1, 2, 1, PaymentChoice.card(), null))
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        e -> assertThat(e.getReason()).isEqualTo(TOO_SOON));
+    }
+
     @Test
     void aRideWhoseDriverApprovesEachRequestIsNotSoldOnTheRoad() {
         long rideId = startedRide(3, false);

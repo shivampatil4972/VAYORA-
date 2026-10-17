@@ -1168,8 +1168,8 @@ export const mr: Record<string, string> = {
     'त्या दिवशी केव्हाही',
   'This driver has withdrawn some rides. A flexible booking would move you to another ride automatically.':
     'या चालकाने काही राइड मागे घेतल्या आहेत. लवचिक बुकिंग तुम्हाला आपोआप दुसऱ्या राइडवर नेईल.',
-  'Already on the road. The time at {stop} is from the timetable: be there early.':
-    'राइड आधीच रस्त्यावर आहे. {stop} ची वेळ वेळापत्रकानुसार आहे: तिथे आधी पोहोचा.',
+  'Already on the road: it may reach {stop} before the time shown, so be there early.':
+    'राइड आधीच रस्त्यावर आहे: ती दाखवलेल्या वेळेआधी {stop} ला पोहोचू शकते, म्हणून आधी पोहोचा.',
   'If the driver withdraws, you are booked on another ride within 2 hours.':
     'चालकाने राइड मागे घेतल्यास तुम्हाला 2 तासांच्या आत दुसऱ्या राइडवर बुक केले जाईल.',
   'If the driver withdraws, you are booked on another ride that day.':
