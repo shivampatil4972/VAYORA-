@@ -65,7 +65,7 @@ territory.
 | `GET /api/v1/rides/{id}` | any | A ride with its stops, legs, route and notes |
 | `GET /api/v1/rides/{id}/membership` | any | Whether the caller is on the ride. Used by the gateway |
 | `GET /api/v1/bookings` | P | Own bookings, each with the driver's `driverId`, `driverName` and the car (`vehicle`: make, model and colour as entered) |
-| `GET /api/v1/rides/search` | any | Rides with a stop near each end on a day. Each result also carries the driver's `driverRidesCompleted` and `driverRidesWithdrawn`, a rough `pickupWalkMinutes` and `dropoffWalkMinutes`, and `suggestFlexible` |
+| `GET /api/v1/rides/search` | any | Rides with a stop near each end on a day. Each result also carries the driver's `driverRidesCompleted` and `driverRidesWithdrawn`, a rough `pickupWalkMinutes` and `dropoffWalkMinutes`, `suggestFlexible`, and `underWay` for a ride already on the road (offered only from a stop it is due at 30 minutes or more ahead, and only if it confirms instantly) |
 
 Search takes `originLat`, `originLon`, `destLat`, `destLon`, `date`, and optionally
 `seats` (default 1), `sort` (`TIME`, `PRICE`, `RATING`, `PROXIMITY`), and filters
@@ -100,7 +100,7 @@ returns the booking the first request made instead of making another.
 | Method and path | Who | What |
 |---|---|---|
 | `POST /api/v1/rides/{id}/start` | D | Start the ride, up to an hour early |
-| `POST /api/v1/bookings/{id}/no-show` | D | Mark a passenger who did not board |
+| `POST /api/v1/bookings/{id}/no-show` | D | Mark a passenger who did not board; their seat goes back on sale for later stops |
 | `POST /api/v1/rides/{id}/complete` | D | Complete the ride and pay out |
 | `POST /api/v1/rides/{id}/cancel` | D | Withdraw the ride; passengers are refunded in full and told of other rides |
 | `POST /api/v1/rides/{id}/cancel-series` | D | Withdraw every ride still to run in this ride's series |

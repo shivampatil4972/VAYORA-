@@ -1,5 +1,28 @@
 # Progress
 
+## 2026-10-17 (later) — why searches find nothing; seats on a ride under way
+
+Both approved on 2026-10-17.
+
+- **Why searches find nothing, measured.** The simulator now logs, with each answer, how
+  many published rides left in the passenger's time window before the seat check
+  (`rides_in_window` on `candidates_returned`; no new event type, no random draw). The
+  ladder and robustness runs were rebuilt: no existing figure changed. In B0, 35.5% of
+  searches meet only full rides and 19.6% find no ride in their window: two empty
+  searches in three are full rides, now measured rather than worked out from the
+  configuration. Every variant's effect on empty searches is on full rides.
+  EXPERIMENT_PROTOCOL.md section 16.
+- **Seats on a ride under way (84).** A ride already on the road stays on sale from stops
+  it is due at 30 minutes or more ahead, by its timetable, and only if it confirms
+  instantly. A no-show's seat goes back on sale for the stops ahead. Search, booking and
+  seat holds share the rule, and a result says the ride is on the road and that its time
+  at the stop is the timetable's. A booking made on the road writes its `trip_started`
+  at once, so started = completed + failed still holds. Decisions in DECISIONS.md.
+- KNOWN_LIMITATIONS had said there was no profile photo and no price, music or
+  conversation filter; all exist. Corrected.
+- Tests: 226 Java, 181 Python, 193 web, 28 gateway, all passing.
+- Feature count: 73 Verified, 15 Partial, 7 Not started of 95.
+
 ## 2026-10-17 — live position seen between two browsers
 
 - A third browser pass drove live position (feature 68) with two browsers: a driver whose

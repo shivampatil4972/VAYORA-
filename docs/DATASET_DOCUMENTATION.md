@@ -46,6 +46,10 @@ empty answer says whether no ride ran then or every one was full (EXPERIMENT_PRO
 section 16). Runs made before then lack it, and the query reports their split as unknown.
 The platform's own rows do not carry it.
 
+On the platform, a booking made on a ride already under way (feature 84) is followed at
+once by its `trip_started`, written when the booking is made rather than when the
+passenger boards, so that every `trip_completed` or `trip_failed` has its start.
+
 `nudge_converted` records that a nudged driver went on to offer the stretch that day. It is
 not evidence that the nudge caused it, and no report uses it as a result: CLAUDE.md makes
 driver response a swept assumption, because simulation cannot identify it.
