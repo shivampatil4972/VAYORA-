@@ -218,6 +218,49 @@ def test_only_a_passenger_left_without_a_seat_searches_again(baseline):
             left_out.discard(payload["search_id"])
 
 
+def test_an_empty_search_says_whether_no_ride_ran_then_or_the_rides_were_full(baseline):
+    _, events = baseline
+    answers = [e.payload for e in events if e.event_type == "candidates_returned"]
+
+    assert all(a["count"] <= a["rides_in_window"] for a in answers)
+    empty = [a for a in answers if a["count"] == 0]
+    # Seats are scarce in the shipped world, so both reasons occur.
+    assert any(a["rides_in_window"] == 0 for a in empty)
+    assert any(a["rides_in_window"] > 0 for a in empty)
+
+
+def test_where_no_ride_can_fill_up_an_empty_search_is_always_for_want_of_a_ride():
+    _, events = _run(_supply(WORLD, seats={50: 1.0}))
+    empty = [e.payload for e in events
+             if e.event_type == "candidates_returned" and e.payload["count"] == 0]
+
+    assert empty
+    assert all(a["rides_in_window"] == 0 for a in empty)
+
+
+def test_a_ride_not_yet_published_is_not_counted_as_running():
+    # Every ride published exactly a day before it leaves: a search for further ahead
+    # than that, beyond the time window, cannot see any ride.
+    world = _supply(WORLD, publish_lead_days_min=1.0, publish_lead_days_max=1.0)
+    _, events = _run(world)
+    tolerance = timedelta(hours=world.demand.departure_tolerance_hours)
+    wanted: dict[int, datetime] = {}
+    too_early = seen = 0
+
+    for event in events:
+        if event.event_type in ("search_issued", "recovery_search"):
+            wanted[event.payload["search_id"]] = datetime.fromisoformat(
+                event.payload["desired_departure"])
+        elif event.event_type == "candidates_returned":
+            if wanted[event.payload["search_id"]] - event.sim_time > timedelta(days=1) + tolerance:
+                too_early += 1
+                assert event.payload["rides_in_window"] == 0, event
+            elif event.payload["rides_in_window"] > 0:
+                seen += 1
+
+    assert too_early and seen
+
+
 def test_a_recovery_booking_is_a_real_booking_made_on_a_repeat_search(baseline):
     _, events = baseline
     requested = {e.payload["booking_id"] for e in events if e.event_type == "booking_requested"}

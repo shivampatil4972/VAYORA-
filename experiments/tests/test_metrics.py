@@ -206,7 +206,8 @@ def test_cancellation_without_departure_time_is_surfaced(sa_conn):
 def test_metrics_file_defines_the_expected_queries():
     assert set(load_queries()) == {
         "primary_metric", "late_cancellation_share", "funnel_rates", "intervention_volume",
-        "refill_additionality", "refill_by_release_timing", "cancellation_timing"}
+        "refill_additionality", "empty_search_reasons", "refill_by_release_timing",
+        "cancellation_timing"}
 
 
 def test_intervention_volume_matches_hand_computed_values(sa_conn):
@@ -272,6 +273,34 @@ def test_refill_additionality_matches_hand_computed_values(sa_conn):
     assert float(one["only_option_share"]) == pytest.approx(2 / 3)
     assert (two["searches_shown"], two["shown_nothing"], two["refills"],
             two["refills_only_option"], two["only_option_share"]) == (2, 1, 0, 0, None)
+
+
+def test_empty_search_reasons_matches_hand_computed_values(sa_conn):
+    def answer(seed, offered, in_window=None, variant=VARIANT):
+        payload = {"search_id": 1, "count": offered}
+        if in_window is not None:
+            payload["rides_in_window"] = in_window
+        return {"run_id": RUN_ID, "variant": variant, "seed": seed, "sim_time": NOW,
+                "event_type": "candidates_returned", "payload": json.dumps(payload)}
+
+    sa_conn.execute(INSERT, [
+        # Seed 1: five answers, three empty: one with no ride then, two with full rides.
+        answer(1, 0, 0), answer(1, 0, 3), answer(1, 0, 2), answer(1, 2, 4), answer(1, 1, 1),
+        # Seed 2: one empty answer logged without the reason, so its shares are undefined.
+        answer(2, 0), answer(2, 0, 0), answer(2, 3, 5),
+        # Another variant in the same run must not leak in.
+        answer(1, 0, 5, variant="B1"),
+    ])
+
+    one, two = run_query(sa_conn, "empty_search_reasons", run_id=RUN_ID, variant=VARIANT)
+
+    assert (one["searches_shown"], one["shown_nothing"], one["no_ride_then"],
+            one["rides_full"], one["reason_unknown"]) == (5, 3, 1, 2, 0)
+    assert float(one["no_ride_share"]) == pytest.approx(1 / 5)
+    assert float(one["full_share"]) == pytest.approx(2 / 5)
+    assert (two["searches_shown"], two["shown_nothing"], two["no_ride_then"],
+            two["rides_full"], two["reason_unknown"]) == (3, 2, 1, 0, 1)
+    assert (two["no_ride_share"], two["full_share"]) == (None, None)
 
 
 def test_refill_by_release_timing_matches_hand_computed_values(sa_conn):

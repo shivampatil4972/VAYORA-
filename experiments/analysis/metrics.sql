@@ -142,6 +142,42 @@ FROM answers
 GROUP BY seed
 ORDER BY seed;
 
+-- name: empty_search_reasons
+-- Why a search was offered nothing: no published ride left in the passenger's time window,
+-- or rides in it without enough seats. Counts every answer, first or repeat, as
+-- refill_additionality does, so searches_shown and shown_nothing equal its columns.
+--
+-- searches_shown   searches that got an answer
+-- shown_nothing    of those, the ones offered no ride
+-- no_ride_then     offered nothing because no published ride left in the window
+-- rides_full       offered nothing although rides left in the window: none had the seats
+-- reason_unknown   offered nothing, logged before rides_in_window existed; must be 0
+-- no_ride_share    no_ride_then / searches_shown
+-- full_share       rides_full / searches_shown
+--
+-- The two shares are undefined for a seed with any reason unknown, rather than wrong.
+SELECT seed,
+  COUNT(*) AS searches_shown,
+  COUNT(*) FILTER (WHERE offered = 0) AS shown_nothing,
+  COUNT(*) FILTER (WHERE offered = 0 AND in_window = 0) AS no_ride_then,
+  COUNT(*) FILTER (WHERE offered = 0 AND in_window > 0) AS rides_full,
+  COUNT(*) FILTER (WHERE offered = 0 AND in_window IS NULL) AS reason_unknown,
+  CASE WHEN COUNT(*) FILTER (WHERE offered = 0 AND in_window IS NULL) = 0
+       THEN 1.0 * COUNT(*) FILTER (WHERE offered = 0 AND in_window = 0) / COUNT(*)
+  END AS no_ride_share,
+  CASE WHEN COUNT(*) FILTER (WHERE offered = 0 AND in_window IS NULL) = 0
+       THEN 1.0 * COUNT(*) FILTER (WHERE offered = 0 AND in_window > 0) / COUNT(*)
+  END AS full_share
+FROM (
+  SELECT seed, (payload->>'count')::int AS offered,
+         (payload->>'rides_in_window')::int AS in_window
+  FROM events
+  WHERE run_id = :run_id AND variant = :variant
+    AND event_type = 'candidates_returned'
+) answers
+GROUP BY seed
+ORDER BY seed;
+
 -- name: refill_by_release_timing
 -- Are seats a passenger releases late refilled anyway, and how much better do early ones do?
 --

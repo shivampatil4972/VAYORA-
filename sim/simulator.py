@@ -322,17 +322,21 @@ class Simulation:
 
         tolerance = self.world.demand.departure_tolerance_hours
         horizon = BOOKING_HORIZON_DAYS * HOURS_PER_DAY
-        candidates = self._rank([
+        in_window = [
             ride for ride in self.rides
             if ride.status == "open"
             and now < ride.departure <= now + horizon
             and abs(ride.departure - passenger.desired_departure) <= tolerance
-            and ride.seats_available >= passenger.seats
-        ], passenger)
+        ]
+        candidates = self._rank(
+            [ride for ride in in_window if ride.seats_available >= passenger.seats], passenger)
 
+        # rides_in_window says why a search found nothing: no published ride at that time
+        # (0), or rides at that time without enough seats (above 0). Only what a platform
+        # could see: a ride not yet published is not counted.
         self._emit(EventType.CANDIDATES_RETURNED,
                    {"search_id": passenger.search_id, "passenger_id": passenger.id,
-                    "count": len(candidates)},
+                    "count": len(candidates), "rides_in_window": len(in_window)},
                    "passenger", passenger.id)
         for rank, ride in enumerate(candidates, start=1):
             self._emit(EventType.CANDIDATE_RANKED,
