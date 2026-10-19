@@ -2247,12 +2247,14 @@ describe('phone sign-up', () => {
 });
 
 describe('what if', () => {
-  it('shows a saved run for the chosen setting, and says nothing is simulated', async () => {
+  const offered = () => json([{ name: 'departure-tolerance', parameter: 'demand.departure_tolerance_hours', min: 0, max: 12, whole: false }]);
+
+  it('shows a saved run for the chosen setting, and says only swept settings are saved runs', async () => {
     signIn('ADMIN');
-    serve({});
+    serve({ 'GET /v1/whatif/sweeps': offered });
     open('/admin/what-if');
 
-    expect(await screen.findByText(/nothing is simulated on this page/)).toBeInTheDocument();
+    expect(await screen.findByText(/only the settings a sweep was run at can be chosen there/)).toBeInTheDocument();
     await userEvent.selectOptions(screen.getByLabelText('Question'), 'How far from their chosen time passengers will travel');
     await userEvent.selectOptions(screen.getByLabelText('Hours either side of the chosen time'), '8');
 
@@ -2263,6 +2265,46 @@ describe('what if', () => {
     expect(row).toHaveTextContent('−0.05 (−0.10 to −0.01)');
     expect(within(row).queryByText('no clear difference')).not.toBeInTheDocument();
     expect(screen.getByText('B4 compared with B3, 30 seeds each, paired by seed.', { exact: false })).toBeInTheDocument();
+  });
+
+  it('simulates a value no sweep covered, and says the result is only an exploration', async () => {
+    signIn('ADMIN');
+    const fetchMock = serve({
+      'GET /v1/whatif/sweeps': offered,
+      'POST /v1/whatif/run': () =>
+        json({ variant: 'B4', baseline: 'B3', value: 3, seeds: 5, measures: {
+          per_100: { baseline_mean: 32.1, mean: 32.25, difference: 0.15, seeds: 5, seeds_up: 4, seeds_down: 1 },
+          late_share: { baseline_mean: 0.38, mean: 0.33, difference: -0.05, seeds: 5, seeds_up: 0, seeds_down: 5 } } }),
+    });
+    open('/admin/what-if');
+
+    await userEvent.selectOptions(screen.getByLabelText('Question'), 'How far from their chosen time passengers will travel');
+    await userEvent.type(await screen.findByLabelText('Value to simulate'), '3');
+    await userEvent.selectOptions(screen.getByLabelText('Seeds'), '5');
+    await userEvent.click(screen.getByRole('button', { name: 'Simulate' }));
+
+    const result = within(await screen.findByRole('region', { name: 'Live result' }));
+    expect(result.getByRole('row', { name: /Completed rides per 100 searches/ })).toHaveTextContent('32.2532.10+0.154 / 1');
+    expect(result.getByText(/simulated just now\. Exploratory: no interval, and not a report figure/)).toBeInTheDocument();
+    const post = fetchMock.mock.calls.find(([url, init]) => init?.method === 'POST' && String(url).endsWith('/v1/whatif/run'))!;
+    expect(String(post[0])).toBe('http://localhost:8000/v1/whatif/run');
+    expect(JSON.parse(String(post[1]!.body))).toEqual({ sweep: 'departure-tolerance', value: 3, seeds: 5 });
+  });
+
+  it("shows intel's reason for refusing a run, and a refusal there signs nobody out", async () => {
+    signIn('ADMIN');
+    serve({
+      'GET /v1/whatif/sweeps': offered,
+      'POST /v1/whatif/run': () => json({ detail: 'Your session has ended. Sign in again.' }, 401),
+    });
+    open('/admin/what-if');
+
+    await userEvent.selectOptions(screen.getByLabelText('Question'), 'How far from their chosen time passengers will travel');
+    await userEvent.type(await screen.findByLabelText('Value to simulate'), '3');
+    await userEvent.click(screen.getByRole('button', { name: 'Simulate' }));
+
+    expect(await screen.findByText('Your session has ended. Sign in again.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'What if' })).toBeInTheDocument();
   });
 });
 

@@ -1,7 +1,9 @@
-// The one place the app talks to core-api. Every request carries the session token and
-// every failure becomes an ApiError with a message fit to show.
+// The one place the app talks to core-api, and to intel for an administrator's live
+// what-if run. Every request carries the session token and every failure becomes an
+// ApiError with a message fit to show.
 
-const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
+const BASE = `${import.meta.env.VITE_API_URL ?? 'http://localhost:8080'}/api/v1`;
+const INTEL = import.meta.env.VITE_INTEL_URL ?? 'http://localhost:8000';
 
 export class ApiError extends Error {
   constructor(
@@ -42,6 +44,14 @@ export async function api<T>(
 }
 
 /**
+ * Asks intel, with the session token. Only core-api decides whether a session is still
+ * good, so a refusal from intel never signs anyone out.
+ */
+export async function intel<T>(path: string, options: { method?: string; body?: unknown } = {}): Promise<T> {
+  return (await (await send(path, options, INTEL, false)).json()) as T;
+}
+
+/**
  * Fetches a file with the session token and hands it to the browser to save. A plain link
  * cannot do this: it would go without the token.
  */
@@ -70,6 +80,8 @@ export async function fetchFile(path: string): Promise<Blob | null> {
 async function send(
   path: string,
   options: { method?: string; body?: unknown; headers?: Record<string, string> },
+  base = BASE,
+  ownsSession = true,
 ): Promise<Response> {
   const headers: Record<string, string> = { ...options.headers };
   // A file goes as itself; anything else as JSON.
@@ -81,7 +93,7 @@ async function send(
 
   let response: Response;
   try {
-    response = await fetch(`${BASE}/api/v1${path}`, {
+    response = await fetch(`${base}${path}`, {
       method: options.method ?? 'GET',
       headers,
       body: file ?? (options.body === undefined ? undefined : JSON.stringify(options.body)),
@@ -92,16 +104,18 @@ async function send(
 
   // Only if the rejected token is still the session's: a slow answer to a request made
   // by an earlier session must not sign out the one that replaced it.
-  if (response.status === 401 && sentToken && sentToken === token) onUnauthorized();
+  if (ownsSession && response.status === 401 && sentToken && sentToken === token) onUnauthorized();
   if (!response.ok) throw new ApiError(response.status, await problemDetail(response));
   return response;
 }
 
-// core-api answers errors with an RFC 7807 problem document.
+// core-api answers errors with an RFC 7807 problem document; intel with FastAPI's
+// `detail`, which for a malformed request is a list rather than a sentence.
 async function problemDetail(response: Response): Promise<string> {
   try {
-    const problem = (await response.json()) as { detail?: string; title?: string };
-    return problem.detail ?? problem.title ?? `Request failed (${response.status})`;
+    const problem = (await response.json()) as { detail?: unknown; title?: string };
+    const detail = typeof problem.detail === 'string' ? problem.detail : undefined;
+    return detail ?? problem.title ?? `Request failed (${response.status})`;
   } catch {
     return `Request failed (${response.status})`;
   }

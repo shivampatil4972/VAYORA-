@@ -109,4 +109,10 @@ export const SERVER_MESSAGES = [
   msg('No account uses this Google address yet. Choose passenger or driver to create one.'),
   msg('Invalid request content.'),
   msg('Cannot reach the server. Check your connection and try again.'),
+  // intel's fixed refusals of a live what-if run, which the app shows as they come.
+  msg('Sign in first'),
+  msg('Your session has ended. Sign in again.'),
+  msg('Only an administrator can run the simulator'),
+  msg('Live runs are not set up on this server'),
+  msg('No such sweep can be run live'),
 ];

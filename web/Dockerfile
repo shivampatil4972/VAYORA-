@@ -9,6 +9,9 @@ ENV VITE_API_URL=$VITE_API_URL
 # And the address it uses to reach the gateway, for chat and live position.
 ARG VITE_GATEWAY_URL=http://localhost:3000
 ENV VITE_GATEWAY_URL=$VITE_GATEWAY_URL
+# And intel, which only an administrator's live what-if run calls.
+ARG VITE_INTEL_URL=http://localhost:8000
+ENV VITE_INTEL_URL=$VITE_INTEL_URL
 RUN npm run build
 
 FROM nginx:1.27-alpine

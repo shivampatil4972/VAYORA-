@@ -970,8 +970,6 @@ export const hi: Record<string, string> = {
   // What-if explorer
   'What if':
     'क्या होगा अगर',
-  'Simulator runs on synthetic data, not real passengers. Changing a setting shows another saved run: nothing is simulated on this page, and only the settings a sweep was run at can be chosen.':
-    'कृत्रिम डेटा पर सिम्युलेटर के रन, असली यात्रियों पर नहीं। सेटिंग बदलने पर एक और सहेजा गया रन दिखता है: इस पृष्ठ पर कुछ भी सिम्युलेट नहीं होता, और केवल वही सेटिंग चुनी जा सकती हैं जिन पर स्वीप चलाया गया था।',
   'Question':
     'प्रश्न',
   'How many reconfirmation requests may go out at once':
@@ -1469,6 +1467,42 @@ export const hi: Record<string, string> = {
     'कहते हैं कि उनके पास {document} है, जाँचा नहीं गया',
   'You can say which identity document you hold. JOURNEX does not ask for its number or a copy and checks nothing: your profile will say it was declared, not checked.':
     'आप बता सकते हैं कि आपके पास कौन-सा पहचान पत्र है। JOURNEX उसका नंबर या प्रति नहीं माँगता और कुछ नहीं जाँचता: आपकी प्रोफ़ाइल पर लिखा होगा कि यह घोषित किया गया है, जाँचा नहीं गया।',
+  'Sign in first':
+    'पहले साइन इन करें',
+  'Your session has ended. Sign in again.':
+    'आपका सत्र समाप्त हो गया है। फिर से साइन इन करें।',
+  'Only an administrator can run the simulator':
+    'केवल प्रशासक ही सिम्युलेटर चला सकते हैं',
+  'Live runs are not set up on this server':
+    'इस सर्वर पर अभी के रन सेट नहीं हैं',
+  'No such sweep can be run live':
+    'ऐसा कोई स्वीप अभी नहीं चलाया जा सकता',
+  'Simulator runs on synthetic data, not real passengers. Changing a setting shows another saved run, and only the settings a sweep was run at can be chosen there. Any other value can be simulated below, as an exploration.':
+    'कृत्रिम डेटा पर सिम्युलेटर के रन, असली यात्रियों पर नहीं। सेटिंग बदलने पर एक और सहेजा गया रन दिखता है, और वहाँ केवल वही सेटिंग चुनी जा सकती हैं जिन पर स्वीप चलाया गया था। कोई और मान नीचे खोज के तौर पर सिम्युलेट किया जा सकता है।',
+  'Simulate another value now':
+    'अभी कोई और मान सिम्युलेट करें',
+  'Runs the simulator now, at a value no sweep was run at. Exploratory: means and the mean difference only, with no interval; kept nowhere, and never a report figure. About a second for every two seeds.':
+    'सिम्युलेटर को अभी उस मान पर चलाता है जिस पर कोई स्वीप नहीं चला। केवल खोज के लिए: केवल औसत और औसत अंतर, बिना अंतराल के; कहीं सहेजा नहीं जाता, और कभी रिपोर्ट का आँकड़ा नहीं। हर दो सीड पर लगभग एक सेकंड।',
+  'This question cannot be simulated live.':
+    'यह प्रश्न अभी सिम्युलेट नहीं किया जा सकता।',
+  'from {min} to {max}':
+    '{min} से {max} तक',
+  'Value to simulate':
+    'सिम्युलेट करने का मान',
+  'Seeds':
+    'सीड',
+  'Simulating…':
+    'सिम्युलेट हो रहा है…',
+  'Simulate':
+    'सिम्युलेट करें',
+  'Live result':
+    'अभी का परिणाम',
+  'Difference':
+    'अंतर',
+  'Seeds up / down':
+    'सीड ऊपर / नीचे',
+  '{variant} compared with {baseline} at {value}, on {seeds} seeds, simulated just now. Exploratory: no interval, and not a report figure.':
+    '{value} पर {variant} की तुलना {baseline} से, {seeds} सीड पर, अभी सिम्युलेट की गई। केवल खोज के लिए: कोई अंतराल नहीं, और रिपोर्ट का आँकड़ा नहीं।',
   'Those stops are not on this ride':
     'ये स्टॉप इस सवारी पर नहीं हैं',
   'Too many wrong attempts. Request a new code.':
