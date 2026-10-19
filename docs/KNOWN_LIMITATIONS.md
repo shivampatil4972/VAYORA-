@@ -124,6 +124,8 @@ mistake for more. Updated 2026-10-17.
   times shown. Reminders and calls still count from the stop, a few minutes earlier.
   Drop-offs away from the stops are not offered. Without the routing service, costs are
   straight lines at 50 km/h, which understates them.
+- **Walking times need the walking graph.** Without it, or while it is building, walks are
+  straight lines at 4.5 km/h and say so. There is still no rickshaw data.
 - **Match scoring treats any difference as a mismatch.** One person fine with smoking and
   the other not counts against the match, though the ride would simply be smoke-free.
   The weights (25 distance, 20 price, 15 record, 10 for each preference) are assumptions,

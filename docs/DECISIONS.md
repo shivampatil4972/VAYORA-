@@ -17,6 +17,8 @@ was decided while building within them.
 | The gradient-boosted survival model trains on a 5,000-row sample | Its loss is quadratic in rows; the full set ran for over ten minutes | It is compared on less data than Cox |
 | Variants B1 and B2 are not built | The simulated corridor has one origin and one destination: there is no geography to filter or rank two-sidedly | Two rungs of the ladder are missing |
 | B5 keeps B4's threshold and adds only a budget | So the two differ in one thing | |
+| The share of passengers with a flexible booking is swept, never assumed | Nothing in a simulation says how many would choose it | The result is a range, not one number |
+| The simulator's setting is `flexible_booking`, not `flexible` | `flexible` is already a hidden passenger type, which must never be confused with anything observable | |
 | The contact scheduler is a CP-SAT integer programme | A seat limit per departure day makes the choice one that sorting cannot solve | A dependency (OR-Tools) for a constraint that rarely binds at this scale |
 | A sweep can vary a variant's parameters, not only the world's | The budget is a property of the variant | |
 | Metric queries group rather than join on keys inside the JSON payload | A join on payload keys did not finish in ten minutes; grouping takes seconds | Queries are longer to read |

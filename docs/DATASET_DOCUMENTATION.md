@@ -50,6 +50,11 @@ On the platform, `intervention_issued` is also written for each seat-release rem
 (feature 79), with `action` `release_reminder` and no `survival_probability`: the reminder
 goes to everyone alike and uses no model. It is a platform row, outside every run.
 
+When a driver withdraws and a passenger is rebooked at once (feature 88, simulated from
+2026-10-19 when `demand.flexible_booking.share` is above 0), the new `booking_requested`
+carries the same `search_id` and the same instant as the driver's `booking_cancelled`;
+no other event marks it, as on the platform.
+
 On the platform, a booking made on a ride already under way (feature 84) is followed at
 once by its `trip_started`, written when the booking is made rather than when the
 passenger boards, so that every `trip_completed` or `trip_failed` has its start.

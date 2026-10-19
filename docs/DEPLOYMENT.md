@@ -114,6 +114,7 @@ platform, in the `events` table, kept apart by `run_id`.
 | The app loads but every request fails | `CORS_ALLOWED_ORIGINS` does not match the address the app is opened at |
 | Sign-in works but chat does not connect | The gateway has a different `JWT_SECRET` from core-api |
 | Routes are straight lines | OSRM is not running, or still building its graph. Check `docker compose logs osrm-build` |
+| Walks say "in a straight line" | The walking graph (`osrm-foot`) is not running or still building. Check `docker compose logs osrm-build-foot` |
 | No administrator | `ADMIN_EMAIL` and `ADMIN_PASSWORD` were not set when core-api started. Set them and restart it |
 
 ## What a real deployment would need

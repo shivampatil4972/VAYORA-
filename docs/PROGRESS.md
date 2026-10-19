@@ -1,5 +1,23 @@
 # Progress
 
+## 2026-10-19 (evening) — recovery simulated, and walks on footpaths
+
+- **Cascade-aware recovery (88), simulated**: the simulator now rebooks a passenger who
+  chose a flexible booking at once when their driver withdraws, as the platform does; the
+  share who choose it is swept, not assumed. With nobody flexible it reproduces section 7
+  exactly. Rebooking rescues +0.03, +0.07 and +0.14 completed rides per 100 searches as the
+  share goes 0.25, 0.5 and 1.0 (EXPERIMENT_PROTOCOL.md section 17): of what the platform
+  does once a seat is booked, the only thing tried that adds rides. The setting is called
+  `flexible_booking`, never `flexible`, which is a hidden passenger type. The sweep is in
+  reproduce.sh and the what-if explorer. 88 is Verified.
+- **Walking on footpaths (91)**: a second routing graph, built from the same map for
+  walking, gives the walk to the pickup and from the drop-off; the result says whether a
+  walk was routed or is a straight-line estimate. Seen through the running stack: from a
+  kilometre off a stop, 15 minutes on footpaths against 14 in a straight line. 91 stays
+  Partial: there is no rickshaw data.
+- Tests: 267 Java, 187 Python, 208 web, 28 gateway, all passing.
+- Feature count: 78 Verified, 15 Partial, 2 Not started of 95.
+
 ## 2026-10-19 (later) — detour tolerance
 
 - **Detour tolerance (28)**, as chosen: a driver says how many minutes in all they will go

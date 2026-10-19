@@ -669,3 +669,39 @@ The two parts add to the first row up to rounding.
 
 The live platform does not log `rides_in_window`: its seat check is one of many filters in
 the same query, so "full" has no single meaning there.
+
+## 17. Rebooking flexible passengers when a driver withdraws
+
+Run on 2026-10-19. Synthetic data; 30 seeds per cell; ranking B3. Sweep
+`5eeb0000-0000-4000-8000-000000000008`; report
+`experiments/reports/sweep-flexible-booking-5eeb0000-0000-4000-8000-000000000008.md`.
+
+The platform rebooks a passenger who chose a flexible booking at once when their driver
+withdraws, on the closest other open ride with the seats within two hours (features 81
+and 88); everyone else may search again, as before. The simulator now does the same,
+drawing who chose flexible from a stream of its own. How many passengers would choose it
+cannot be learnt from simulation, so the share is swept. With a share of 0, the world's
+value, B3 gives 31.11 completed rides per 100 searches, exactly section 7's figure: adding
+the behaviour changed nothing else.
+
+| Share with a flexible booking | Completed per 100, change (95% CI) | Seeds up / down | Searches offered no ride, change |
+|---|---|---|---|
+| 0.25 | +0.03 (+0.02 to +0.05) | 21 / 1 | +0.001 |
+| 0.5 | +0.07 (+0.05 to +0.10) | 25 / 0 | +0.002 |
+| 1.0 | +0.14 (+0.11 to +0.17) | 28 / 1 | +0.003 |
+
+### What this shows
+
+- **Rebooking rescues trips in proportion to how many choose it,** up to +0.14 completed
+  rides per 100 searches if everyone did. Only 4% of rides are withdrawn, which bounds it.
+- **Of what the platform does once a seat is booked, it is the only thing tried that adds
+  rides.** Asking passengers to reconfirm adds none (sections 7 to 14), and even an oracle
+  gains +0.10 at the assumed release chance (section 12). Recovery matches the oracle
+  somewhere between half and all passengers being flexible. Ranking at search time (B3)
+  remains the larger gain, +0.34.
+- **Part of it is taken from others.** A rebooked passenger takes a seat a later searcher
+  would have found, so searches offered nothing rise slightly. The gain shown is net of
+  that.
+- Who chooses flexible is drawn independently of the hidden passenger types. If, as is
+  likely, committed passengers chose it more, the rescued trips would last better and the
+  gain could be larger; that is not measured.
