@@ -81,7 +81,11 @@ public class FlexibleRebooking {
                 rideId, booking.fromSeq(), booking.toSeq());
         List<String> method = jdbc.queryForList("SELECT method FROM payment_intents WHERE booking_id = ?",
                 String.class, booking.id());
-        Withdrawn withdrawn = new Withdrawn(rideId, booking, tier, ends.get(0), ends.get(1),
+        // A passenger picked up away from the stops is where the pickup was, not at the stop
+        // before it, which may be far from them: that is why they were picked up.
+        Point from = booking.pickupLat() != null && booking.pickupLon() != null
+                ? new Point(booking.pickupLat(), booking.pickupLon()) : ends.get(0);
+        Withdrawn withdrawn = new Withdrawn(rideId, booking, tier, from, ends.get(1),
                 method.isEmpty() ? PaymentChoice.Method.CARD.name() : method.get(0));
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
@@ -106,15 +110,23 @@ public class FlexibleRebooking {
             fits = List.of();
         }
         for (Candidate ride : fits) {
+            // A ride that picks the passenger up at their own point is booked with that point.
+            Point pickup = ride.detourMinutes() != null ? withdrawn.from() : null;
             try {
                 Booking booked = ownTransaction.execute(status -> bookings.request(was.passengerId(), ride.rideId(),
                         ride.fromSeq(), ride.toSeq(), was.seats(),
                         new PaymentChoice(PaymentChoice.Method.valueOf(withdrawn.paymentMethod()), null), null,
-                        withdrawn.tier()));
-                tell(was, Text.of(booked.status() == BookingStatus.CONFIRMED
-                                ? "As you chose a flexible booking, you are booked on the {time} ride from {stop} with {driver}."
-                                : "As you chose a flexible booking, you have asked for a seat on the {time} ride from {stop} with {driver}. The driver will answer.",
-                        "time", time(ride), "stop", ride.fromStop(), "driver", ride.driverName()));
+                        withdrawn.tier(), pickup));
+                boolean confirmed = booked.status() == BookingStatus.CONFIRMED;
+                tell(was, pickup != null
+                        ? Text.of(confirmed
+                                        ? "As you chose a flexible booking, you are booked on the {time} ride with {driver}, who will pick you up at your own point."
+                                        : "As you chose a flexible booking, you have asked for a seat on the {time} ride with {driver}, who would pick you up at your own point. The driver will answer.",
+                                "time", time(ride), "driver", ride.driverName())
+                        : Text.of(confirmed
+                                        ? "As you chose a flexible booking, you are booked on the {time} ride from {stop} with {driver}."
+                                        : "As you chose a flexible booking, you have asked for a seat on the {time} ride from {stop} with {driver}. The driver will answer.",
+                                "time", time(ride), "stop", ride.fromStop(), "driver", ride.driverName()));
                 return;
             } catch (ResponseStatusException e) {
                 // Full, women-only, or too close to departure for an answer: try the next.

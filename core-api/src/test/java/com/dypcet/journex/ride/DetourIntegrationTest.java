@@ -7,8 +7,11 @@ import com.dypcet.journex.PostgresIntegrationTest;
 import com.dypcet.journex.booking.BookingService;
 import com.dypcet.journex.booking.BookingService.Booking;
 import com.dypcet.journex.booking.FlexTier;
+import com.dypcet.journex.booking.TripService;
 import com.dypcet.journex.identity.IdentityService;
 import com.dypcet.journex.identity.UserRole;
+import com.dypcet.journex.notification.NotificationService;
+import com.dypcet.journex.notification.NotificationService.Type;
 import com.dypcet.journex.payment.PaymentChoice;
 import com.dypcet.journex.ride.RideService.Candidate;
 import com.dypcet.journex.ride.RideService.PublishRide;
@@ -56,6 +59,12 @@ class DetourIntegrationTest extends PostgresIntegrationTest {
 
     @Autowired
     private BookingService bookings;
+
+    @Autowired
+    private TripService trips;
+
+    @Autowired
+    private NotificationService notifications;
 
     private LocalDate day;
     private Instant departure;
@@ -138,10 +147,67 @@ class DetourIntegrationTest extends PostgresIntegrationTest {
         assertThat(offered.detourMinutes()).isNull();
     }
 
+    // Found reviewing the detour work: a flexible passenger picked up near Karad was rebooked
+    // from the Kolhapur stop, the stop before their pickup, 66 km from where they were.
+    @Test
+    void aFlexiblePassengerPickedUpAwayIsRebookedFromTheirOwnPointWhenTheDriverWithdraws() {
+        onADayOfItsOwn(12);
+        long withdrawing = user(UserRole.DRIVER);
+        long first = rideBy(withdrawing, departure, 15);
+        long passenger = user(UserRole.PASSENGER);
+        bookings.request(passenger, first, 0, 2, 1, PaymentChoice.card(), null, FlexTier.FLEXIBLE, NEAR_KARAD);
+        // Leaves from Kolhapur 20 minutes before the other: closer in time from the stop, but
+        // the passenger is not at the stop.
+        rideBy(user(UserRole.DRIVER), departure.plus(Duration.ofMinutes(40)), 0);
+        long comesToKarad = rideBy(user(UserRole.DRIVER), departure.plus(Duration.ofMinutes(60)), 15);
+
+        trips.cancel(withdrawing, first);
+
+        Booking rebooked = bookings.forPassenger(passenger).stream()
+                .filter(b -> b.rideId() != first).findFirst().orElseThrow();
+        assertThat(rebooked.rideId()).isEqualTo(comesToKarad);
+        assertThat(rebooked.pickupLat()).isCloseTo(NEAR_KARAD.lat(), org.assertj.core.api.Assertions.within(1e-6));
+        assertThat(rebooked.boardingTime()).isEqualTo(departure.plus(Duration.ofMinutes(60 + 80)));
+    }
+
+    // Found with the one above: the rides suggested to a passenger whose driver withdrew were
+    // looked for from that same stop.
+    @Test
+    void aPassengerPickedUpAwayIsToldOfRidesThatCanReachTheirOwnPoint() {
+        onADayOfItsOwn(13);
+        long withdrawing = user(UserRole.DRIVER);
+        long first = rideBy(withdrawing, departure, 15);
+        long passenger = user(UserRole.PASSENGER);
+        book(passenger, first, NEAR_KARAD);
+        rideBy(user(UserRole.DRIVER, "Stops Only"), departure.plus(Duration.ofMinutes(40)), 0);
+        rideBy(user(UserRole.DRIVER, "Comes To Karad"), departure.plus(Duration.ofMinutes(60)), 15);
+
+        trips.cancel(withdrawing, first);
+
+        String notice = notifications.forUser(passenger).stream()
+                .filter(n -> n.type() == Type.RIDE_CANCELLED).findFirst().orElseThrow().message();
+        // Leaves Kolhapur at 08:00 and reaches the pickup 80 minutes later.
+        assertThat(notice).contains(
+                "Other rides that could take you: 09:20 with Comes To Karad, picking you up at your own point.")
+                .doesNotContain("Stops Only");
+    }
+
+    /**
+     * For a test that looks for every ride that fits: the other tests here leave rides at
+     * 07:00 on the shared day, closer in time than any the test sets up.
+     */
+    private void onADayOfItsOwn(int daysAhead) {
+        day = LocalDate.now(ZONE).plusDays(daysAhead);
+        departure = day.atTime(7, 0).atZone(ZONE).toInstant();
+    }
+
     private long ride(int maxDetourMinutes) {
-        long driver = user(UserRole.DRIVER);
+        return rideBy(user(UserRole.DRIVER), departure, maxDetourMinutes);
+    }
+
+    private long rideBy(long driver, Instant leaves, int maxDetourMinutes) {
         long vehicleId = vehicles.create(driver, "Maruti", "Ertiga", 2022, "Silver", 7).id();
-        return rides.publish(driver, new PublishRide(vehicleId, departure, 3, true,
+        return rides.publish(driver, new PublishRide(vehicleId, leaves, 3, true,
                 List.of(new StopInput("Kolhapur", KOLHAPUR.lat(), KOLHAPUR.lon(), 0),
                         new StopInput("Satara", SATARA.lat(), SATARA.lon(), 130),
                         new StopInput("Pune", PUNE.lat(), PUNE.lon(), 270)),
@@ -159,8 +225,11 @@ class DetourIntegrationTest extends PostgresIntegrationTest {
     }
 
     private long user(UserRole role) {
-        return identity.register(UUID.randomUUID() + "@example.test", "correct-horse-battery",
-                "Test " + role, role).id();
+        return user(role, "Test " + role);
+    }
+
+    private long user(UserRole role, String name) {
+        return identity.register(UUID.randomUUID() + "@example.test", "correct-horse-battery", name, role).id();
     }
 
     private static void assertConflict(String reason, Runnable action) {

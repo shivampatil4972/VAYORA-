@@ -1437,6 +1437,12 @@ export const mr: Record<string, string> = {
     'तुम्हाला इथून घेतले जाईल',
   'You are picked up at your own point, about {time}.':
     'तुम्हाला तुमच्या स्वतःच्या ठिकाणाहून सुमारे {time} ला घेतले जाईल.',
+  'As you chose a flexible booking, you are booked on the {time} ride with {driver}, who will pick you up at your own point.':
+    'तुम्ही लवचिक बुकिंग निवडली होती, म्हणून तुम्हाला {driver} यांच्या {time} वाजताच्या राइडवर बुक केले आहे, जे तुम्हाला तुमच्या स्वतःच्या ठिकाणाहून घेतील.',
+  'As you chose a flexible booking, you have asked for a seat on the {time} ride with {driver}, who would pick you up at your own point. The driver will answer.':
+    'तुम्ही लवचिक बुकिंग निवडली होती, म्हणून तुम्ही {driver} यांच्या {time} वाजताच्या राइडमध्ये जागा मागितली आहे, जे तुम्हाला तुमच्या स्वतःच्या ठिकाणाहून घेतील. चालक उत्तर देतील.',
+  '{time} with {driver}, picking you up at your own point':
+    '{time} वाजता {driver} यांच्यासोबत, तुमच्या स्वतःच्या ठिकाणाहून घेऊन',
   'Those stops are not on this ride':
     'हे थांबे या राइडवर नाहीत',
   'Too many wrong attempts. Request a new code.':

@@ -223,7 +223,10 @@ public class TripService {
                 FROM ride_stops WHERE ride_id = ? AND seq IN (?, ?) ORDER BY seq""",
                 (rs, n) -> new Point(rs.getDouble("lat"), rs.getDouble("lon")),
                 rideId, booking.fromSeq(), booking.toSeq());
-        List<Candidate> others = rides.alternatives(booking.passengerId(), rideId, ends.get(0), ends.get(1),
+        // From the passenger's own pickup point if they had one, not the stop before it.
+        Point from = booking.pickupLat() != null && booking.pickupLon() != null
+                ? new Point(booking.pickupLat(), booking.pickupLon()) : ends.get(0);
+        List<Candidate> others = rides.alternatives(booking.passengerId(), rideId, from, ends.get(1),
                 booking.boardingTime(), booking.seats(), ALTERNATIVES_WINDOW, 3);
         if (others.isEmpty()) {
             List<Text> buses = buses(rideId, booking);
@@ -233,8 +236,11 @@ public class TripService {
         }
         DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm", Locale.ENGLISH).withZone(CORRIDOR_ZONE);
         return Text.of("Other rides that could take you: {rides}. Search again to book one.", "rides",
-                others.stream().map(c -> Text.of("{time} from {stop} with {driver}", "time",
-                        time.format(c.boardingTime()), "stop", c.fromStop(), "driver", c.driverName())).toList());
+                others.stream().map(c -> c.detourMinutes() != null
+                        ? Text.of("{time} with {driver}, picking you up at your own point", "time",
+                                time.format(c.boardingTime()), "driver", c.driverName())
+                        : Text.of("{time} from {stop} with {driver}", "time",
+                                time.format(c.boardingTime()), "stop", c.fromStop(), "driver", c.driverName())).toList());
     }
 
     /**

@@ -1437,6 +1437,12 @@ export const hi: Record<string, string> = {
     'आपको यहाँ से लिया जाएगा',
   'You are picked up at your own point, about {time}.':
     'आपको आपकी अपनी जगह से लगभग {time} बजे लिया जाएगा।',
+  'As you chose a flexible booking, you are booked on the {time} ride with {driver}, who will pick you up at your own point.':
+    'आपने लचीली बुकिंग चुनी थी, इसलिए आपको {driver} की {time} बजे वाली सवारी पर बुक किया गया है, जो आपको आपकी अपनी जगह से लेंगे।',
+  'As you chose a flexible booking, you have asked for a seat on the {time} ride with {driver}, who would pick you up at your own point. The driver will answer.':
+    'आपने लचीली बुकिंग चुनी थी, इसलिए आपने {driver} की {time} बजे वाली सवारी में सीट माँगी है, जो आपको आपकी अपनी जगह से लेंगे। चालक जवाब देंगे।',
+  '{time} with {driver}, picking you up at your own point':
+    '{time} बजे {driver} के साथ, आपकी अपनी जगह से लेते हुए',
   'Those stops are not on this ride':
     'ये स्टॉप इस सवारी पर नहीं हैं',
   'Too many wrong attempts. Request a new code.':

@@ -36,6 +36,9 @@ const TEMPLATES = new Set([
   msg('{name} joined with your invitation and completed a first trip, so you have a free travel pass. It waives the service fee while it runs: see Passes.'),
   msg('You completed your first trip after joining with an invitation, so you have a free travel pass. It waives the service fee while it runs: see Passes.'),
   msg('Your seat from {from} to {to} leaves {when}. If your plans have changed, cancelling now lets someone else take it, and Rs {refund} of your Rs {fare} fare comes back. If you are still travelling, there is nothing to do.'),
+  msg('As you chose a flexible booking, you are booked on the {time} ride with {driver}, who will pick you up at your own point.'),
+  msg('As you chose a flexible booking, you have asked for a seat on the {time} ride with {driver}, who would pick you up at your own point. The driver will answer.'),
+  msg('{time} with {driver}, picking you up at your own point'),
 ]);
 
 const known = (text: NotificationText): boolean =>
