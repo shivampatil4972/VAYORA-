@@ -42,6 +42,7 @@ Access is through `JdbcTemplate` with hand-written SQL. There is no ORM.
 | V28 | On vehicles: `insurer` and `insured_until`, as the driver declares them (both or neither) |
 | V29 | On passes: `reward_for_referee`; a reward pass is free with no payment method, one per person per referral |
 | V30 | On bookings: `release_reminded_at`, so each seat is asked to be released once at most |
+| V31 | On rides: `max_detour_minutes` (0 to 60, default 0); on bookings: `pickup_location`, `pickup_offset_minutes` and `detour_minutes`, all three or none |
 
 ### Tables
 

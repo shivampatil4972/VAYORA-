@@ -67,7 +67,7 @@ territory.
 | `GET /api/v1/rides/{id}` | any | A ride with its stops, legs, route and notes |
 | `GET /api/v1/rides/{id}/membership` | any | Whether the caller is on the ride. Used by the gateway |
 | `GET /api/v1/bookings` | P | Own bookings, each with the driver's `driverId`, `driverName` and the car (`vehicle`: make, model and colour as entered) |
-| `GET /api/v1/rides/search` | any | Rides with a stop near each end on a day. `sort` is `TIME` (default), `PRICE`, `RATING`, `PROXIMITY` or `BEST_MATCH`; every result carries `matchScore` (0 to 100) and `matchReasons` (codes such as `SAME_CONVERSATION` or `DIFFERENT_SMOKING`). Each result also carries the driver's `driverRidesCompleted` and `driverRidesWithdrawn`, a rough `pickupWalkMinutes` and `dropoffWalkMinutes`, `suggestFlexible`, `keptRides` when the driver's record earns the lower service fee (already applied to `serviceFee`), `insurer` and `insuredUntil` as the driver declared them, only while they cover the trip's date, and `underWay` for a ride already on the road (offered only from a stop it is due at 30 minutes or more ahead, and only if it confirms instantly) |
+| `GET /api/v1/rides/search` | any | Rides with a stop near each end on a day. `sort` is `TIME` (default), `PRICE`, `RATING`, `PROXIMITY` or `BEST_MATCH`; every result carries `matchScore` (0 to 100) and `matchReasons` (codes such as `SAME_CONVERSATION` or `DIFFERENT_SMOKING`). A result with `detourMinutes` set picks the passenger up at their start: `boardingTime` is the pickup's, and `detourMinutes` is what it costs the driver. Each result also carries the driver's `driverRidesCompleted` and `driverRidesWithdrawn`, a rough `pickupWalkMinutes` and `dropoffWalkMinutes`, `suggestFlexible`, `keptRides` when the driver's record earns the lower service fee (already applied to `serviceFee`), `insurer` and `insuredUntil` as the driver declared them, only while they cover the trip's date, and `underWay` for a ride already on the road (offered only from a stop it is due at 30 minutes or more ahead, and only if it confirms instantly) |
 
 Search takes `originLat`, `originLon`, `destLat`, `destLon`, `date`, and optionally
 `seats` (default 1), `sort` (`TIME`, `PRICE`, `RATING`, `PROXIMITY`), and filters
@@ -85,7 +85,7 @@ woman, filter or no filter.
 | `POST /api/v1/holds` | P | Hold seats for 5 minutes. Not a booking |
 | `GET /api/v1/holds/mine` | P | Own hold, or 204 |
 | `DELETE /api/v1/holds/mine` | P | Give the hold up |
-| `POST /api/v1/bookings` | P | Request seats on a stretch of a ride; the payment hold is placed in the same step. Optional `tier`: `EXACT` (default), `FLEXIBLE` or `ANY_TIME`, what happens if the driver withdraws |
+| `POST /api/v1/bookings` | P | Request seats on a stretch of a ride; the payment hold is placed in the same step. Optional `tier`: `EXACT` (default), `FLEXIBLE` or `ANY_TIME`, what happens if the driver withdraws. Optional `pickupLat` and `pickupLon`: be picked up there, on the leg after `fromSeq`, if the ride offers detours; its cost is worked out again here |
 | `GET /api/v1/bookings` | P | Own bookings |
 | `POST /api/v1/bookings/{id}/cancel` | P | Cancel; the refund follows the published tiers |
 | `GET /api/v1/rides/{rideId}/bookings` | D | Bookings on own ride |

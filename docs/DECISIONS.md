@@ -82,6 +82,9 @@ was decided while building within them.
 | A filter only ever narrows a search | Predictability | |
 | Smoking and pets filters leave out drivers who have not said | Silence is not a promise | Today they leave out nearly everyone |
 | Search positions are rounded to about 100 m in the event log | Research needs the area, not the doorstep | |
+| A driver's detour allowance is one total for the ride, spent pickup by pickup | A driver cares how late they arrive, not how the minutes are split | One far pickup can use up the allowance for everyone after |
+| A pickup is weighed again by road at booking, under the ride lock | The search's figure could be stale, and two passengers must not both spend the last minutes | One more routing call per booking |
+| Pickups only, not drop-offs | Half the work for the case that matters most: getting to a ride is the hard part | A passenger still walks from the last stop |
 | Match scoring uses only what both people said, distance, price and the driver's record of rides kept | Ranking real people by a model's guess about them is not done anywhere on the platform | It knows nothing about people who leave their profile empty |
 | A preference either person left unsaid counts half | Silence should neither help nor hurt | Saying nothing scores the same as half agreeing |
 | "Best match" is one order among five, not the default | A passenger should be able to see results by time without a score in the way | |

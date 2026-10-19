@@ -1,5 +1,19 @@
 # Progress
 
+## 2026-10-19 (later) — detour tolerance
+
+- **Detour tolerance (28)**, as chosen: a driver says how many minutes in all they will go
+  out of their way on a ride (0 to 30, default none). A passenger whose start has no stop
+  nearby, but whom the ride's road passes within 8 km, is offered a pickup at their own
+  point when the road via it costs no more than the minutes left. Search works the cost
+  out by road; booking works it out again under the ride lock, so two passengers cannot
+  both spend the last minutes. The pickup's time is the stop's plus the drive to it; the
+  driver sees each pickup's cost and the point on a map. Pickups only, not drop-offs.
+- The seat-release reminder (79) was seen arriving from the running job in a browser:
+  once, with the half-fare refund it would get then, in English and Marathi.
+- Tests: 262 Java, 181 Python, 207 web, 28 gateway, all passing.
+- Feature count: 77 Verified, 16 Partial, 2 Not started of 95.
+
 ## 2026-10-19 — tools reinstalled; two-sided match scoring
 
 - Git, Docker Desktop, Node.js and WSL had gone from the machine. They were reinstalled

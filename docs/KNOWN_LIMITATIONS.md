@@ -119,6 +119,11 @@ mistake for more. Updated 2026-10-17.
   that refreshes every 15 seconds. Emergency contacts are stored but not messaged.
 - The simulated outbox is in memory: it is lost on restart and would not be shared
   between two core-api instances.
+- **A pickup's time is an estimate.** It is the stop's time plus the drive to the point,
+  and every pickup before it on the same leg adds to the delay without changing the
+  times shown. Reminders and calls still count from the stop, a few minutes earlier.
+  Drop-offs away from the stops are not offered. Without the routing service, costs are
+  straight lines at 50 km/h, which understates them.
 - **Match scoring treats any difference as a mismatch.** One person fine with smoking and
   the other not counts against the match, though the ride would simply be smoke-free.
   The weights (25 distance, 20 price, 15 record, 10 for each preference) are assumptions,
