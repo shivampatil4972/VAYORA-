@@ -1431,6 +1431,8 @@ export const mr: Record<string, string> = {
     'चालकाने राइड मागे घेतल्यास किती प्रवासी पुन्हा बुक होणे निवडतात',
   'Share of passengers with a flexible booking':
     'लवचिक बुकिंग असलेल्या प्रवाशांचा वाटा',
+  'about {minutes} min walk to the pickup, by footpath':
+    'पिकअपपर्यंत पायवाटेने सुमारे {minutes} मिनिटे चालत',
   'Those stops are not on this ride':
     'हे थांबे या राइडवर नाहीत',
   'Too many wrong attempts. Request a new code.':

@@ -553,7 +553,11 @@ export function SearchPage() {
                         dropoff: units.distance(candidate.dropoffDistanceM),
                       })}
                       {candidate.pickupWalkMinutes > 0 &&
-                        ` · ${t('about {minutes} min walk to the pickup, in a straight line', { minutes: candidate.pickupWalkMinutes })}`}
+                        ` · ${
+                          candidate.walkOnFootpaths
+                            ? t('about {minutes} min walk to the pickup, by footpath', { minutes: candidate.pickupWalkMinutes })
+                            : t('about {minutes} min walk to the pickup, in a straight line', { minutes: candidate.pickupWalkMinutes })
+                        }`}
                     </p>
                     <p className="mt-1 text-sm text-slate-600">{driverRecord(candidate, t)}</p>
                     {criteria.sort === 'BEST_MATCH' && (

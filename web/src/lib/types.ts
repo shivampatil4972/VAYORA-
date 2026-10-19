@@ -203,6 +203,8 @@ export interface Candidate {
    * costs the driver, in minutes. The boarding time is then the pickup's.
    */
   detourMinutes: number | null;
+  /** The walks were worked out on footpaths; otherwise they are straight-line estimates. */
+  walkOnFootpaths: boolean;
 }
 
 /** What a passenger agrees to, when booking, should the driver withdraw the ride. */

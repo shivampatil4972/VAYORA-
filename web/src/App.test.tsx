@@ -106,6 +106,7 @@ const candidate: Candidate = {
   matchScore: 72,
   matchReasons: [],
   detourMinutes: null,
+  walkOnFootpaths: false,
   vehicle: 'Maruti Ertiga',
   comfort: null,
   luggage: null,
@@ -2381,6 +2382,16 @@ describe('driver record and walk in search results', () => {
     expect(await screen.findByText('Completed 18 of the 19 rides they have finished or withdrawn')).toBeInTheDocument();
     expect(screen.getByText('No completed rides yet')).toBeInTheDocument();
     expect(screen.getAllByText(/about 4 min walk to the pickup, in a straight line/)).toHaveLength(1);
+  });
+
+  it('says a walk was worked out on footpaths only when it was', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /rides/search': () => json([{ ...candidate, pickupWalkMinutes: 9, walkOnFootpaths: true }]) });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+    expect(await screen.findByText(/about 9 min walk to the pickup, by footpath/)).toBeInTheDocument();
+    expect(screen.queryByText(/in a straight line/)).not.toBeInTheDocument();
   });
 });
 

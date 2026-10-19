@@ -82,6 +82,9 @@ journex:
   osrm:
     # The routing service. Empty means none: routes are then straight lines between stops.
     url: ${OSRM_URL:}
+    # The same map built for walking (feature 91). Empty means none: walks to and from stops
+    # are then estimated in a straight line at journex.search.walking-kmh, and said to be.
+    foot-url: ${OSRM_FOOT_URL:}
     timeout: PT3S
     cache-ttl: P7D
     # Only used to guess a driving time when there is no road route.

@@ -1431,6 +1431,8 @@ export const hi: Record<string, string> = {
     'चालक के सवारी वापस लेने पर कितने यात्री दोबारा बुक होना चुनते हैं',
   'Share of passengers with a flexible booking':
     'लचीली बुकिंग वाले यात्रियों का हिस्सा',
+  'about {minutes} min walk to the pickup, by footpath':
+    'पिकअप तक पैदल रास्ते से लगभग {minutes} मिनट',
   'Those stops are not on this ride':
     'ये स्टॉप इस सवारी पर नहीं हैं',
   'Too many wrong attempts. Request a new code.':

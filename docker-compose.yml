@@ -83,6 +83,42 @@ services:
       timeout: 3s
       retries: 20
 
+  # The same clipped extract built for walking (feature 91): times to and from stops on
+  # footpaths. Its own files beside the driving graph; skipped once built.
+  osrm-build-foot:
+    image: osrm/osrm-backend:v5.25.0
+    depends_on:
+      osrm-data:
+        condition: service_completed_successfully
+    volumes:
+      - osrmdata:/data
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        if [ -f /data/corridor-foot.osrm.ready ]; then echo "OSRM walking graph already built"; exit 0; fi
+        cp /data/corridor.osm.pbf /data/corridor-foot.osm.pbf
+        osrm-extract -p /opt/foot.lua /data/corridor-foot.osm.pbf
+        osrm-partition /data/corridor-foot.osrm
+        osrm-customize /data/corridor-foot.osrm
+        touch /data/corridor-foot.osrm.ready
+
+  # Reached only by core-api, so not published on the host.
+  osrm-foot:
+    image: osrm/osrm-backend:v5.25.0
+    depends_on:
+      osrm-build-foot:
+        condition: service_completed_successfully
+    volumes:
+      - osrmdata:/data
+    command: ["osrm-routed", "--algorithm", "mld", "/data/corridor-foot.osrm"]
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/5000"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   core-api:
     build: ./core-api
     depends_on:
@@ -96,6 +132,7 @@ services:
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
       INTEL_URL: http://intel:8000
       OSRM_URL: http://osrm:5000
+      OSRM_FOOT_URL: http://osrm-foot:5000
       REDIS_HOST: redis
       MONGO_URI: mongodb://mongo:27017/${MONGO_DB:-journex}?serverSelectionTimeoutMS=2000
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
