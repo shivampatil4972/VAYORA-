@@ -1,0 +1,13 @@
+# How many completed rides does rebooking flexible passengers rescue when a driver
+# withdraws? (Features 81 and 88; section 17 of EXPERIMENT_PROTOCOL.md.)
+#
+# The platform rebooks a passenger who chose a flexible booking at once, on the closest
+# other open ride with the seats within two hours; everyone else may search again. How many
+# passengers choose flexible cannot be learnt from simulation, so the share is swept, not
+# assumed. The baseline is the same ranking with nobody flexible, the world's own value,
+# which the share cannot affect.
+name: flexible-booking
+baseline: variants/B3.yaml
+variant: variants/B3.yaml
+parameters:
+  demand.flexible_booking.share: [0.25, 0.5, 1.0]

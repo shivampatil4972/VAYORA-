@@ -578,7 +578,32 @@ class Simulation:
             "cancelled_by": by,
         }, by, actor_id)
         if by == "driver":
-            self._maybe_retry(self._passenger_of[booking.id])
+            self._after_withdrawal(booking)
+
+    def _after_withdrawal(self, booking: Booking) -> None:
+        """A passenger whose driver withdrew: rebooked at once if they chose a flexible
+        booking and a ride fits, as the platform does; otherwise they may search again.
+
+        The choice is drawn from a stream of its own, so with no flexible share every other
+        draw, and so every earlier result, is unchanged.
+        """
+        passenger = self._passenger_of[booking.id]
+        flexible = self.world.demand.flexible_booking
+        if flexible.share > 0 and self._stream(f"flexible-booking:{booking.id}").random() < flexible.share:
+            withdrawn = booking.ride
+            fitting = [
+                ride for ride in self.rides
+                if ride is not withdrawn and ride.status == "open"
+                and ride.departure > self.env.now
+                and abs(ride.departure - withdrawn.departure) <= flexible.window_hours
+                and ride.seats_available >= booking.seats
+            ]
+            if fitting:
+                # The closest in time, as core-api's FlexibleRebooking takes; ties by ride id.
+                closest = min(fitting, key=lambda ride: (abs(ride.departure - withdrawn.departure), ride.id))
+                self._request(passenger, closest)
+                return
+        self._maybe_retry(passenger)
 
     def _take_seats(self, ride: Ride, seats: int) -> None:
         ride.seats_available -= seats

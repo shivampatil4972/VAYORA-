@@ -1078,6 +1078,188 @@
      }
     }
    ]
+  },
+  {
+   "name": "flexible-booking",
+   "runId": "5eeb0000-0000-4000-8000-000000000008",
+   "data": "synthetic (simulator)",
+   "variant": "B3",
+   "baseline": "B3",
+   "baselinePerCell": false,
+   "parameters": {
+    "demand.flexible_booking.share": [
+     0.25,
+     0.5,
+     1.0
+    ]
+   },
+   "cells": [
+    {
+     "parameters": {
+      "demand.flexible_booking.share": 0.25
+     },
+     "measures": {
+      "per_100": {
+       "mean": 31.1426,
+       "baselineMean": 31.1095,
+       "difference": 0.0332,
+       "ciLow": 0.0197,
+       "ciHigh": 0.0467,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.3768,
+       "baselineMean": 0.3763,
+       "difference": 0.0005,
+       "ciLow": -0.0002,
+       "ciHigh": 0.0011,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.0,
+       "baselineMean": 0.0,
+       "difference": 0.0,
+       "ciLow": 0.0,
+       "ciHigh": 0.0,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 186.5333,
+       "baselineMean": 186.2333,
+       "difference": 0.3,
+       "ciLow": -0.0274,
+       "ciHigh": 0.6274,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 76.7,
+       "baselineMean": 76.3667,
+       "difference": 0.3333,
+       "ciLow": -0.0379,
+       "ciHigh": 0.7046,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.5455,
+       "baselineMean": 0.5448,
+       "difference": 0.0007,
+       "ciLow": 0.0005,
+       "ciHigh": 0.0009,
+       "seeds": 30
+      }
+     }
+    },
+    {
+     "parameters": {
+      "demand.flexible_booking.share": 0.5
+     },
+     "measures": {
+      "per_100": {
+       "mean": 31.1842,
+       "baselineMean": 31.1095,
+       "difference": 0.0747,
+       "ciLow": 0.0539,
+       "ciHigh": 0.0956,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.3769,
+       "baselineMean": 0.3763,
+       "difference": 0.0006,
+       "ciLow": -0.0001,
+       "ciHigh": 0.0013,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.0,
+       "baselineMean": 0.0,
+       "difference": 0.0,
+       "ciLow": 0.0,
+       "ciHigh": 0.0,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 186.5667,
+       "baselineMean": 186.2333,
+       "difference": 0.3333,
+       "ciLow": -0.1196,
+       "ciHigh": 0.7863,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 76.5,
+       "baselineMean": 76.3667,
+       "difference": 0.1333,
+       "ciLow": -0.3132,
+       "ciHigh": 0.5798,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.5464,
+       "baselineMean": 0.5448,
+       "difference": 0.0016,
+       "ciLow": 0.0013,
+       "ciHigh": 0.0018,
+       "seeds": 30
+      }
+     }
+    },
+    {
+     "parameters": {
+      "demand.flexible_booking.share": 1.0
+     },
+     "measures": {
+      "per_100": {
+       "mean": 31.2487,
+       "baselineMean": 31.1095,
+       "difference": 0.1392,
+       "ciLow": 0.1071,
+       "ciHigh": 0.1713,
+       "seeds": 30
+      },
+      "late_share": {
+       "mean": 0.3769,
+       "baselineMean": 0.3763,
+       "difference": 0.0006,
+       "ciLow": -0.0005,
+       "ciHigh": 0.0016,
+       "seeds": 30
+      },
+      "contact_rate": {
+       "mean": 0.0,
+       "baselineMean": 0.0,
+       "difference": 0.0,
+       "ciLow": 0.0,
+       "ciHigh": 0.0,
+       "seeds": 30
+      },
+      "refilled": {
+       "mean": 186.6,
+       "baselineMean": 186.2333,
+       "difference": 0.3667,
+       "ciLow": -0.2573,
+       "ciHigh": 0.9906,
+       "seeds": 30
+      },
+      "refills_only_option": {
+       "mean": 76.5667,
+       "baselineMean": 76.3667,
+       "difference": 0.2,
+       "ciLow": -0.3834,
+       "ciHigh": 0.7834,
+       "seeds": 30
+      },
+      "empty_share": {
+       "mean": 0.5478,
+       "baselineMean": 0.5448,
+       "difference": 0.003,
+       "ciLow": 0.0025,
+       "ciHigh": 0.0034,
+       "seeds": 30
+      }
+     }
+    }
+   ]
   }
  ]
 }

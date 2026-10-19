@@ -261,6 +261,67 @@ def test_a_ride_not_yet_published_is_not_counted_as_running():
     assert too_early and seen
 
 
+def _rebookings(events):
+    """Each driver cancellation followed at the same instant by a request on the same search."""
+    search_of: dict[int, int] = {}
+    requested_at: dict[tuple[int, datetime], dict] = {}
+    for event in events:
+        if event.event_type == "booking_requested":
+            search_of[event.payload["booking_id"]] = event.payload["search_id"]
+            requested_at[(event.payload["search_id"], event.sim_time)] = event.payload
+    pairs = []
+    for event in events:
+        if event.event_type == "booking_cancelled" and event.payload["cancelled_by"] == "driver":
+            again = requested_at.get((search_of[event.payload["booking_id"]], event.sim_time))
+            if again is not None and again["booking_id"] != event.payload["booking_id"]:
+                pairs.append((event.payload, again))
+    return pairs
+
+
+def _withdrawing(world, share):
+    """A world where drivers often withdraw, and this share of passengers chose flexible."""
+    world = _supply(world, withdraw_probability=0.3)
+    return _demand(world, flexible_booking=dataclasses.replace(world.demand.flexible_booking, share=share))
+
+
+def test_with_no_flexible_share_a_withdrawal_rebooks_nobody(baseline):
+    _, events = baseline
+    assert WORLD.demand.flexible_booking.share == 0
+    assert _rebookings(events) == []
+
+
+def test_a_flexible_passenger_is_rebooked_at_once_on_a_ride_within_the_window():
+    world = _withdrawing(WORLD, 1.0)
+    _, events = _run(world)
+    window = timedelta(hours=world.demand.flexible_booking.window_hours)
+    departure_of = {e.payload["booking_id"]: datetime.fromisoformat(e.payload["departure_time"])
+                    for e in events if e.event_type == "booking_requested"}
+
+    pairs = _rebookings(events)
+
+    assert pairs
+    for cancelled, again in pairs:
+        withdrawn_departure = datetime.fromisoformat(cancelled["departure_time"])
+        assert again["ride_id"] != cancelled["ride_id"]
+        assert abs(departure_of[again["booking_id"]] - withdrawn_departure) <= window
+        assert again["seats"] == cancelled["seats"]
+
+
+def test_rebooking_keeps_every_trip_accounted_for_and_no_ride_oversold():
+    # Overselling raises inside the simulator, so a run that finishes has none.
+    _, events = _run(_withdrawing(WORLD, 1.0))
+    counts = _counts(events)
+
+    assert counts["trip_started"] == counts["trip_completed"] + counts["trip_failed"]
+
+
+def test_only_the_flexible_share_is_rebooked():
+    every = len(_rebookings(_run(_withdrawing(WORLD, 1.0))[1]))
+    half = len(_rebookings(_run(_withdrawing(WORLD, 0.5))[1]))
+
+    assert 0 < half < every
+
+
 def test_a_recovery_booking_is_a_real_booking_made_on_a_repeat_search(baseline):
     _, events = baseline
     requested = {e.payload["booking_id"] for e in events if e.event_type == "booking_requested"}

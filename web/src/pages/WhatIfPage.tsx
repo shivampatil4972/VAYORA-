@@ -33,6 +33,7 @@ const sweepLabels: Record<string, string> = {
   'publish-lead': msg('How early drivers publish their rides'),
   'survival-threshold': msg('How risky a booking must look before its passenger is asked'),
   'oracle-response': msg('The most asking could gain, by how readily passengers release'),
+  'flexible-booking': msg('How many passengers choose to be rebooked if their driver withdraws'),
 };
 
 const parameterLabels: Record<string, string> = {
@@ -41,6 +42,7 @@ const parameterLabels: Record<string, string> = {
   'supply.publish_lead_days_min': msg('Days ahead, at the least, that a ride is published'),
   'variant.intervention.survival_threshold': msg('Ask when the estimated chance of lasting to departure is below'),
   'demand.intervention_response.early_release_probability': msg('Chance an asked passenger releases at once'),
+  'demand.flexible_booking.share': msg('Share of passengers with a flexible booking'),
 };
 
 // As in experiments/sweep.py: the primary metric first, each with the decimals the reports use.

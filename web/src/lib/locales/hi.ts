@@ -1427,6 +1427,10 @@ export const hi: Record<string, string> = {
     'यह सवारी केवल अपने स्टॉप से यात्री लेती है',
   'That pickup would take the driver further out of their way than they offered':
     'उस पिकअप के लिए चालक को जितना पेश किया था उससे अधिक रास्ते से हटना पड़ेगा',
+  'How many passengers choose to be rebooked if their driver withdraws':
+    'चालक के सवारी वापस लेने पर कितने यात्री दोबारा बुक होना चुनते हैं',
+  'Share of passengers with a flexible booking':
+    'लचीली बुकिंग वाले यात्रियों का हिस्सा',
   'Those stops are not on this ride':
     'ये स्टॉप इस सवारी पर नहीं हैं',
   'Too many wrong attempts. Request a new code.':

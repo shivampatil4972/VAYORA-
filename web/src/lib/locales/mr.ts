@@ -1427,6 +1427,10 @@ export const mr: Record<string, string> = {
     'ही राइड फक्त तिच्या थांब्यांवरून प्रवासी घेते',
   'That pickup would take the driver further out of their way than they offered':
     'त्या पिकअपसाठी चालकाला देऊ केल्यापेक्षा जास्त मार्गापासून दूर जावे लागेल',
+  'How many passengers choose to be rebooked if their driver withdraws':
+    'चालकाने राइड मागे घेतल्यास किती प्रवासी पुन्हा बुक होणे निवडतात',
+  'Share of passengers with a flexible booking':
+    'लवचिक बुकिंग असलेल्या प्रवाशांचा वाटा',
   'Those stops are not on this ride':
     'हे थांबे या राइडवर नाहीत',
   'Too many wrong attempts. Request a new code.':

@@ -26,6 +26,7 @@ SWEEP_RUNS=(
   "publish_lead 5eeb0000-0000-4000-8000-000000000005"
   "survival_threshold 5eeb0000-0000-4000-8000-000000000006"
   "oracle_response 5eeb0000-0000-4000-8000-000000000007"
+  "flexible_booking 5eeb0000-0000-4000-8000-000000000008"
 )
 
 echo "== starting the database"

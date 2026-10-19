@@ -56,6 +56,18 @@ class Retry:
 
 
 @dataclass(frozen=True)
+class FlexibleBooking:
+    """Who chose a flexible booking, and so is rebooked at once when their driver withdraws.
+
+    The platform's own rule (features 81 and 88): the closest other open ride with the seats,
+    leaving within window_hours of the withdrawn one.
+    """
+
+    share: float
+    window_hours: float
+
+
+@dataclass(frozen=True)
 class Supply:
     rides_per_day: float
     departure_hours: Mapping[int, float]
@@ -79,6 +91,7 @@ class Demand:
     shock: Shock
     intervention_response: InterventionResponse
     retry: Retry
+    flexible_booking: FlexibleBooking
 
 
 @dataclass(frozen=True)
@@ -147,6 +160,7 @@ def load_world(path: Path) -> World:
     shock_raw = demand_raw.pop("shock", None) or {}
     response_raw = demand_raw.pop("intervention_response", None) or {}
     retry_raw = demand_raw.pop("retry", None) or {}
+    flexible_raw = demand_raw.pop("flexible_booking", None) or {}
     if set(types_raw) != set(LATENT_TYPES):
         raise ConfigError(f"demand.types must be exactly {sorted(LATENT_TYPES)}")
     types = {
@@ -158,7 +172,8 @@ def load_world(path: Path) -> World:
         {**demand_raw, "types": types, "shock": _build(Shock, shock_raw, "demand.shock"),
          "intervention_response": _build(
              InterventionResponse, response_raw, "demand.intervention_response"),
-         "retry": _build(Retry, retry_raw, "demand.retry")},
+         "retry": _build(Retry, retry_raw, "demand.retry"),
+         "flexible_booking": _build(FlexibleBooking, flexible_raw, "demand.flexible_booking")},
         "demand",
     )
     world = World(start=start, supply=_build(Supply, raw["supply"], "supply"), demand=demand)
@@ -215,8 +230,9 @@ def validate(world: World) -> None:
     ]:
         if value <= 0:
             raise ConfigError(f"{name} must be positive")
-    if demand.departure_tolerance_hours < 0 or demand.shock.rate_per_day < 0:
-        raise ConfigError("tolerances and rates cannot be negative")
+    if (demand.departure_tolerance_hours < 0 or demand.shock.rate_per_day < 0
+            or demand.flexible_booking.window_hours < 0):
+        raise ConfigError("tolerances, windows and rates cannot be negative")
     if demand.retry.max_attempts < 0 or demand.retry.max_attempts != int(demand.retry.max_attempts):
         raise ConfigError("demand.retry.max_attempts must be a whole number, 0 or more")
     if not 0 <= supply.publish_lead_days_min <= supply.publish_lead_days_max:
@@ -230,6 +246,7 @@ def validate(world: World) -> None:
         ("demand.intervention_response.annoyed_cancel_probability",
          demand.intervention_response.annoyed_cancel_probability),
         ("demand.retry.probability", demand.retry.probability),
+        ("demand.flexible_booking.share", demand.flexible_booking.share),
     ]
     for name, kind in demand.types.items():
         probabilities += [

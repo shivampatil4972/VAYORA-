@@ -108,3 +108,10 @@ demand:
     delay_mean_hours: 6.0
     # Searches after the first. 0 turns retrying off.
     max_attempts: 2
+  # Passengers who chose a flexible booking are rebooked by the platform at once when their
+  # driver withdraws: the closest other open ride with the seats, within window_hours of the
+  # withdrawn one (features 81 and 88). The rest search again, as above. 0 keeps every
+  # earlier result exactly; the share is swept, not assumed (EXPERIMENT_PROTOCOL.md 17).
+  flexible_booking:
+    share: 0.0
+    window_hours: 2.0
