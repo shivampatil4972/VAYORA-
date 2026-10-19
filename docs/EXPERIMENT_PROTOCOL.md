@@ -68,7 +68,8 @@ it was identical, and the fuller report is now the committed one. Ladders `...00
 history; the script does not rebuild them.
 
 Since 2026-10-19 it also rebuilds the hotel comparison (section 18), downloading the
-public file the first time.
+public file the first time. Run in full that day with the hotel step included, it
+reproduced every committed number exactly.
 
 To run a single comparison by hand:
 

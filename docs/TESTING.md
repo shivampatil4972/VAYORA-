@@ -105,7 +105,9 @@ because Leaflet needs a real browser to draw.
 `scripts/reproduce.sh` (EXPERIMENT_PROTOCOL.md section 4) was last run in full on
 2026-10-19, after the tools were reinstalled and the flexible-booking sweep was added:
 tests, the durability model, both ladders, every sweep, the what-if explorer's data and
-the figures were rebuilt and every committed number reproduced exactly.
+the figures were rebuilt and every committed number reproduced exactly. It was run in full
+again the same day with the hotel comparison (EXPERIMENT_PROTOCOL.md section 18) added,
+and again every number came out exactly as committed.
 
 ## Checked by hand against the running stack
 
