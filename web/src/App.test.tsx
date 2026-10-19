@@ -2703,3 +2703,22 @@ describe('a pickup away from the stops', () => {
     expect(await screen.findByText('Picked up at your own point after Kolhapur, not at the stop.')).toBeInTheDocument();
   });
 });
+describe('the meeting point of a pickup away from the stops', () => {
+  it('marks the pickup point, not the stop before it, as where the passenger boards', async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /bookings': () =>
+        json([{ ...booking, status: 'CONFIRMED', pickupLat: 17.289, pickupLon: 74.13, detourMinutes: 6, boardingTime: '2026-11-02T02:50:00Z' }]),
+      'GET /rides/12': () => json(rideWithRoute),
+    });
+    open('/bookings');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Show meeting point' }));
+
+    expect(await screen.findByText(/^You are picked up at your own point, about /)).toBeInTheDocument();
+    expect(screen.getByText('You are picked up here')).toBeInTheDocument();
+    // Found reviewing the detour work: the stop before the pickup was still called the boarding point.
+    expect(screen.queryByText(/Board at Kolhapur/)).not.toBeInTheDocument();
+    expect(screen.queryByText('Board here: Kolhapur')).not.toBeInTheDocument();
+  });
+});

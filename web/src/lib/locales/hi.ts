@@ -1433,6 +1433,10 @@ export const hi: Record<string, string> = {
     'लचीली बुकिंग वाले यात्रियों का हिस्सा',
   'about {minutes} min walk to the pickup, by footpath':
     'पिकअप तक पैदल रास्ते से लगभग {minutes} मिनट',
+  'You are picked up here':
+    'आपको यहाँ से लिया जाएगा',
+  'You are picked up at your own point, about {time}.':
+    'आपको आपकी अपनी जगह से लगभग {time} बजे लिया जाएगा।',
   'Those stops are not on this ride':
     'ये स्टॉप इस सवारी पर नहीं हैं',
   'Too many wrong attempts. Request a new code.':

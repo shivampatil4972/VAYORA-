@@ -1433,6 +1433,10 @@ export const mr: Record<string, string> = {
     'लवचिक बुकिंग असलेल्या प्रवाशांचा वाटा',
   'about {minutes} min walk to the pickup, by footpath':
     'पिकअपपर्यंत पायवाटेने सुमारे {minutes} मिनिटे चालत',
+  'You are picked up here':
+    'तुम्हाला इथून घेतले जाईल',
+  'You are picked up at your own point, about {time}.':
+    'तुम्हाला तुमच्या स्वतःच्या ठिकाणाहून सुमारे {time} ला घेतले जाईल.',
   'Those stops are not on this ride':
     'हे थांबे या राइडवर नाहीत',
   'Too many wrong attempts. Request a new code.':

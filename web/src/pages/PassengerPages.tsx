@@ -111,25 +111,33 @@ function driverRecord(candidate: Candidate, t: ReturnType<typeof useT>): string 
 const candidateKey = (candidate: Candidate, seats: number) =>
   `${candidate.rideId}-${candidate.fromSeq}-${candidate.toSeq}-${seats}`;
 
-/** The ride's route with the passenger's own stretch picked out. Fetched when opened. */
-function RideRoute({ rideId, fromSeq, toSeq }: { rideId: number; fromSeq: number; toSeq?: number }) {
+/**
+ * The ride's route with the passenger's own stretch picked out. Fetched when opened.
+ *
+ * @param pickup where and when the driver picks the passenger up instead of at a stop
+ *               (feature 28); the stop before it is then not where they board
+ */
+function RideRoute({ rideId, fromSeq, toSeq, pickup }: { rideId: number; fromSeq: number; toSeq?: number; pickup?: { lat: number; lon: number; time: string } }) {
   const t = useT();
   const ride = useQuery({ queryKey: ['ride', rideId], queryFn: () => api<Ride>(`/rides/${rideId}`) });
   if (!ride.data) {
     return <QueryState isPending={ride.isPending} error={ride.error} isEmpty={false} empty="" onRetry={() => void ride.refetch()} />;
   }
-  const points: MapPoint[] = ride.data.stops.map((stop) => ({
-    lat: stop.lat,
-    lon: stop.lon,
-    label:
-      stop.seq === fromSeq
+  const boardsAtStop = (seq: number) => !pickup && seq === fromSeq;
+  const points: MapPoint[] = [
+    ...ride.data.stops.map((stop) => ({
+      lat: stop.lat,
+      lon: stop.lon,
+      label: boardsAtStop(stop.seq)
         ? t('Board here: {stop}', { stop: t(stop.name) })
         : stop.seq === toSeq
           ? t('Get off here: {stop}', { stop: t(stop.name) })
           : t(stop.name),
-    emphasis: stop.seq === fromSeq || stop.seq === toSeq,
-  }));
-  const boarding = ride.data.stops.find((stop) => stop.seq === fromSeq);
+      emphasis: boardsAtStop(stop.seq) || stop.seq === toSeq,
+    })),
+    ...(pickup ? [{ lat: pickup.lat, lon: pickup.lon, label: t('You are picked up here'), emphasis: true }] : []),
+  ];
+  const boarding = pickup ? undefined : ride.data.stops.find((stop) => stop.seq === fromSeq);
   return (
     <div className="mt-3 space-y-2">
       <RouteMap
@@ -138,6 +146,7 @@ function RideRoute({ rideId, fromSeq, toSeq }: { rideId: number; fromSeq: number
         describe={t('Map of the ride through {stops}', { stops: ride.data.stops.map((stop) => t(stop.name)).join(', ') })}
       />
       <p className="text-sm text-slate-600">
+        {pickup && t('You are picked up at your own point, about {time}.', { time: formatDateTime(pickup.time) })}
         {boarding && t('Board at {stop}, leaving {time}.', { stop: t(boarding.name), time: formatDateTime(boarding.departureTime) })}{' '}
         {ride.data.distanceKm !== null &&
           (ride.data.routeSource === 'OSRM'
@@ -613,7 +622,18 @@ export function SearchPage() {
                       {hold.error.message}
                     </p>
                   )}
-                  {routeShown === key && <RideRoute rideId={candidate.rideId} fromSeq={candidate.fromSeq} toSeq={candidate.toSeq} />}
+                  {routeShown === key && (
+                  <RideRoute
+                    rideId={candidate.rideId}
+                    fromSeq={candidate.fromSeq}
+                    toSeq={candidate.toSeq}
+                    pickup={
+                      candidate.detourMinutes != null
+                        ? { lat: criteria.origin.lat, lon: criteria.origin.lon, time: candidate.boardingTime }
+                        : undefined
+                    }
+                  />
+                )}
                 </div>
               </Card>
             );
@@ -736,7 +756,18 @@ export function BookingsPage() {
               <CallButton bookingId={booking.id} label={t('Call the driver')} />
             </div>
           )}
-          {meetingShown === booking.id && <RideRoute rideId={booking.rideId} fromSeq={booking.fromSeq} toSeq={booking.toSeq} />}
+          {meetingShown === booking.id && (
+            <RideRoute
+              rideId={booking.rideId}
+              fromSeq={booking.fromSeq}
+              toSeq={booking.toSeq}
+              pickup={
+                booking.pickupLat != null && booking.pickupLon != null
+                  ? { lat: booking.pickupLat, lon: booking.pickupLon, time: booking.boardingTime }
+                  : undefined
+              }
+            />
+          )}
           {chatShown === booking.id && cancellable(booking) && <RideChat rideId={booking.rideId} />}
           {booking.status === 'COMPLETED' && booking.passengerConfirmed == null && <TripConfirmation bookingId={booking.id} />}
           {booking.status === 'COMPLETED' && !booking.passengerRated && <RateForm bookingId={booking.id} legend={t('Rate your driver')} />}
