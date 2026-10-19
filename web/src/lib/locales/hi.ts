@@ -307,8 +307,8 @@ export const hi: Record<string, string> = {
   From: 'कहाँ से',
   To: 'कहाँ तक',
   Date: 'तारीख',
-  'Rides are matched to the centre of each town unless you choose an exact point. Only rides with a stop near each end are shown.':
-    'जब तक आप कोई सटीक स्थान नहीं चुनते, सवारियाँ हर शहर के केंद्र के अनुसार मिलाई जाती हैं। केवल वे सवारियाँ दिखाई जाती हैं जिनका पड़ाव दोनों सिरों के पास हो।',
+  'Rides are matched to the centre of each town unless you choose an exact point. Only rides with a stop near each end, or whose driver will come to your start, are shown.':
+    'जब तक आप कोई सटीक स्थान नहीं चुनते, सवारियाँ हर शहर के केंद्र के अनुसार मिलाई जाती हैं। केवल वे सवारियाँ दिखाई जाती हैं जिनका पड़ाव दोनों सिरों के पास हो, या जिनका चालक आपकी शुरुआत की जगह पर आएगा।',
   'Hide the map': 'नक्शा छिपाएँ',
   'Choose exact points on a map': 'नक्शे पर सटीक स्थान चुनें',
   'Which point a click on the map sets': 'नक्शे पर क्लिक करने से कौन-सा स्थान तय होगा',

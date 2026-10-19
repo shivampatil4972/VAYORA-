@@ -307,8 +307,8 @@ export const mr: Record<string, string> = {
   From: 'कुठून',
   To: 'कुठे',
   Date: 'तारीख',
-  'Rides are matched to the centre of each town unless you choose an exact point. Only rides with a stop near each end are shown.':
-    'तुम्ही अचूक ठिकाण निवडले नाही तर प्रवास प्रत्येक शहराच्या मध्यभागानुसार जुळवले जातात. दोन्ही टोकांजवळ थांबा असलेलेच प्रवास दाखवले जातात.',
+  'Rides are matched to the centre of each town unless you choose an exact point. Only rides with a stop near each end, or whose driver will come to your start, are shown.':
+    'तुम्ही अचूक ठिकाण निवडले नाही तर प्रवास प्रत्येक शहराच्या मध्यभागानुसार जुळवले जातात. दोन्ही टोकांजवळ थांबा असलेले, किंवा ज्यांचा चालक तुमच्या सुरुवातीच्या ठिकाणी येईल, तेच प्रवास दाखवले जातात.',
   'Hide the map': 'नकाशा लपवा',
   'Choose exact points on a map': 'नकाशावर अचूक ठिकाणे निवडा',
   'Which point a click on the map sets': 'नकाशावर क्लिक केल्यास कोणते ठिकाण ठरेल',

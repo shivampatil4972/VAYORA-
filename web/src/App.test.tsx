@@ -2653,6 +2653,9 @@ describe('a pickup away from the stops', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
     expect(await screen.findByText(/^The driver picks you up at your start, about .*: 6 min out of their way\.$/)).toBeInTheDocument();
+    // Found in a browser: the heading named the stop before the pickup, at the pickup's time.
+    expect(screen.getByText(/ Your start → .* Pune$/)).toBeInTheDocument();
+    expect(screen.queryByText(/ Kolhapur → /)).not.toBeInTheDocument();
     await userEvent.click(screen.getAllByRole('button', { name: /^(Book|Request)/ })[0]);
 
     await waitFor(() => {

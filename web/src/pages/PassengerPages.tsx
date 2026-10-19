@@ -304,7 +304,7 @@ export function SearchPage() {
           <div className="space-y-3 sm:col-span-2">
             <p className="text-sm text-slate-600">
               {t(
-                'Rides are matched to the centre of each town unless you choose an exact point. Only rides with a stop near each end are shown.',
+                'Rides are matched to the centre of each town unless you choose an exact point. Only rides with a stop near each end, or whose driver will come to your start, are shown.',
               )}
             </p>
             <ul className="space-y-1 text-sm text-slate-700">
@@ -506,7 +506,8 @@ export function SearchPage() {
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="font-medium">
-                      {formatTime(candidate.boardingTime)} {t(candidate.fromStop)} → {formatTime(candidate.arrivalTime)} {t(candidate.toStop)}
+                      {formatTime(candidate.boardingTime)} {candidate.detourMinutes != null ? t('Your start') : t(candidate.fromStop)} →{' '}
+                      {formatTime(candidate.arrivalTime)} {t(candidate.toStop)}
                     </p>
                     <p className="mt-1 text-sm text-slate-600">
                       <Link to={`/users/${candidate.driverId}`} className="font-medium text-teal-800 underline">
