@@ -11,3 +11,7 @@ baseline: variants/B4.yaml
 variant: variants/B5.yaml
 parameters:
   variant.intervention.budget.contacts_per_round: [1, 2, 4, 8]
+
+# How far a live what-if run may take the setting (feature 87): the authors' choice, wide
+# enough to explore and narrow enough that a run stays quick and means something.
+live: {min: 1, max: 20}

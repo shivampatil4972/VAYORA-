@@ -20,3 +20,5 @@ matplotlib==3.10.3
 # Lets the research suite test intel's HTTP API in-process.
 fastapi==0.143.0
 httpx==0.28.1
+# Signs the tokens intel's live what-if tests present, as core-api would.
+PyJWT==2.10.1

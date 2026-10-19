@@ -11,3 +11,7 @@ baseline: variants/B3.yaml
 variant: variants/B3.yaml
 parameters:
   demand.flexible_booking.share: [0.25, 0.5, 1.0]
+
+# How far a live what-if run may take the setting (feature 87): the authors' choice, wide
+# enough to explore and narrow enough that a run stays quick and means something.
+live: {min: 0, max: 1}

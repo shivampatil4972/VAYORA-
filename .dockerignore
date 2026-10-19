@@ -1,3 +1,6 @@
 .git
 **/node_modules
 **/target
+experiments/data
+**/__pycache__
+web/dist

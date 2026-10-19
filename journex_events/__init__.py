@@ -5,6 +5,15 @@ EventLogService.
 """
 
 from journex_events.vocabulary import EventType
-from journex_events.writer import EventWriter
 
 __all__ = ["EventType", "EventWriter"]
+
+
+def __getattr__(name: str):
+    # The writer needs a database driver and the vocabulary does not. intel, which runs the
+    # simulator for live what-if runs and writes nothing, has no driver.
+    if name == "EventWriter":
+        from journex_events.writer import EventWriter
+
+        return EventWriter
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
