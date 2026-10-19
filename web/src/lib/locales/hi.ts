@@ -1447,6 +1447,28 @@ export const hi: Record<string, string> = {
     'दो स्टॉप के बीच का एक हिस्सा आपके अपने आँकड़ों के अनुसार पूरी चार्ज पर आपके वाहन की दूरी से लंबा है। ऐसा स्टॉप जोड़ें जहाँ आप चार्ज कर सकें।',
   '{from} to {to} is {km} km, longer than the {range} km your vehicle covers on a full charge, by your own figures. A ride with a stretch that long cannot be published: add a stop between them where you can charge.':
     '{from} से {to} तक {km} किमी है, जो आपके अपने आँकड़ों के अनुसार पूरी चार्ज पर आपके वाहन की {range} किमी की दूरी से लंबा है। इतने लंबे हिस्से वाली सवारी प्रकाशित नहीं की जा सकती: इनके बीच ऐसा स्टॉप जोड़ें जहाँ आप चार्ज कर सकें।',
+  'Only a driver can declare an identity document':
+    'केवल चालक ही पहचान पत्र घोषित कर सकते हैं',
+  'Aadhaar':
+    'आधार',
+  'PAN card':
+    'पैन कार्ड',
+  'Driving licence':
+    'ड्राइविंग लाइसेंस',
+  'Passport':
+    'पासपोर्ट',
+  'Voter ID':
+    'मतदाता पहचान पत्र',
+  'Identity document':
+    'पहचान पत्र',
+  'Declare':
+    'घोषित करें',
+  'You have declared: {document}.':
+    'आपने घोषित किया है: {document}।',
+  'Says they hold a {document}, not checked':
+    'कहते हैं कि उनके पास {document} है, जाँचा नहीं गया',
+  'You can say which identity document you hold. JOURNEX does not ask for its number or a copy and checks nothing: your profile will say it was declared, not checked.':
+    'आप बता सकते हैं कि आपके पास कौन-सा पहचान पत्र है। JOURNEX उसका नंबर या प्रति नहीं माँगता और कुछ नहीं जाँचता: आपकी प्रोफ़ाइल पर लिखा होगा कि यह घोषित किया गया है, जाँचा नहीं गया।',
   'Those stops are not on this ride':
     'ये स्टॉप इस सवारी पर नहीं हैं',
   'Too many wrong attempts. Request a new code.':

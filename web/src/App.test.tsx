@@ -811,6 +811,21 @@ describe('ratings', () => {
     expect(document.querySelector('img')).toBeNull();
   });
 
+  it('shows a declared identity document as declared and not checked, never as confirmed', async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /users/7/profile': () =>
+        json({ id: 7, fullName: 'Ravi Jadhav', role: 'DRIVER', memberSince: '2026-03-14T08:00:00Z', completedTrips: 0,
+          averageStars: null, ratingCount: 0, reviews: [], emailVerified: false, phoneVerified: false, declaredId: 'DRIVING_LICENCE' }),
+    });
+    open('/users/7');
+
+    const about = within(await screen.findByRole('list', { name: 'About this member' }));
+    expect(about.getByText('Says they hold a Driving licence, not checked')).toBeInTheDocument();
+    expect(about.queryByText(/confirmed/)).not.toBeInTheDocument();
+    expect(screen.getByText('JOURNEX has not checked any identity documents.')).toBeInTheDocument();
+  });
+
   it('says so when a member has no ratings instead of showing a score', async () => {
     signIn('DRIVER');
     serve({
@@ -914,6 +929,37 @@ describe('my account', () => {
     });
     // The saved number can now be confirmed.
     expect(within(screen.getByRole('region', { name: 'Email and phone' })).getByText('+919800000001')).toBeInTheDocument();
+  });
+
+  it('lets a driver say which identity document they hold, and nothing more, and take it back', async () => {
+    signIn('DRIVER');
+    const fetchMock = serve({
+      'GET /me/profile': () => json(mine),
+      'GET /me/emergency-contacts': () => json([]),
+      'PUT /me/id-declaration': () => json({ ...mine, declaredId: 'DRIVING_LICENCE' }),
+      'DELETE /me/id-declaration': () => json({ ...mine, declaredId: null }),
+    });
+    open('/account');
+
+    const section = within(await screen.findByRole('region', { name: 'Identity document' }));
+    expect(section.getByText(/does not ask for its number or a copy and checks nothing/)).toBeInTheDocument();
+    expect(section.queryByRole('textbox')).not.toBeInTheDocument();
+    await userEvent.selectOptions(section.getByRole('combobox'), 'Driving licence');
+    await userEvent.click(section.getByRole('button', { name: 'Declare' }));
+
+    expect(await section.findByText('You have declared: Driving licence.')).toBeInTheDocument();
+    expect(bodyOf(fetchMock, 'PUT', '/me/id-declaration')).toEqual({ document: 'DRIVING_LICENCE' });
+    await userEvent.click(section.getByRole('button', { name: 'Remove' }));
+    await waitFor(() => expect(section.queryByText(/You have declared/)).not.toBeInTheDocument());
+  });
+
+  it('offers a passenger no identity document to declare', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /me/profile': () => json(mine), 'GET /me/emergency-contacts': () => json([]) });
+    open('/account');
+
+    await screen.findByRole('region', { name: 'Email and phone' });
+    expect(screen.queryByRole('region', { name: 'Identity document' })).not.toBeInTheDocument();
   });
 
   it('refuses a phone number that is not one without asking the server', async () => {

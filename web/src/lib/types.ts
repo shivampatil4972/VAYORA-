@@ -339,6 +339,8 @@ export interface Profile {
   responseMinutes?: number | null;
   /** NEWCOMER up to AMBASSADOR; see levelLabels. */
   level?: string;
+  /** The identity document a driver says they hold. Declared, never checked, counts for nothing. */
+  declaredId?: IdDocument | null;
 }
 
 /** A driver's own record, for them alone. */
@@ -359,6 +361,9 @@ export type Chattiness = 'QUIET' | 'MODERATE' | 'TALKATIVE';
 
 export type Gender = 'FEMALE' | 'MALE' | 'OTHER';
 
+/** Only the kind of document: JOURNEX never takes its number or a copy. */
+export type IdDocument = 'AADHAAR' | 'PAN' | 'DRIVING_LICENCE' | 'PASSPORT' | 'VOTER_ID';
+
 /** A member's own profile. Null means not said. */
 export interface MyProfile {
   email: string | null;
@@ -372,6 +377,8 @@ export interface MyProfile {
   pets: boolean | null;
   music: boolean | null;
   chattiness: Chattiness | null;
+  /** Drivers only: declared, never checked. */
+  declaredId?: IdDocument | null;
 }
 
 export interface EmergencyContact {

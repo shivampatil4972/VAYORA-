@@ -3,6 +3,7 @@ package com.dypcet.journex.account;
 import com.dypcet.journex.account.AccountService.Chattiness;
 import com.dypcet.journex.account.AccountService.EmergencyContact;
 import com.dypcet.journex.account.AccountService.Gender;
+import com.dypcet.journex.account.AccountService.IdDocument;
 import com.dypcet.journex.account.AccountService.MyProfile;
 import com.dypcet.journex.account.AccountService.ProfileUpdate;
 import com.dypcet.journex.account.MessageSender.Channel;
@@ -16,6 +17,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.List;
@@ -51,6 +53,10 @@ public class AccountController {
     public record CodeRequest(@NotBlank @Pattern(regexp = "^[0-9]{6}$") String code) {
     }
 
+    /** Only the kind of document: there is nowhere to send its number or a copy. */
+    public record IdRequest(@NotNull IdDocument document) {
+    }
+
     public record ContactRequest(
             @NotBlank @Size(max = 100) String name,
             @NotBlank @Pattern(regexp = PHONE) String phone,
@@ -82,6 +88,16 @@ public class AccountController {
         return accounts.update(CurrentUser.id(jwt), new ProfileUpdate(request.phone(), request.bio(),
                 request.birthYear(), request.gender(), request.smoking(), request.pets(),
                 request.music(), request.chattiness()));
+    }
+
+    @PutMapping("/me/id-declaration")
+    public MyProfile declareId(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody IdRequest request) {
+        return accounts.declareId(CurrentUser.id(jwt), request.document());
+    }
+
+    @DeleteMapping("/me/id-declaration")
+    public MyProfile withdrawId(@AuthenticationPrincipal Jwt jwt) {
+        return accounts.withdrawId(CurrentUser.id(jwt));
     }
 
     @PostMapping("/me/verification/{channel}/request")

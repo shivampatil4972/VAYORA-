@@ -34,10 +34,23 @@ public class AccountService {
         TALKATIVE
     }
 
-    /** Everything a member may see and change about themselves. Null means not said. */
+    /** An identity document a driver may say they hold. Only the kind, never a number. */
+    public enum IdDocument {
+        AADHAAR,
+        PAN,
+        DRIVING_LICENCE,
+        PASSPORT,
+        VOTER_ID
+    }
+
+    /**
+     * Everything a member may see and change about themselves. Null means not said.
+     *
+     * @param declaredId the identity document a driver says they hold; declared, never checked
+     */
     public record MyProfile(String email, boolean emailVerified, String phone, boolean phoneVerified,
             String bio, Integer birthYear, Gender gender, Boolean smoking, Boolean pets,
-            Boolean music, Chattiness chattiness) {
+            Boolean music, Chattiness chattiness, IdDocument declaredId) {
     }
 
     public record ProfileUpdate(String phone, String bio, Integer birthYear, Gender gender,
@@ -78,7 +91,7 @@ public class AccountService {
 
     public MyProfile profile(long userId) {
         return jdbc.queryForObject("""
-                SELECT u.email, u.email_verified_at, u.phone, u.phone_verified_at,
+                SELECT u.email, u.email_verified_at, u.phone, u.phone_verified_at, u.id_document,
                        p.bio, p.birth_year, p.gender, p.smoking, p.pets, p.music, p.chattiness
                 FROM users u LEFT JOIN profiles p ON p.user_id = u.id
                 WHERE u.id = ?""",
@@ -90,8 +103,30 @@ public class AccountService {
                         (Boolean) rs.getObject("smoking"), (Boolean) rs.getObject("pets"),
                         (Boolean) rs.getObject("music"),
                         rs.getString("chattiness") == null ? null
-                                : Chattiness.valueOf(rs.getString("chattiness"))),
+                                : Chattiness.valueOf(rs.getString("chattiness")),
+                        rs.getString("id_document") == null ? null
+                                : IdDocument.valueOf(rs.getString("id_document"))),
                 userId);
+    }
+
+    /**
+     * Records which identity document a driver says they hold (feature 7, a labelled mock).
+     * Only the kind is kept: no number and no copy is asked for. Nothing checks it, and it
+     * makes nobody verified: it earns no level and passes no filter.
+     */
+    @Transactional
+    public MyProfile declareId(long userId, IdDocument document) {
+        if (jdbc.update("UPDATE users SET id_document = ? WHERE id = ? AND role = 'DRIVER'",
+                document.name(), userId) == 0) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only a driver can declare an identity document");
+        }
+        return profile(userId);
+    }
+
+    @Transactional
+    public MyProfile withdrawId(long userId) {
+        jdbc.update("UPDATE users SET id_document = NULL WHERE id = ?", userId);
+        return profile(userId);
     }
 
     /** Replaces the whole profile. A changed phone number is unverified until proved again. */

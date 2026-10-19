@@ -1447,6 +1447,28 @@ export const mr: Record<string, string> = {
     'दोन थांब्यांमधील एक टप्पा तुमच्याच आकड्यांनुसार पूर्ण चार्जवर तुमचे वाहन जाणाऱ्या अंतरापेक्षा लांब आहे. जिथे चार्ज करता येईल असा थांबा जोडा.',
   '{from} to {to} is {km} km, longer than the {range} km your vehicle covers on a full charge, by your own figures. A ride with a stretch that long cannot be published: add a stop between them where you can charge.':
     '{from} ते {to} हे अंतर {km} किमी आहे, तुमच्याच आकड्यांनुसार पूर्ण चार्जवर तुमचे वाहन जाणाऱ्या {range} किमीपेक्षा लांब. इतका लांब टप्पा असलेली राइड प्रकाशित करता येत नाही: त्यांच्यामध्ये जिथे चार्ज करता येईल असा थांबा जोडा.',
+  'Only a driver can declare an identity document':
+    'फक्त चालकच ओळखपत्र जाहीर करू शकतात',
+  'Aadhaar':
+    'आधार',
+  'PAN card':
+    'पॅन कार्ड',
+  'Driving licence':
+    'वाहन चालक परवाना',
+  'Passport':
+    'पासपोर्ट',
+  'Voter ID':
+    'मतदार ओळखपत्र',
+  'Identity document':
+    'ओळखपत्र',
+  'Declare':
+    'जाहीर करा',
+  'You have declared: {document}.':
+    'तुम्ही जाहीर केले आहे: {document}.',
+  'Says they hold a {document}, not checked':
+    'त्यांच्याकडे {document} असल्याचे ते सांगतात, तपासलेले नाही',
+  'You can say which identity document you hold. JOURNEX does not ask for its number or a copy and checks nothing: your profile will say it was declared, not checked.':
+    'तुमच्याकडे कोणते ओळखपत्र आहे ते तुम्ही सांगू शकता. JOURNEX त्याचा क्रमांक किंवा प्रत मागत नाही आणि काहीही तपासत नाही: तुमच्या प्रोफाइलवर ते जाहीर केले आहे, तपासलेले नाही, असे लिहिलेले असेल.',
   'Those stops are not on this ride':
     'हे थांबे या राइडवर नाहीत',
   'Too many wrong attempts. Request a new code.':

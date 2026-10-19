@@ -7,8 +7,9 @@ import { initialsOf, PhotoEditor } from '../components/photo';
 import { PushChoice } from '../components/push';
 import { useAuth } from '../lib/auth';
 import { msg, useT } from '../lib/i18n';
+import { idDocumentLabels } from '../lib/idDocuments';
 import { passKindLabels } from '../lib/passes';
-import type { Chattiness, EmergencyContact, Gender, MyProfile, PassKind } from '../lib/types';
+import type { Chattiness, EmergencyContact, Gender, IdDocument, MyProfile, PassKind } from '../lib/types';
 
 const PHONE = /^\+?[0-9]{10,15}$/;
 const PHONE_ERROR = msg('Enter 10 to 15 digits, with or without a + in front');
@@ -334,6 +335,58 @@ function Invitations() {
   );
 }
 
+/**
+ * Which identity document a driver says they hold (feature 7, a labelled mock). Only the
+ * kind: there is no field for a number or a copy, and nothing is checked.
+ */
+function IdDeclaration({ declared }: { declared: IdDocument | null }) {
+  const t = useT();
+  const queryClient = useQueryClient();
+  const [choice, setChoice] = useState<IdDocument | ''>(declared ?? '');
+  const saved = (profile: MyProfile) => queryClient.setQueryData(['me', 'profile'], profile);
+  const declare = useMutation({
+    mutationFn: (document: IdDocument) => api<MyProfile>('/me/id-declaration', { method: 'PUT', body: { document } }),
+    onSuccess: saved,
+  });
+  const withdraw = useMutation({
+    mutationFn: () => api<MyProfile>('/me/id-declaration', { method: 'DELETE' }),
+    onSuccess: (profile) => {
+      saved(profile);
+      setChoice('');
+    },
+  });
+  const error = declare.error ?? withdraw.error;
+  return (
+    <div className="space-y-3 text-sm">
+      <p className="text-slate-600">
+        {t('You can say which identity document you hold. JOURNEX does not ask for its number or a copy and checks nothing: your profile will say it was declared, not checked.')}
+      </p>
+      {declared && <p>{t('You have declared: {document}.', { document: t(idDocumentLabels[declared]) })}</p>}
+      {error && <Notice tone="error">{error.message}</Notice>}
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="max-w-xs">
+          <SelectField label={t('Identity document')} value={choice} onChange={(event) => setChoice(event.target.value as IdDocument | '')}>
+            <option value="">{t('Choose one')}</option>
+            {(Object.keys(idDocumentLabels) as IdDocument[]).map((document) => (
+              <option key={document} value={document}>
+                {t(idDocumentLabels[document])}
+              </option>
+            ))}
+          </SelectField>
+        </div>
+        <Button disabled={choice === '' || choice === declared || declare.isPending} onClick={() => choice && declare.mutate(choice)}>
+          {t('Declare')}
+        </Button>
+        {declared && (
+          <Button tone="secondary" disabled={withdraw.isPending} onClick={() => withdraw.mutate()}>
+            {t('Remove')}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /** Whether copies of notifications go by email and SMS. In-app ones are always kept. */
 function NotificationChoices({ emailConfirmed, phoneConfirmed }: { emailConfirmed: boolean; phoneConfirmed: boolean }) {
   const t = useT();
@@ -404,6 +457,14 @@ export function AccountPage() {
               </div>
             </Card>
           </section>
+          {user?.role === 'DRIVER' && (
+            <section aria-label={t('Identity document')} className="space-y-3">
+              <h2 className="text-lg font-semibold">{t('Identity document')}</h2>
+              <Card>
+                <IdDeclaration declared={mine.declaredId ?? null} />
+              </Card>
+            </section>
+          )}
           <section aria-label={t('Invite friends')} className="space-y-3">
             <h2 className="text-lg font-semibold">{t('Invite friends')}</h2>
             <Card>

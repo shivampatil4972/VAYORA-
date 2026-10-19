@@ -39,6 +39,7 @@ export const SERVER_MESSAGES = [
   msg('Only a charger has a power rating'),
   msg('Only a completed trip can be confirmed'),
   msg('Only a completed trip can be rated'),
+  msg('Only a driver can declare an identity document'),
   msg('Only a driver whose profile says she is a woman can offer a women-only ride. Set your gender on your account page first.'),
   msg('Only a ride in progress can be completed'),
   msg('Only a scheduled ride can be cancelled'),

@@ -10,6 +10,7 @@ import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { formatDate, formatMonthYear, formatPercent } from '../lib/format';
 import { msg, useT, useUnits } from '../lib/i18n';
+import { idDocumentLabels } from '../lib/idDocuments';
 import type { Profile } from '../lib/types';
 
 const chattinessLabels = {
@@ -87,6 +88,11 @@ export function ProfilePage() {
               {member.age != null && <li className="rounded-full bg-slate-100 px-2.5 py-0.5">{t('About {n} years old', { n: member.age })}</li>}
               {member.emailVerified && <li className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-emerald-900">{t('Email confirmed')}</li>}
               {member.phoneVerified && <li className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-emerald-900">{t('Phone confirmed')}</li>}
+              {member.declaredId && (
+                <li className="rounded-full bg-slate-100 px-2.5 py-0.5">
+                  {t('Says they hold a {document}, not checked', { document: t(idDocumentLabels[member.declaredId]) })}
+                </li>
+              )}
               {preferences(member).map((phrase) => (
                 <li key={phrase} className="rounded-full bg-slate-100 px-2.5 py-0.5">
                   {t(phrase)}

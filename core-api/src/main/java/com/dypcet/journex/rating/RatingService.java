@@ -31,12 +31,14 @@ public class RatingService {
      *                       themselves; null for a passenger or until there are enough
      * @param responseMinutes typical (median) minutes from a request to the driver's answer;
      *                        null as above
+     * @param declaredId     the kind of identity document a driver says they hold; declared,
+     *                       never checked, and counted towards nothing; null if not said
      */
     public record Profile(long id, String fullName, String role, Instant memberSince,
             int completedTrips, Double averageStars, int ratingCount, List<Review> reviews,
             boolean emailVerified, boolean phoneVerified, String bio, Integer age,
             Boolean smoking, Boolean pets, Boolean music, String chattiness,
-            Double responseRate, Integer responseMinutes, String level) {
+            Double responseRate, Integer responseMinutes, String level, String declaredId) {
     }
 
     /**
@@ -126,7 +128,7 @@ public class RatingService {
                        u.email_verified_at IS NOT NULL AS email_verified,
                        u.phone_verified_at IS NOT NULL AS phone_verified,
                        p.bio, EXTRACT(YEAR FROM now())::int - p.birth_year AS age,
-                       p.smoking, p.pets, p.music, p.chattiness
+                       p.smoking, p.pets, p.music, p.chattiness, u.id_document
                 FROM users u LEFT JOIN profiles p ON p.user_id = u.id
                 WHERE u.id = ? AND u.role <> 'ADMIN'""",
                 (rs, n) -> new Profile(rs.getLong("id"), rs.getString("full_name"),
@@ -141,7 +143,8 @@ public class RatingService {
                         null, null,
                         levels.levelFor(rs.getInt("completed"), (Double) rs.getObject("average"),
                                 rs.getInt("rating_count"), rs.getBoolean("email_verified"),
-                                rs.getBoolean("phone_verified"))),
+                                rs.getBoolean("phone_verified")),
+                        rs.getString("id_document")),
                 userId);
         if (found.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found");
@@ -155,7 +158,8 @@ public class RatingService {
                 profile.completedTrips(), profile.averageStars(), profile.ratingCount(),
                 profile.reviews(), profile.emailVerified(), profile.phoneVerified(), profile.bio(),
                 profile.age(), profile.smoking(), profile.pets(), profile.music(),
-                profile.chattiness(), answers.rate(), answers.minutes(), profile.level());
+                profile.chattiness(), answers.rate(), answers.minutes(), profile.level(),
+                profile.declaredId());
     }
 
     /** The driver's own record. */
