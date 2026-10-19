@@ -207,7 +207,7 @@ def test_metrics_file_defines_the_expected_queries():
     assert set(load_queries()) == {
         "primary_metric", "late_cancellation_share", "funnel_rates", "intervention_volume",
         "refill_additionality", "empty_search_reasons", "refill_by_release_timing",
-        "cancellation_timing"}
+        "cancellation_timing", "daily_cancellation_hazard"}
 
 
 def test_intervention_volume_matches_hand_computed_values(sa_conn):
@@ -340,3 +340,50 @@ def test_refill_by_release_timing_matches_hand_computed_values(sa_conn):
     assert float(one["early_refill_share"]) == pytest.approx(0.5)
     assert (one["late_rides"], one["late_released"], one["late_refilled"]) == (1, 2, 1)
     assert float(one["late_refill_share"]) == pytest.approx(0.5)
+
+
+def test_daily_cancellation_hazard_matches_hand_computed_values(sa_conn):
+    day = timedelta(days=1)
+    departure = NOW + 10 * day
+    leaves = departure.astimezone(IST).isoformat()
+
+    def booking(number, accepted_before, ended_before=None, by="passenger", no_show=False,
+                accepted=True, variant=VARIANT, seed=1):
+        def event(event_type, before, payload):
+            return {"run_id": RUN_ID, "variant": variant, "seed": seed, "sim_time": departure - before,
+                    "event_type": event_type, "payload": json.dumps({"booking_id": number} | payload)}
+
+        rows = [event("booking_requested", accepted_before, {"departure_time": leaves})]
+        if accepted:
+            rows.append(event("booking_accepted", accepted_before, {}))
+        if ended_before is not None:
+            rows.append(event("booking_cancelled", ended_before, {"departure_time": leaves, "cancelled_by": by}))
+        if no_show:
+            rows.append(event("trip_failed", 0 * day, {"reason": "passenger_no_show"}))
+        return rows
+
+    sa_conn.execute(INSERT, [
+        *booking(1, 5 * day, 2.5 * day),                # stands days 5 to 2, cancelled on day 2
+        *booking(2, 3 * day),                           # exactly 3 days: stands days 3 to 0
+        *booking(3, 6.9 * day, 1.2 * day, by="driver"),  # stands days 6 to 1; a driver's, not counted
+        *booking(4, 0.5 * day, 0.1 * day),              # stands day 0 and is cancelled then
+        *booking(5, 9 * day, 8 * day),                  # gone before the week starts: stands on no day
+        *booking(6, 2 * day, no_show=True),             # stands days 2 to 0, then does not turn up
+        *booking(7, 4 * day, accepted=False),           # never accepted: never stands
+        *booking(8, 4 * day, 1 * day),                  # exactly 24 h out is day 1, not day 0
+        *booking(9, 7.5 * day),                         # stands every day of the week
+        *booking(1, 3 * day, 1 * day, variant="B1"),    # another variant must not leak in
+        # Seed 2: nobody stands before day 3. Those days count as 1, not as undefined.
+        *booking(1, 3 * day, 1.5 * day, seed=2),
+        *booking(2, 3 * day, seed=2),
+    ])
+
+    one, two = run_query(sa_conn, "daily_cancellation_hazard", run_id=RUN_ID, variant=VARIANT)
+
+    assert (one["accepted"], one["no_shows"]) == (8, 1)
+    assert [one[f"standing_d{n}"] for n in range(7, -1, -1)] == [1, 2, 3, 4, 5, 6, 5, 4]
+    assert [one[f"cancelled_d{n}"] for n in range(7, -1, -1)] == [0, 0, 0, 0, 0, 1, 1, 1]
+    # (1 - 1/6)(1 - 1/5)(1 - 1/4), every other day losing nobody
+    assert float(one["week_survival"]) == pytest.approx(0.5)
+    assert [two[f"standing_d{n}"] for n in range(7, -1, -1)] == [0, 0, 0, 0, 2, 2, 2, 1]
+    assert float(two["week_survival"]) == pytest.approx(0.5)  # 1 - 1/2, on day 1

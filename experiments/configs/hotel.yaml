@@ -1,0 +1,23 @@
+# The public hotel bookings, the one set of real cancellations the project has
+# (EXPERIMENT_PROTOCOL.md section 18). Not JOURNEX data and not ride-sharing:
+#
+#   Nuno Antonio, Ana de Almeida and Luis Nunes (2019). Hotel booking demand datasets.
+#   Data in Brief 22, 41-49. doi:10.1016/j.dib.2018.11.126. Licence: CC BY 4.0.
+#
+# Two hotels in Portugal, arrivals from July 2015 to August 2017. Read here from the
+# TidyTuesday copy (2020-02-11), which joins the article's two files into one with a
+# `hotel` column. The file is downloaded once and refused unless its SHA-256 matches.
+
+source:
+  url: https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-02-11/hotels.csv
+  sha256: 7c2ae42a7353905ea136e5c2287f17c92c5435826598bfbb8491c6f0c7b1fc06
+
+# Only bookings made at most this many days before arrival are loaded: the platform's
+# booking horizon (CLAUDE.md, frozen), so the hotels are compared over the same week.
+horizon_days: 7
+
+# The file has dates, not times. Every date is read as this hour, UTC, so that each
+# interval is a whole number of days; a real time zone would move some by an hour where
+# summer time starts or ends. A cancellation on the day of arrival is therefore day 0,
+# whatever hour it came.
+hour_utc: 12

@@ -260,3 +260,73 @@ FROM (
 ) cancelled
 GROUP BY seed
 ORDER BY seed;
+
+-- name: daily_cancellation_hazard
+-- The survival curve over the booking horizon, a day at a time: of the bookings still
+-- standing on each day before departure, how many their passenger cancelled that day.
+-- Run on the simulator's runs and on the public hotel bookings alike
+-- (EXPERIMENT_PROTOCOL.md section 18), so the two are counted the same way.
+--
+-- Day N runs from N to N+1 whole days before departure. A booking stands from the day it
+-- was accepted until the day it ended: cancelled by its passenger (an event), cancelled
+-- by anyone else (it stops standing, uncounted), or departed. A booking accepted more than
+-- 7 days out is counted from day 7.
+--
+-- accepted                    bookings accepted
+-- no_shows                    of those, ones whose passenger did not turn up at departure
+-- standing_dN, cancelled_dN   bookings standing on day N, and those their passenger cancelled then
+-- week_survival               the product over days 7 to 0 of (1 - cancelled / standing), a day
+--                             nobody stood on counting as 1: of the bookings standing at the
+--                             start of the week, or from the first day anyone stood, the share
+--                             still standing at departure
+WITH bookings AS (
+  SELECT seed,
+    MIN(sim_time) FILTER (WHERE event_type = 'booking_accepted') AS accepted_at,
+    MIN(CAST(payload->>'departure_time' AS timestamptz))
+        FILTER (WHERE event_type = 'booking_requested') AS departs_at,
+    MIN(sim_time) FILTER (WHERE event_type = 'booking_cancelled') AS ended_at,
+    BOOL_OR(event_type = 'booking_cancelled' AND payload->>'cancelled_by' = 'passenger') AS by_passenger,
+    BOOL_OR(event_type = 'trip_failed' AND payload->>'reason' = 'passenger_no_show') AS no_show
+  FROM events
+  WHERE run_id = :run_id AND variant = :variant
+    AND event_type IN ('booking_requested', 'booking_accepted', 'booking_cancelled', 'trip_failed')
+  GROUP BY seed, payload->>'booking_id'
+),
+days AS (
+  SELECT seed, no_show, COALESCE(by_passenger, false) AS by_passenger,
+    FLOOR(EXTRACT(EPOCH FROM departs_at - accepted_at) / 86400)::int AS entered,
+    FLOOR(EXTRACT(EPOCH FROM departs_at - ended_at) / 86400)::int AS ended
+  FROM bookings
+  WHERE accepted_at IS NOT NULL
+),
+counted AS (
+  SELECT seed,
+    COUNT(*) AS accepted,
+    COUNT(*) FILTER (WHERE no_show) AS no_shows,
+    COUNT(*) FILTER (WHERE entered >= 7 AND (ended IS NULL OR ended <= 7)) AS standing_d7,
+    COUNT(*) FILTER (WHERE entered >= 7 AND ended = 7 AND by_passenger) AS cancelled_d7,
+    COUNT(*) FILTER (WHERE entered >= 6 AND (ended IS NULL OR ended <= 6)) AS standing_d6,
+    COUNT(*) FILTER (WHERE entered >= 6 AND ended = 6 AND by_passenger) AS cancelled_d6,
+    COUNT(*) FILTER (WHERE entered >= 5 AND (ended IS NULL OR ended <= 5)) AS standing_d5,
+    COUNT(*) FILTER (WHERE entered >= 5 AND ended = 5 AND by_passenger) AS cancelled_d5,
+    COUNT(*) FILTER (WHERE entered >= 4 AND (ended IS NULL OR ended <= 4)) AS standing_d4,
+    COUNT(*) FILTER (WHERE entered >= 4 AND ended = 4 AND by_passenger) AS cancelled_d4,
+    COUNT(*) FILTER (WHERE entered >= 3 AND (ended IS NULL OR ended <= 3)) AS standing_d3,
+    COUNT(*) FILTER (WHERE entered >= 3 AND ended = 3 AND by_passenger) AS cancelled_d3,
+    COUNT(*) FILTER (WHERE entered >= 2 AND (ended IS NULL OR ended <= 2)) AS standing_d2,
+    COUNT(*) FILTER (WHERE entered >= 2 AND ended = 2 AND by_passenger) AS cancelled_d2,
+    COUNT(*) FILTER (WHERE entered >= 1 AND (ended IS NULL OR ended <= 1)) AS standing_d1,
+    COUNT(*) FILTER (WHERE entered >= 1 AND ended = 1 AND by_passenger) AS cancelled_d1,
+    COUNT(*) FILTER (WHERE entered >= 0 AND (ended IS NULL OR ended <= 0)) AS standing_d0,
+    COUNT(*) FILTER (WHERE entered >= 0 AND ended = 0 AND by_passenger) AS cancelled_d0
+  FROM days
+  GROUP BY seed
+)
+SELECT *,
+  COALESCE(1 - 1.0 * cancelled_d7 / NULLIF(standing_d7, 0), 1) * COALESCE(1 - 1.0 * cancelled_d6 / NULLIF(standing_d6, 0), 1)
+  * COALESCE(1 - 1.0 * cancelled_d5 / NULLIF(standing_d5, 0), 1) * COALESCE(1 - 1.0 * cancelled_d4 / NULLIF(standing_d4, 0), 1)
+  * COALESCE(1 - 1.0 * cancelled_d3 / NULLIF(standing_d3, 0), 1) * COALESCE(1 - 1.0 * cancelled_d2 / NULLIF(standing_d2, 0), 1)
+  * COALESCE(1 - 1.0 * cancelled_d1 / NULLIF(standing_d1, 0), 1) * COALESCE(1 - 1.0 * cancelled_d0 / NULLIF(standing_d0, 0), 1)
+  AS week_survival
+FROM counted
+ORDER BY seed;

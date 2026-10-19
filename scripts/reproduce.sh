@@ -5,8 +5,9 @@
 #   scripts/reproduce.sh            everything: tests, model, ladder, sweeps (about an hour)
 #   scripts/reproduce.sh --no-sweeps   tests, model and ladder only
 #
-# Needs only Docker. It deletes and re-creates the events of the runs it rebuilds, and
-# nothing else. Runs made with earlier code (ladders ...001 and ...002, sweeps ...001 and
+# Needs only Docker, and the first time a network: step 3c downloads the public hotel
+# bookings into experiments/data/ and refuses them unless their SHA-256 matches. It
+# deletes and re-creates the events of the runs it rebuilds, and nothing else. Runs made with earlier code (ladders ...001 and ...002, sweeps ...001 and
 # ...002) are history: the code that made them has changed, so they are not rebuilt.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -20,6 +21,7 @@ forget() { sql "DELETE FROM events WHERE run_id = '$1'"; }
 
 LADDER=7a1c0de0-0000-4000-8000-000000000003
 ROBUSTNESS=7a1c0de0-0000-4000-8000-000000000004
+HOTEL=407e1000-0000-4000-8000-000000000001
 SWEEP_RUNS=(
   "contact_budget 5eeb0000-0000-4000-8000-000000000003"
   "departure_tolerance 5eeb0000-0000-4000-8000-000000000004"
@@ -52,6 +54,11 @@ for variant in B0 B3 B4 B3-KM B4-KM ASK-ONLY B5 B5-RANDOM; do
   research python -m sim.run --variant "experiments/configs/variants/$variant.yaml" --run-id "$ROBUSTNESS"
 done
 research python -m experiments.analysis.compare --run-id "$ROBUSTNESS" --baseline B3 B0 B3 B4 B3-KM B4-KM ASK-ONLY B5 B5-RANDOM > /dev/null
+
+echo "== 3c. real hotel cancellations beside the simulator"
+forget "$HOTEL"
+research python -m experiments.hotel.load --run-id "$HOTEL" > /dev/null
+research python -m experiments.hotel.report --run-id "$HOTEL" --simulated "$LADDER" B0 > /dev/null
 
 if $SWEEPS; then
   echo "== 4. the sweeps"
