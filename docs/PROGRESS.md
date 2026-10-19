@@ -9,6 +9,9 @@
   out by road; booking works it out again under the ride lock, so two passengers cannot
   both spend the last minutes. The pickup's time is the stop's plus the drive to it; the
   driver sees each pickup's cost and the point on a map. Pickups only, not drop-offs.
+- Driven in a browser on the real road map: a ride with no Karad stop picked a passenger
+  up in Karad for 7 of its 20 minutes. It found one fault, fixed: the result's heading
+  named the stop before the pickup at the pickup's time.
 - The seat-release reminder (79) was seen arriving from the running job in a browser:
   once, with the half-fare refund it would get then, in English and Marathi.
 - Tests: 262 Java, 181 Python, 207 web, 28 gateway, all passing.

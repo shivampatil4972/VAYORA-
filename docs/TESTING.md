@@ -144,6 +144,11 @@ Kept here because each is a class of mistake worth remembering.
 
 ## Bugs the tests did not find
 
+- **Found by driving detour pickups in a browser** (headless Edge, real road map,
+  2026-10-19): **a pickup's heading named the stop before it, at the pickup's time**
+  ("8:25 am Kolhapur" for a pickup in Karad), and the search help still said only rides
+  with a stop near each end are shown. The heading now says "Your start"; a test that
+  fails without the fix covers it.
 - **Found by driving seats on a ride under way in a browser** (headless Edge, 2026-10-17):
   **a ride started early was still sold from the stop it had just left.** Its timetable
   put that stop more than the 30-minute margin away, and a driver may start up to an hour
