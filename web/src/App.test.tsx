@@ -103,6 +103,8 @@ const candidate: Candidate = {
   keptRides: false,
   insurer: null,
   insuredUntil: null,
+  matchScore: 72,
+  matchReasons: [],
   vehicle: 'Maruti Ertiga',
   comfort: null,
   luggage: null,
@@ -2590,5 +2592,31 @@ describe('the referral reward', () => {
 
     expect(await screen.findByText(/Running until .* · Free: a reward for an invitation/)).toBeInTheDocument();
     expect(screen.queryByText(/₹0/)).not.toBeInTheDocument();
+  });
+});
+
+describe('best match for both people', () => {
+  it('asks for that order, and shows each score with its reasons only then', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({
+      'GET /rides/search': () =>
+        json([{ ...candidate, matchScore: 88, matchReasons: ['NEAR', 'SAME_CONVERSATION', 'DIFFERENT_MUSIC'] }]),
+    });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+    await screen.findAllByRole('button', { name: /^(Book|Request)/ });
+    expect(screen.queryByText(/Match 88 of 100/)).not.toBeInTheDocument();
+    await userEvent.selectOptions(screen.getByLabelText('Sort by'), 'Best match for both of you');
+
+    expect(
+      await screen.findByText(
+        'Match 88 of 100 · Pickup and drop-off close to you · You like the same amount of conversation · You differ about music',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Never from any prediction about either of you/)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(fetchMock.mock.calls.some(([url]) => new URL(String(url)).searchParams.get('sort') === 'BEST_MATCH')).toBe(true),
+    );
   });
 });

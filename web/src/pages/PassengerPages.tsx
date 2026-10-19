@@ -17,6 +17,7 @@ import { api } from '../lib/api';
 import { CORRIDOR } from '../lib/corridor';
 import { answerBy, formatDate, formatDateTime, formatRupees, formatTime, todayInCorridor } from '../lib/format';
 import { msg, useT, useUnits } from '../lib/i18n';
+import { matchReasonLabels } from '../lib/match';
 import { comfortLabels, luggageLabels, vehiclePhrases } from '../lib/vehicle';
 import { searchSchema, type SearchForm } from '../lib/schemas';
 import type { Booking, Candidate, Comfort, FlexTier, Luggage, MyProfile, PaymentMethod, RequestTerms, Ride, SearchSort, SeatHold } from '../lib/types';
@@ -464,6 +465,7 @@ export function SearchPage() {
                   <option value="PRICE">{t('Lowest price')}</option>
                   <option value="RATING">{t('Best-rated driver')}</option>
                   <option value="PROXIMITY">{t('Nearest pickup')}</option>
+                  <option value="BEST_MATCH">{t('Best match for both of you')}</option>
                 </SelectField>
                 <SelectField
                   label={t('Pay with')}
@@ -486,6 +488,13 @@ export function SearchPage() {
                   <option value="ANY_TIME">{t('Any time that day')}</option>
                 </SelectField>
               </div>
+              {criteria.sort === 'BEST_MATCH' && (
+                <p className="max-w-xl text-sm text-slate-600">
+                  {t(
+                    "Scored for both of you from what you each said on your profiles, the distance, the price and the driver's record of rides kept. Never from any prediction about either of you. Say what you prefer on your account page to be matched on it.",
+                  )}
+                </p>
+              )}
             </>
           )}
           {results.data?.map((candidate) => {
@@ -536,6 +545,14 @@ export function SearchPage() {
                         ` · ${t('about {minutes} min walk to the pickup, in a straight line', { minutes: candidate.pickupWalkMinutes })}`}
                     </p>
                     <p className="mt-1 text-sm text-slate-600">{driverRecord(candidate, t)}</p>
+                    {criteria.sort === 'BEST_MATCH' && (
+                      <p className="mt-1 text-sm text-teal-800">
+                        {[
+                          t('Match {score} of 100', { score: candidate.matchScore }),
+                          ...candidate.matchReasons.map((reason) => t(matchReasonLabels[reason])),
+                        ].join(' · ')}
+                      </p>
+                    )}
                     {candidate.suggestFlexible && tier === 'EXACT' && (
                       <p className="mt-1 text-sm text-amber-800">
                         {t('This driver has withdrawn some rides. A flexible booking would move you to another ride automatically.')}

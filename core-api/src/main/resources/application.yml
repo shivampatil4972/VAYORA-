@@ -150,6 +150,15 @@ journex:
     # For a rough walking time to and from stops, shown with each result. Distances are in a
     # straight line, so the real walk is longer.
     walking-kmh: 4.5
+    # Two-sided match scoring (feature 76), out of 100: these four parts add up to 100,
+    # "preference" counting once for each of smoking, pets, music and conversation. Only what
+    # both people said, distance, price and the driver's record: never a prediction.
+    # The weights are the authors' assumptions.
+    match:
+      distance: 25
+      price: 20
+      record: 15
+      preference: 10
   pricing:
     # Per seat. Only a suggestion offered to the driver, never applied automatically.
     suggested-rupees-per-km: 2.0

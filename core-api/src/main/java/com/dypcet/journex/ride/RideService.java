@@ -31,6 +31,8 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.UUID;
 import java.util.List;
 import java.util.Locale;
@@ -140,7 +142,8 @@ public class RideService {
             boolean driverConfirmed, boolean maxTwoInBack, String vehicle, String comfort,
             String luggage, boolean electric, boolean womenOnly, int driverRidesCompleted,
             int driverRidesWithdrawn, int pickupWalkMinutes, int dropoffWalkMinutes, boolean suggestFlexible,
-            boolean underWay, boolean keptRides, String insurer, LocalDate insuredUntil) {
+            boolean underWay, boolean keptRides, String insurer, LocalDate insuredUntil,
+            int matchScore, List<MatchScore.Reason> matchReasons) {
 
         Candidate withSeatsAvailable(int seats) {
             return new Candidate(rideId, driverName, instantBooking, fromSeq, toSeq, fromStop, toStop,
@@ -148,7 +151,16 @@ public class RideService {
                     driverRating, driverRatingCount, pickupDistanceM, dropoffDistanceM,
                     driverConfirmed, maxTwoInBack, vehicle, comfort, luggage, electric, womenOnly,
                     driverRidesCompleted, driverRidesWithdrawn, pickupWalkMinutes, dropoffWalkMinutes, suggestFlexible,
-                    underWay, keptRides, insurer, insuredUntil);
+                    underWay, keptRides, insurer, insuredUntil, matchScore, matchReasons);
+        }
+
+        Candidate withMatch(MatchScore.Match match) {
+            return new Candidate(rideId, driverName, instantBooking, fromSeq, toSeq, fromStop, toStop,
+                    boardingTime, arrivalTime, pricePerSeat, seatsAvailable, fare, serviceFee, total, driverId,
+                    driverRating, driverRatingCount, pickupDistanceM, dropoffDistanceM,
+                    driverConfirmed, maxTwoInBack, vehicle, comfort, luggage, electric, womenOnly,
+                    driverRidesCompleted, driverRidesWithdrawn, pickupWalkMinutes, dropoffWalkMinutes, suggestFlexible,
+                    underWay, keptRides, insurer, insuredUntil, match.score(), match.reasons());
         }
     }
 
@@ -165,7 +177,9 @@ public class RideService {
         TIME("boarding, id"),
         PRICE("price, boarding, id"),
         RATING("driver_rating DESC NULLS LAST, boarding, id"),
-        PROXIMITY("pickup_m, boarding, id");
+        PROXIMITY("pickup_m, boarding, id"),
+        /** By {@link MatchScore}, highest first; worked out after the query, so time is only its tie-break. */
+        BEST_MATCH("boarding, id");
 
         private final String orderBy;
 
@@ -274,6 +288,7 @@ public class RideService {
     private final double walkingKmh;
     private final Duration midRouteLead;
     private final KeptRides keptRides;
+    private final MatchScore.Weights matchWeights;
     private final double suggestFlexibleBelow;
     private final SeatHolds holds;
     private final PassService passes;
@@ -288,7 +303,12 @@ public class RideService {
             @Value("${journex.tiers.suggest-below}") double suggestFlexibleBelow,
             @Value("${journex.booking.mid-route-lead}") Duration midRouteLead,
             SeatHolds holds, PassService passes, StopoverService stopovers, SupplyGapService supply,
-            KeptRides keptRides) {
+            KeptRides keptRides,
+            @Value("${journex.search.match.distance}") int matchDistance,
+            @Value("${journex.search.match.price}") int matchPrice,
+            @Value("${journex.search.match.record}") int matchRecord,
+            @Value("${journex.search.match.preference}") int matchPreference) {
+        this.matchWeights = new MatchScore.Weights(matchDistance, matchPrice, matchRecord, matchPreference);
         this.keptRides = keptRides;
         this.supply = supply;
         this.stopovers = stopovers;
@@ -622,6 +642,8 @@ public class RideService {
                 + " AND (NOT r.women_only OR " + PASSENGER_SAYS_WOMAN + ")";
         // What the passenger would pay now: a running pass waives the fee.
         boolean covered = passes.covers(passengerId, clock.instant());
+        // Each driver's stated preferences, read with the results, for the match score.
+        Map<Long, MatchScore.Preferences> driverSays = new HashMap<>();
         // sort.orderBy is one of four constants above, never caller text.
         List<Candidate> candidates = named.query("""
                 WITH want AS (
@@ -658,6 +680,8 @@ public class RideService {
                            ST_Distance(o.location, want.origin) AS pickup_m,
                            ST_Distance(d.location, want.destination) AS dropoff_m,
                            legs.price, legs.seats,
+                           p.smoking AS driver_smoking, p.pets AS driver_pets, p.music AS driver_music,
+                           p.chattiness AS driver_chattiness,
                            """ + DRIVER_CONFIRMED + """
                                 AS driver_confirmed
                     FROM want
@@ -696,6 +720,9 @@ public class RideService {
                     // The same rule PaymentService charges by: the fee shown is the fee held.
                     boolean kept = keptRides.qualifies(rs.getInt("driver_completed"), rs.getInt("driver_withdrawn_lately"));
                     BigDecimal fee = covered ? BigDecimal.ZERO.setScale(2) : serviceFee.on(fare, kept);
+                    driverSays.put(rs.getLong("id"), new MatchScore.Preferences(
+                            rs.getObject("driver_smoking", Boolean.class), rs.getObject("driver_pets", Boolean.class),
+                            rs.getObject("driver_music", Boolean.class), rs.getString("driver_chattiness")));
                     return new Candidate(rs.getLong("id"), rs.getString("full_name"),
                             rs.getBoolean("instant_booking"), rs.getInt("from_seq"),
                             rs.getInt("to_seq"), rs.getString("from_stop"), rs.getString("to_stop"),
@@ -713,18 +740,47 @@ public class RideService {
                             walkMinutes(rs.getDouble("dropoff_m")),
                             weakRecord(rs.getInt("driver_completed"), rs.getInt("driver_withdrawn")),
                             rs.getBoolean("under_way"), kept, rs.getString("insurer"),
-                            rs.getObject("insured_until", LocalDate.class));
+                            rs.getObject("insured_until", LocalDate.class), 0, List.of());
                 });
 
         candidates = candidates.stream()
                 .map(candidate -> lessHeld(candidate, passengerId)).filter(c -> c.seatsAvailable() >= seats)
                 .toList();
+        candidates = matched(candidates, preferencesOf(passengerId), driverSays);
+        if (sort == Sort.BEST_MATCH) {
+            candidates = candidates.stream()
+                    .sorted(Comparator.comparingInt(Candidate::matchScore).reversed()
+                            .thenComparing(Candidate::boardingTime).thenComparingLong(Candidate::rideId))
+                    .toList();
+        }
 
         if (logged) {
             events.write(EventType.CANDIDATES_RETURNED, new CandidatesReturned(passengerId,
                     candidates.size(), candidates.stream().map(Candidate::rideId).toList()));
         }
         return candidates;
+    }
+
+    /** Each result scored for both people, against the cheapest result offered. */
+    private List<Candidate> matched(List<Candidate> candidates, MatchScore.Preferences passenger,
+            Map<Long, MatchScore.Preferences> driverSays) {
+        BigDecimal cheapest = candidates.stream().map(Candidate::pricePerSeat)
+                .min(Comparator.naturalOrder()).orElse(BigDecimal.ZERO);
+        return candidates.stream()
+                .map(c -> c.withMatch(MatchScore.of(passenger,
+                        driverSays.getOrDefault(c.rideId(), MatchScore.Preferences.NONE),
+                        c.pickupDistanceM() + c.dropoffDistanceM(), maxAccessMetres, c.pricePerSeat(), cheapest,
+                        c.driverRidesCompleted(), c.driverRidesWithdrawn(), matchWeights)))
+                .toList();
+    }
+
+    /** What the passenger said on their profile; nothing if they have no profile yet. */
+    private MatchScore.Preferences preferencesOf(long passengerId) {
+        return jdbc.query("SELECT smoking, pets, music, chattiness FROM profiles WHERE user_id = ?",
+                (rs, n) -> new MatchScore.Preferences(rs.getObject("smoking", Boolean.class),
+                        rs.getObject("pets", Boolean.class), rs.getObject("music", Boolean.class),
+                        rs.getString("chattiness")),
+                passengerId).stream().findFirst().orElse(MatchScore.Preferences.NONE);
     }
 
     /**

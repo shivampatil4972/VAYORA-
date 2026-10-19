@@ -90,7 +90,20 @@ export interface Ride {
 
 export type RouteSource = 'OSRM' | 'STRAIGHT_LINE';
 
-export type SearchSort = 'TIME' | 'PRICE' | 'RATING' | 'PROXIMITY';
+export type SearchSort = 'TIME' | 'PRICE' | 'RATING' | 'PROXIMITY' | 'BEST_MATCH';
+
+/** Why a result scored as it did for both people (feature 76). */
+export type MatchReason =
+  | 'NEAR'
+  | 'CHEAPEST'
+  | 'SAME_SMOKING'
+  | 'DIFFERENT_SMOKING'
+  | 'SAME_PETS'
+  | 'DIFFERENT_PETS'
+  | 'SAME_MUSIC'
+  | 'DIFFERENT_MUSIC'
+  | 'SAME_CONVERSATION'
+  | 'DIFFERENT_CONVERSATION';
 
 /** A route through some stops before a ride is published, with a suggested price per leg. */
 export interface RoutePreview {
@@ -180,6 +193,9 @@ export interface Candidate {
   /** Insurance the driver declares, never checked: only while it covers the trip's date. */
   insurer: string | null;
   insuredUntil: string | null;
+  /** Out of 100, for both people, from what they said, distance, price and the driver's record; never a prediction. */
+  matchScore: number;
+  matchReasons: MatchReason[];
 }
 
 /** What a passenger agrees to, when booking, should the driver withdraw the ride. */

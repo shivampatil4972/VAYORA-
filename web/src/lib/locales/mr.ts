@@ -1375,6 +1375,32 @@ export const mr: Record<string, string> = {
     'निमंत्रणाने सामील झाल्यानंतर तुम्ही पहिला प्रवास पूर्ण केला, म्हणून तुम्हाला मोफत प्रवास पास मिळाला आहे. तो चालू असेपर्यंत सेवा शुल्क माफ करतो: पास पहा.',
   'Your seat from {from} to {to} leaves {when}. If your plans have changed, cancelling now lets someone else take it, and Rs {refund} of your Rs {fare} fare comes back. If you are still travelling, there is nothing to do.':
     '{from} ते {to} तुमची जागा {when} ला निघते. तुमचे नियोजन बदलले असल्यास, आत्ता रद्द केल्याने दुसरे कोणी ती घेऊ शकते, आणि तुमच्या Rs {fare} भाड्यापैकी Rs {refund} परत मिळतात. तुम्ही अजूनही प्रवास करत असल्यास, काहीही करण्याची गरज नाही.',
+  'Best match for both of you':
+    'तुम्हा दोघांसाठी सर्वोत्तम जुळणी',
+  'Match {score} of 100':
+    '100 पैकी {score} जुळणी',
+  "Scored for both of you from what you each said on your profiles, the distance, the price and the driver's record of rides kept. Never from any prediction about either of you. Say what you prefer on your account page to be matched on it.":
+    'तुम्हा दोघांसाठी गुण यावरून: तुम्ही प्रोफाइलवर काय सांगितले, अंतर, किंमत आणि चालकाचा पूर्ण केलेल्या राइडचा रेकॉर्ड. तुमच्यापैकी कोणाबद्दलच्या अंदाजावरून कधीच नाही. त्यावर जुळणीसाठी तुमच्या खाते पानावर तुमची पसंती सांगा.',
+  'Pickup and drop-off close to you':
+    'पिकअप आणि ड्रॉप-ऑफ तुमच्या जवळ',
+  'The lowest price here':
+    'येथील सर्वात कमी किंमत',
+  'You agree about smoking':
+    'धूम्रपानाबद्दल तुमचे एकमत आहे',
+  'You differ about smoking':
+    'धूम्रपानाबद्दल तुमचे मत वेगळे आहे',
+  'You agree about pets':
+    'पाळीव प्राण्यांबद्दल तुमचे एकमत आहे',
+  'You differ about pets':
+    'पाळीव प्राण्यांबद्दल तुमचे मत वेगळे आहे',
+  'You agree about music':
+    'संगीताबद्दल तुमचे एकमत आहे',
+  'You differ about music':
+    'संगीताबद्दल तुमचे मत वेगळे आहे',
+  'You like the same amount of conversation':
+    'तुम्हा दोघांना सारख्याच प्रमाणात गप्पा आवडतात',
+  'One of you wants a quiet ride, the other likes to talk':
+    'तुमच्यापैकी एकाला शांत प्रवास हवा आहे, दुसऱ्याला गप्पा आवडतात',
   'Those stops are not on this ride':
     'हे थांबे या राइडवर नाहीत',
   'Too many wrong attempts. Request a new code.':

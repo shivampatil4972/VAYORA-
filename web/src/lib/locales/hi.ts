@@ -1375,6 +1375,32 @@ export const hi: Record<string, string> = {
     'आपने निमंत्रण से जुड़ने के बाद अपनी पहली यात्रा पूरी की, इसलिए आपको एक मुफ़्त यात्रा पास मिला है। यह चलने तक सेवा शुल्क माफ़ करता है: पास देखें।',
   'Your seat from {from} to {to} leaves {when}. If your plans have changed, cancelling now lets someone else take it, and Rs {refund} of your Rs {fare} fare comes back. If you are still travelling, there is nothing to do.':
     '{from} से {to} तक आपकी सीट {when} को निकलती है। अगर आपकी योजना बदल गई है, तो अभी रद्द करने से कोई और इसे ले सकता है, और आपके Rs {fare} किराए में से Rs {refund} वापस आते हैं। अगर आप अब भी यात्रा कर रहे हैं, तो कुछ करने की ज़रूरत नहीं है।',
+  'Best match for both of you':
+    'आप दोनों के लिए सबसे अच्छा मेल',
+  'Match {score} of 100':
+    '100 में से {score} मेल',
+  "Scored for both of you from what you each said on your profiles, the distance, the price and the driver's record of rides kept. Never from any prediction about either of you. Say what you prefer on your account page to be matched on it.":
+    'आप दोनों के लिए अंक इस आधार पर: आपने अपनी प्रोफ़ाइल में क्या बताया, दूरी, कीमत और चालक का निभाई गई सवारियों का रिकॉर्ड। आप दोनों में से किसी के बारे में किसी अनुमान से कभी नहीं। इस पर मेल पाने के लिए अपने खाते के पेज पर अपनी पसंद बताएँ।',
+  'Pickup and drop-off close to you':
+    'पिकअप और ड्रॉप-ऑफ़ आपके पास',
+  'The lowest price here':
+    'यहाँ सबसे कम कीमत',
+  'You agree about smoking':
+    'धूम्रपान पर आप सहमत हैं',
+  'You differ about smoking':
+    'धूम्रपान पर आपकी राय अलग है',
+  'You agree about pets':
+    'पालतू जानवरों पर आप सहमत हैं',
+  'You differ about pets':
+    'पालतू जानवरों पर आपकी राय अलग है',
+  'You agree about music':
+    'संगीत पर आप सहमत हैं',
+  'You differ about music':
+    'संगीत पर आपकी राय अलग है',
+  'You like the same amount of conversation':
+    'आप दोनों को बातचीत उतनी ही पसंद है',
+  'One of you wants a quiet ride, the other likes to talk':
+    'आप में से एक शांत सफ़र चाहता है, दूसरे को बात करना पसंद है',
   'Those stops are not on this ride':
     'ये स्टॉप इस सवारी पर नहीं हैं',
   'Too many wrong attempts. Request a new code.':
