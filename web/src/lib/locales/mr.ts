@@ -1443,6 +1443,10 @@ export const mr: Record<string, string> = {
     'तुम्ही लवचिक बुकिंग निवडली होती, म्हणून तुम्ही {driver} यांच्या {time} वाजताच्या राइडमध्ये जागा मागितली आहे, जे तुम्हाला तुमच्या स्वतःच्या ठिकाणाहून घेतील. चालक उत्तर देतील.',
   '{time} with {driver}, picking you up at your own point':
     '{time} वाजता {driver} यांच्यासोबत, तुमच्या स्वतःच्या ठिकाणाहून घेऊन',
+  'A stretch between two stops is longer than your vehicle covers on a full charge, by your own figures. Add a stop where you can charge.':
+    'दोन थांब्यांमधील एक टप्पा तुमच्याच आकड्यांनुसार पूर्ण चार्जवर तुमचे वाहन जाणाऱ्या अंतरापेक्षा लांब आहे. जिथे चार्ज करता येईल असा थांबा जोडा.',
+  '{from} to {to} is {km} km, longer than the {range} km your vehicle covers on a full charge, by your own figures. A ride with a stretch that long cannot be published: add a stop between them where you can charge.':
+    '{from} ते {to} हे अंतर {km} किमी आहे, तुमच्याच आकड्यांनुसार पूर्ण चार्जवर तुमचे वाहन जाणाऱ्या {range} किमीपेक्षा लांब. इतका लांब टप्पा असलेली राइड प्रकाशित करता येत नाही: त्यांच्यामध्ये जिथे चार्ज करता येईल असा थांबा जोडा.',
   'Those stops are not on this ride':
     'हे थांबे या राइडवर नाहीत',
   'Too many wrong attempts. Request a new code.':

@@ -9,6 +9,7 @@ export const SERVER_MESSAGES = [
   msg('A code was sent a moment ago. Wait before asking for another.'),
   msg('A no-show can only be recorded while the ride is in progress'),
   msg('A ride needs exactly one price per leg between stops'),
+  msg('A stretch between two stops is longer than your vehicle covers on a full charge, by your own figures. Add a stop where you can charge.'),
   msg('Add a phone number first'),
   msg('Administrators cannot self-register'),
   msg('Battery and consumption are only for an electric vehicle'),

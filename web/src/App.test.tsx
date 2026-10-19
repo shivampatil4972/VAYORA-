@@ -2110,13 +2110,31 @@ describe('electric range', () => {
   const ev = (rangeKm: number) => ({ id: 3, make: 'Tata', model: 'Nexon EV', year: 2023, colour: 'Blue', seats: 5,
     electric: true, batteryKwh: 30, consumptionKwhPer100Km: 15, estimatedRangeKm: rangeKm });
 
-  it('warns a driver whose route is longer than their stated range', async () => {
+  it('tells a driver a stretch longer than their stated range cannot be published, and which', async () => {
     signIn('DRIVER');
     serve({ 'GET /vehicles': () => json([ev(200)]), 'POST /rides/route-preview': preview });
     open('/rides/new');
 
     await userEvent.click(await screen.findByRole('button', { name: 'Work out the route' }));
-    expect(await screen.findByText(/longer than the 200 km your vehicle covers on a full charge/)).toBeInTheDocument();
+    expect(await screen.findByText(/Kolhapur to Pune is 230 km, longer than the 200 km your vehicle covers on a full charge/))
+      .toHaveTextContent('cannot be published: add a stop between them where you can charge');
+  });
+
+  it('only warns when the route is longer than the range but every stretch fits', async () => {
+    signIn('DRIVER');
+    serve({
+      'GET /vehicles': () => json([ev(200)]),
+      'POST /rides/route-preview': () =>
+        json({ distanceKm: 230, durationMinutes: 191, source: 'OSRM', alongRoute: [],
+          legs: [{ distanceKm: 120, durationMinutes: 100, suggestedPrice: 240 }, { distanceKm: 110, durationMinutes: 91, suggestedPrice: 220 }],
+          path: [[16.705, 74.2433], [17.6805, 74.0183], [18.5204, 73.8567]] }),
+    });
+    open('/rides/new');
+
+    await userEvent.click(await screen.findByLabelText('Satara'));
+    await userEvent.click(screen.getByRole('button', { name: 'Work out the route' }));
+    expect(await screen.findByText(/This route is longer than the 200 km your vehicle covers on a full charge/)).toBeInTheDocument();
+    expect(screen.queryByText(/cannot be published/)).not.toBeInTheDocument();
   });
 
   it('says nothing when the route is within range', async () => {

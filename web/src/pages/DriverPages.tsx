@@ -175,6 +175,12 @@ function RoutePlanner({ stops, rangeKm, onMove, onUse }: {
   });
 
   if (included.length < 2) return null;
+  // The first stretch between stops longer than a full charge: the server refuses to publish it.
+  const tooLong =
+    rangeKm == null || !preview.data ? -1 : preview.data.legs.findIndex((leg) => leg.distanceKm > rangeKm);
+  const chargers = preview.data?.alongRoute.some((a) => a.stopover.kind === 'CHARGER')
+    ? t('Chargers are listed near this route below.')
+    : t('No charger is listed near this route.');
   return (
     <fieldset className="space-y-3">
       <legend className="text-sm font-medium text-slate-700">{t('Route and meeting points')}</legend>
@@ -244,15 +250,28 @@ function RoutePlanner({ stops, rangeKm, onMove, onUse }: {
             ))}
           </ul>
           <p className="mt-1 text-slate-500">{t('The suggestion is distance times a flat rate. The price is yours to set.')}</p>
-          {rangeKm != null && preview.data.distanceKm > rangeKm && (
+          {tooLong >= 0 ? (
             <div className="mt-2">
-              <Notice tone="info">
-                {t('This route is longer than the {range} km your vehicle covers on a full charge, by your own figures. Plan a charging stop: JOURNEX does not plan one for you.', { range: rangeKm })}{' '}
-                {preview.data.alongRoute.some((a) => a.stopover.kind === 'CHARGER')
-                  ? t('Chargers are listed near this route below.')
-                  : t('No charger is listed near this route.')}
+              <Notice tone="error">
+                {t('{from} to {to} is {km} km, longer than the {range} km your vehicle covers on a full charge, by your own figures. A ride with a stretch that long cannot be published: add a stop between them where you can charge.', {
+                  from: town(included[tooLong].index),
+                  to: town(included[tooLong + 1].index),
+                  km: preview.data.legs[tooLong].distanceKm,
+                  range: rangeKm!,
+                })}{' '}
+                {chargers}
               </Notice>
             </div>
+          ) : (
+            rangeKm != null &&
+            preview.data.distanceKm > rangeKm && (
+              <div className="mt-2">
+                <Notice tone="info">
+                  {t('This route is longer than the {range} km your vehicle covers on a full charge, by your own figures. Plan a charging stop: JOURNEX does not plan one for you.', { range: rangeKm })}{' '}
+                  {chargers}
+                </Notice>
+              </div>
+            )
           )}
           {preview.data.alongRoute.length > 0 && (
             <section aria-label={t('Along this route')} className="mt-3">

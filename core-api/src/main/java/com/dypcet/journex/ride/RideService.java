@@ -377,11 +377,15 @@ public class RideService {
 
     @Transactional
     public Ride publish(long driverId, PublishRide ride) {
-        validate(driverId, ride);
+        Vehicle vehicle = validate(driverId, ride);
         // Asked before anything is written: a slow routing service must not hold locks.
         Route route = routes.through(points(ride.stops()));
         List<StopInput> stopsBack = ride.returnDepartureTime() == null ? null : reversed(ride.stops());
         Route routeBack = stopsBack == null ? null : routes.through(points(stopsBack));
+        withinRange(vehicle, route);
+        if (routeBack != null) {
+            withinRange(vehicle, routeBack);
+        }
         List<BigDecimal> pricesBack = new ArrayList<>(ride.segmentPrices());
         Collections.reverse(pricesBack);
 
@@ -487,7 +491,22 @@ public class RideService {
                 Boolean.class, userId);
     }
 
-    private void validate(long driverId, PublishRide ride) {
+    /**
+     * An electric car must cover each stretch between stops on one charge, by the driver's own
+     * figures: it can charge at a stop, not between two. Compared to the tenth of a kilometre,
+     * as the route preview shows it, so the two never disagree. When the routing service is
+     * down the stretches are straight lines, shorter than the road, and this is lenient.
+     */
+    private static void withinRange(Vehicle vehicle, Route route) {
+        Integer range = vehicle.estimatedRangeKm();
+        if (vehicle.electric() && range != null
+                && route.legs().stream().anyMatch(leg -> km(leg.distanceMetres()) > range)) {
+            throw badRequest("A stretch between two stops is longer than your vehicle covers on a full "
+                    + "charge, by your own figures. Add a stop where you can charge.");
+        }
+    }
+
+    private Vehicle validate(long driverId, PublishRide ride) {
         Vehicle vehicle = vehicles.findOwned(ride.vehicleId(), driverId);
         if (vehicle == null) {
             throw badRequest("Vehicle not found among your vehicles");
@@ -526,6 +545,7 @@ public class RideService {
                 throw badRequest("The return must leave after the ride out has arrived");
             }
         }
+        return vehicle;
     }
 
     public Ride get(long rideId) {

@@ -1443,6 +1443,10 @@ export const hi: Record<string, string> = {
     'आपने लचीली बुकिंग चुनी थी, इसलिए आपने {driver} की {time} बजे वाली सवारी में सीट माँगी है, जो आपको आपकी अपनी जगह से लेंगे। चालक जवाब देंगे।',
   '{time} with {driver}, picking you up at your own point':
     '{time} बजे {driver} के साथ, आपकी अपनी जगह से लेते हुए',
+  'A stretch between two stops is longer than your vehicle covers on a full charge, by your own figures. Add a stop where you can charge.':
+    'दो स्टॉप के बीच का एक हिस्सा आपके अपने आँकड़ों के अनुसार पूरी चार्ज पर आपके वाहन की दूरी से लंबा है। ऐसा स्टॉप जोड़ें जहाँ आप चार्ज कर सकें।',
+  '{from} to {to} is {km} km, longer than the {range} km your vehicle covers on a full charge, by your own figures. A ride with a stretch that long cannot be published: add a stop between them where you can charge.':
+    '{from} से {to} तक {km} किमी है, जो आपके अपने आँकड़ों के अनुसार पूरी चार्ज पर आपके वाहन की {range} किमी की दूरी से लंबा है। इतने लंबे हिस्से वाली सवारी प्रकाशित नहीं की जा सकती: इनके बीच ऐसा स्टॉप जोड़ें जहाँ आप चार्ज कर सकें।',
   'Those stops are not on this ride':
     'ये स्टॉप इस सवारी पर नहीं हैं',
   'Too many wrong attempts. Request a new code.':
