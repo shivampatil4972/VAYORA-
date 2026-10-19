@@ -19,7 +19,7 @@ below is the authors' recommendation, with reasons.
 
 ## Where things stand
 
-As of 2026-10-17: of 95 features, **75 verified, 16 partial, 4 not started**, about 88%
+As of 2026-10-17: of 95 features, **76 verified, 16 partial, 3 not started**, about 88%
 counting a partial feature as half. Everything left needs a decision, an outside service
 or data that does not exist; nothing remains that is only a matter of building.
 
@@ -33,7 +33,7 @@ Ordered by value to the research question first, then by size.
 |---|---|---|---|
 | 89 | Corridor demand calibration | Needs real demand figures to calibrate against, which do not exist | Blocked on data |
 | ~~84~~ | ~~Mid-route seat allocation~~ | Done on the platform, 2026-10-17 | |
-| 76 | Two-sided match scoring | Needs geography the simulator does not have (see B1, B2 below) | Large |
+| ~~76~~ | ~~Two-sided match scoring~~ | Done on the platform, 2026-10-19; the simulator still has no geography for it (B1, B2) | |
 | 87 | Live what-if simulator | Saved sweeps can be explored; running a new simulation from the screen would need a service to run it, which the architecture rule does not provide | Large, placement first |
 | ~~94~~ | ~~Driver commitment pricing~~ | Done, 2026-10-17: a lower passenger fee on rides by drivers who keep their rides | |
 

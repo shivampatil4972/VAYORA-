@@ -82,6 +82,9 @@ was decided while building within them.
 | A filter only ever narrows a search | Predictability | |
 | Smoking and pets filters leave out drivers who have not said | Silence is not a promise | Today they leave out nearly everyone |
 | Search positions are rounded to about 100 m in the event log | Research needs the area, not the doorstep | |
+| Match scoring uses only what both people said, distance, price and the driver's record of rides kept | Ranking real people by a model's guess about them is not done anywhere on the platform | It knows nothing about people who leave their profile empty |
+| A preference either person left unsaid counts half | Silence should neither help nor hurt | Saying nothing scores the same as half agreeing |
+| "Best match" is one order among five, not the default | A passenger should be able to see results by time without a score in the way | |
 | A ride under way is sold only from a stop it is due at 30 minutes or more ahead, by its timetable or by its actual start if that was earlier | The timetable and the start are all core-api knows of a ride's progress; live position is the gateway's and is not kept as truth. A ride may start up to an hour early | A ride that gains time on the road can still beat a late booker to the stop; the margin is in `application.yml` |
 | A ride under way is sold only if it confirms instantly | A driver at the wheel must not be answering requests | Rides that need approval lose these seats |
 | A no-show gives the seat back | The seat is empty for the rest of the ride, and an empty seat refilled is the project's whole idea | The no-show passenger has still paid, so the seat may earn twice |

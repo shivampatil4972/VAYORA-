@@ -119,6 +119,10 @@ mistake for more. Updated 2026-10-17.
   that refreshes every 15 seconds. Emergency contacts are stored but not messaged.
 - The simulated outbox is in memory: it is lost on restart and would not be shared
   between two core-api instances.
+- **Match scoring treats any difference as a mismatch.** One person fine with smoking and
+  the other not counts against the match, though the ride would simply be smoke-free.
+  The weights (25 distance, 20 price, 15 record, 10 for each preference) are assumptions,
+  and nothing measures whether matched rides go better.
 - Search filters for smoking and pets leave out every driver who has not said either
   way, which today is nearly all of them. Filters are not recorded in the event log.
 - No identity document is checked.

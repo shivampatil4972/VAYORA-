@@ -1,5 +1,21 @@
 # Progress
 
+## 2026-10-19 — tools reinstalled; two-sided match scoring
+
+- Git, Docker Desktop, Node.js and WSL had gone from the machine. They were reinstalled
+  (winget), the whole stack rebuilt from nothing, the road map prepared again, and every
+  suite passed before any new work: nothing had been lost but the local test data.
+- **Two-sided match scoring (76)**, as chosen: every search result is scored out of 100
+  for both people, from how near the pickup and drop-off are, the price against the
+  cheapest result, the driver's record of rides kept, and whether the two agree on
+  smoking, pets, music and conversation as each said on their profile. What either left
+  unsaid counts half. "Best match for both of you" orders by it and shows the score with
+  its reasons; the other orders are untouched. It never reads the durability model or
+  anything predicted. The weights (25, 20, 15, and 10 for each preference) are
+  assumptions, in `application.yml`, and must add up to 100.
+- Tests: 256 Java, 181 Python, 203 web, 28 gateway, all passing.
+- Feature count: 76 Verified, 16 Partial, 3 Not started of 95.
+
 ## 2026-10-17 (late night) — a reminder to release a seat
 
 - **Seat-release reminder (79, platform side)**, as chosen: every passenger with a
