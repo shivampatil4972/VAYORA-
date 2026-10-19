@@ -86,6 +86,8 @@ export interface Ride {
   seriesSize: number;
   /** Offered only to passengers whose profile says they are a woman. */
   womenOnly: boolean;
+  /** Minutes in all the driver will go out of their way for pickups; 0 for none. */
+  maxDetourMinutes?: number;
 }
 
 export type RouteSource = 'OSRM' | 'STRAIGHT_LINE';
@@ -196,6 +198,11 @@ export interface Candidate {
   /** Out of 100, for both people, from what they said, distance, price and the driver's record; never a prediction. */
   matchScore: number;
   matchReasons: MatchReason[];
+  /**
+   * Set when the driver picks the passenger up at their start instead of a stop: what it
+   * costs the driver, in minutes. The boarding time is then the pickup's.
+   */
+  detourMinutes: number | null;
 }
 
 /** What a passenger agrees to, when booking, should the driver withdraw the ride. */
@@ -514,6 +521,11 @@ export interface Booking {
   driverId?: number;
   driverName?: string;
   vehicle?: string | null;
+  /** Picked up here, after the from stop, rather than at it; all null for a stop. */
+  pickupLat?: number | null;
+  pickupLon?: number | null;
+  /** What the pickup costs the driver, in minutes. */
+  detourMinutes?: number | null;
 }
 
 /** A completed trip its passenger says did not happen. */

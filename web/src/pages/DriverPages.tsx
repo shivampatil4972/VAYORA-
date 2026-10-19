@@ -17,7 +17,7 @@ import { api } from '../lib/api';
 import { CORRIDOR } from '../lib/corridor';
 import { formatDateTime, formatRupees, formatTime } from '../lib/format';
 import { msg, useT, useUnits } from '../lib/i18n';
-import { rideSchema, toPublishRequest, vehicleSchema, type RideForm, type VehicleForm, MAX_REPEAT_WEEKS, ridesPublished, toVehicleRequest } from '../lib/schemas';
+import { rideSchema, toPublishRequest, vehicleSchema, type RideForm, type VehicleForm, MAX_DETOUR_MINUTES, MAX_REPEAT_WEEKS, ridesPublished, toVehicleRequest } from '../lib/schemas';
 import { comfortLabels, luggageLabels, vehiclePhrases } from '../lib/vehicle';
 import type { Booking, Comfort, Luggage, MyProfile, Ride, RoutePreview, Settlement, Vehicle } from '../lib/types';
 
@@ -298,6 +298,7 @@ export function PublishRidePage() {
       notes: '',
       returnDeparture: '',
       repeatWeeks: 0,
+      maxDetourMinutes: 0,
       stops: CORRIDOR.map((stop, index) => ({
         // The two ends by default; the driver adds the towns in between.
         included: index === 0 || index === CORRIDOR.length - 1,
@@ -373,6 +374,15 @@ export function PublishRidePage() {
                 <input type="checkbox" className="h-4 w-4 rounded border-slate-300" {...register('maxTwoInBack')} />
                 {t('I promise at most two passengers on the back seat')}
               </label>
+              <TextField
+                label={t('Minutes you will go out of your way, in all, to pick passengers up at their own point')}
+                hint={t('0 for none: passengers then board only at your stops. Each pickup is worked out by road before it is offered.')}
+                type="number"
+                min={0}
+                max={MAX_DETOUR_MINUTES}
+                error={formState.errors.maxDetourMinutes?.message}
+                {...register('maxDetourMinutes')}
+              />
               {me.data?.gender === 'FEMALE' ? (
                 <label className="flex items-center gap-2 text-sm text-slate-700 sm:col-span-2">
                   <input type="checkbox" className="h-4 w-4 rounded border-slate-300" {...register('womenOnly')} />
@@ -544,6 +554,11 @@ export function RidesPage() {
                 </p>
               )}
               {ride.maxTwoInBack && <p className="mt-1 text-sm text-slate-600">{t('At most two in the back')}</p>}
+              {(ride.maxDetourMinutes ?? 0) > 0 && (
+                <p className="mt-1 text-sm text-slate-600">
+                  {t('You offered up to {n} min in all to pick passengers up at their own point', { n: ride.maxDetourMinutes ?? 0 })}
+                </p>
+              )}
               {ride.womenOnly && <p className="mt-1 text-sm font-medium text-teal-800">{t('Women only')}</p>}
               {/* Rendered as text: notes are whatever the driver typed. */}
               {ride.notes && <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600">{ride.notes}</p>}
@@ -667,6 +682,22 @@ function RideBookings({ ride }: { ride: Ride }) {
                         ? t('{from} → {to} · boards {time} · {n} seat · {price}', details)
                         : t('{from} → {to} · boards {time} · {n} seats · {price}', details)}
                     </p>
+                    {booking.pickupLat != null && booking.pickupLon != null && (
+                      <p className="text-teal-800">
+                        {t('Picks up at their own point after {stop}: {n} min out of your way.', {
+                          stop: t(booking.fromStop),
+                          n: booking.detourMinutes ?? 0,
+                        })}{' '}
+                        <a
+                          className="underline"
+                          target="_blank"
+                          rel="noreferrer"
+                          href={`https://www.openstreetmap.org/?mlat=${booking.pickupLat}&mlon=${booking.pickupLon}#map=17/${booking.pickupLat}/${booking.pickupLon}`}
+                        >
+                          {t('See the point on a map')}
+                        </a>
+                      </p>
+                    )}
                     <p className="mt-1">
                       <StatusBadge status={booking.status} />
                     </p>

@@ -1401,6 +1401,32 @@ export const hi: Record<string, string> = {
     'आप दोनों को बातचीत उतनी ही पसंद है',
   'One of you wants a quiet ride, the other likes to talk':
     'आप में से एक शांत सफ़र चाहता है, दूसरे को बात करना पसंद है',
+  'Minutes you will go out of your way, in all, to pick passengers up at their own point':
+    'यात्रियों को उनकी अपनी जगह से लेने के लिए आप कुल कितने मिनट रास्ते से हटेंगे',
+  '0 for none: passengers then board only at your stops. Each pickup is worked out by road before it is offered.':
+    'कोई नहीं के लिए 0: तब यात्री केवल आपके स्टॉप पर चढ़ते हैं। हर पिकअप पेश किए जाने से पहले सड़क के हिसाब से निकाला जाता है।',
+  'Enter whole minutes':
+    'पूरे मिनट लिखें',
+  'Enter 0 or more':
+    '0 या अधिक लिखें',
+  'At most 30 minutes':
+    'अधिकतम 30 मिनट',
+  'The driver picks you up at your start, about {time}: {n} min out of their way.':
+    'चालक आपको आपकी शुरुआत की जगह से लगभग {time} बजे लेता है: उनके रास्ते से {n} मिनट हटकर।',
+  'Picked up at your own point after {stop}, not at the stop.':
+    '{stop} के बाद आपकी अपनी जगह से लिया जाएगा, स्टॉप से नहीं।',
+  'You offered up to {n} min in all to pick passengers up at their own point':
+    'आपने यात्रियों को उनकी अपनी जगह से लेने के लिए कुल {n} मिनट तक की पेशकश की',
+  'Picks up at their own point after {stop}: {n} min out of your way.':
+    '{stop} के बाद उनकी अपनी जगह से लेना है: आपके रास्ते से {n} मिनट हटकर।',
+  'See the point on a map':
+    'जगह नक्शे पर देखें',
+  'That is more detour than a ride may offer':
+    'यह उससे अधिक चक्कर है जितना कोई सवारी पेश कर सकती है',
+  'This ride picks up only at its stops':
+    'यह सवारी केवल अपने स्टॉप से यात्री लेती है',
+  'That pickup would take the driver further out of their way than they offered':
+    'उस पिकअप के लिए चालक को जितना पेश किया था उससे अधिक रास्ते से हटना पड़ेगा',
   'Those stops are not on this ride':
     'ये स्टॉप इस सवारी पर नहीं हैं',
   'Too many wrong attempts. Request a new code.':

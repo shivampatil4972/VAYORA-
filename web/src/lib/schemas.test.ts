@@ -19,6 +19,7 @@ function ride(overrides: Partial<RideForm> = {}): RideForm {
     notes: '',
     returnDeparture: '',
     repeatWeeks: 0,
+    maxDetourMinutes: 0,
     stops: [
       { included: true, lat: 16.705, lon: 74.2433, offsetMinutes: 0, priceFromPrevious: 0 },
       { included: false, lat: 17.289, lon: 74.1818, offsetMinutes: 75, priceFromPrevious: 0 },

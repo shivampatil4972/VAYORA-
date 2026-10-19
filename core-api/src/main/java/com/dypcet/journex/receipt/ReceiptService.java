@@ -50,7 +50,8 @@ public class ReceiptService {
         List<List<String>> found = jdbc.query("""
                 SELECT b.id, u.full_name AS passenger, d.full_name AS driver,
                        s.name AS from_stop, t.name AS to_stop, b.seats, b.status,
-                       r.departure_time + make_interval(mins => s.offset_minutes) AS boarding,
+                       r.departure_time + make_interval(mins => s.offset_minutes
+                                                         + COALESCE(b.pickup_offset_minutes, 0)) AS boarding,
                        p.fare, p.service_fee, p.amount, p.method, p.provider, p.created_at,
                        COALESCE(f.amount, 0) AS refunded, f.reason AS refund_reason
                 FROM bookings b

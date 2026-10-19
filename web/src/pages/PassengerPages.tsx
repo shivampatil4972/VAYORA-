@@ -214,6 +214,8 @@ export function SearchPage() {
           seats: criteria!.form.seats,
           paymentMethod: method,
           tier,
+          // Picked up where the search started, if that is what the result offered.
+          ...(candidate.detourMinutes != null ? { pickupLat: criteria!.origin.lat, pickupLon: criteria!.origin.lon } : {}),
         },
       });
     },
@@ -521,6 +523,14 @@ export function SearchPage() {
                         : t('{n} seats left', { n: candidate.seatsAvailable })}{' '}
                       · {candidate.instantBooking ? t('Confirms instantly') : t('Driver approves each request')}
                     </p>
+                    {candidate.detourMinutes != null && (
+                      <p className="mt-1 text-sm text-teal-800">
+                        {t('The driver picks you up at your start, about {time}: {n} min out of their way.', {
+                          time: formatTime(candidate.boardingTime),
+                          n: candidate.detourMinutes,
+                        })}
+                      </p>
+                    )}
                     {candidate.underWay && (
                       <p className="mt-1 text-sm text-amber-800">
                         {t('Already on the road: it may reach {stop} before the time shown, so be there early.', { stop: t(candidate.fromStop) })}
@@ -647,6 +657,9 @@ export function BookingsPage() {
                   ? t('Leaves {time} · {n} seat', { time: formatDateTime(booking.boardingTime), n: booking.seats })
                   : t('Leaves {time} · {n} seats', { time: formatDateTime(booking.boardingTime), n: booking.seats })}
               </p>
+              {booking.pickupLat != null && (
+                <p className="mt-1 text-sm text-teal-800">{t('Picked up at your own point after {stop}, not at the stop.', { stop: t(booking.fromStop) })}</p>
+              )}
               {booking.driverName && (
                 <p className="mt-1 text-sm text-slate-600">
                   {t('Driver')}{' '}

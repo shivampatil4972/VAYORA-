@@ -11,6 +11,8 @@ import com.dypcet.journex.notification.Text;
 import com.dypcet.journex.payment.PaymentChoice;
 import com.dypcet.journex.payment.PaymentService.RefundReason;
 import com.dypcet.journex.payment.PaymentService;
+import com.dypcet.journex.ride.DetourService;
+import com.dypcet.journex.routing.RouteService.Point;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -56,7 +58,8 @@ public class BookingService {
             BigDecimal serviceFee, BigDecimal total, BigDecimal refunded,
             BookingStatus status, Instant boardingTime, Instant createdAt,
             boolean passengerRated, boolean driverRated, Boolean passengerConfirmed, FlexTier flexTier,
-            long driverId, String driverName, String vehicle) {
+            long driverId, String driverName, String vehicle, Double pickupLat, Double pickupLon,
+            Integer detourMinutes) {
     }
 
     /**
@@ -139,14 +142,17 @@ public class BookingService {
     }
 
     record LockedRide(long driverId, boolean instantBooking, String status,
-            Instant departureTime, boolean womenOnly) {
+            Instant departureTime, boolean womenOnly, int maxDetourMinutes) {
     }
 
     private static final String SELECT_BOOKING = """
             SELECT b.*, u.full_name AS passenger_name, s.name AS from_stop, t.name AS to_stop,
                    r.driver_id, d.full_name AS driver_name,
                    concat_ws(', ', v.make || ' ' || v.model, v.colour) AS vehicle,
-                   r.departure_time + make_interval(mins => s.offset_minutes) AS boarding,
+                   r.departure_time + make_interval(mins => s.offset_minutes
+                                                         + COALESCE(b.pickup_offset_minutes, 0)) AS boarding,
+                   ST_Y(b.pickup_location::geometry) AS pickup_lat,
+                   ST_X(b.pickup_location::geometry) AS pickup_lon,
                    p.service_fee, p.amount AS total, f.amount AS refunded,
                    EXISTS (SELECT 1 FROM ratings g WHERE g.booking_id = b.id
                              AND g.rater_id = b.passenger_id) AS passenger_rated,
@@ -174,7 +180,9 @@ public class BookingService {
             rs.getObject("created_at", OffsetDateTime.class).toInstant(),
             rs.getBoolean("passenger_rated"), rs.getBoolean("driver_rated"),
             (Boolean) rs.getObject("passenger_confirmed"), FlexTier.valueOf(rs.getString("flex_tier")),
-            rs.getLong("driver_id"), rs.getString("driver_name"), rs.getString("vehicle"));
+            rs.getLong("driver_id"), rs.getString("driver_name"), rs.getString("vehicle"),
+            (Double) rs.getObject("pickup_lat"), (Double) rs.getObject("pickup_lon"),
+            (Integer) rs.getObject("detour_minutes"));
 
     private final JdbcTemplate jdbc;
     private final EventLogService events;
@@ -188,6 +196,7 @@ public class BookingService {
     private final Duration answerWithin;
     private final Duration closeBeforeBoarding;
     private final Duration midRouteLead;
+    private final DetourService detours;
 
     public BookingService(JdbcTemplate jdbc, EventLogService events,
             HazardFeatures hazardFeatures, PaymentService payments,
@@ -195,7 +204,8 @@ public class BookingService {
             SeatHolds holds, BoardingService boardingCodes,
             @Value("${journex.booking.answer-within}") Duration answerWithin,
             @Value("${journex.booking.close-before-boarding}") Duration closeBeforeBoarding,
-            @Value("${journex.booking.mid-route-lead}") Duration midRouteLead) {
+            @Value("${journex.booking.mid-route-lead}") Duration midRouteLead, DetourService detours) {
+        this.detours = detours;
         this.answerWithin = answerWithin;
         this.closeBeforeBoarding = closeBeforeBoarding;
         this.midRouteLead = midRouteLead;
@@ -229,6 +239,17 @@ public class BookingService {
     @Transactional
     public Booking request(long passengerId, long rideId, int fromSeq, int toSeq, int seats,
             PaymentChoice payment, String idempotencyKey, FlexTier tier) {
+        return request(passengerId, rideId, fromSeq, toSeq, seats, payment, idempotencyKey, tier, null);
+    }
+
+    /**
+     * @param pickup where to be picked up instead of stop {@code fromSeq}, on the leg after
+     *               it, if the driver offered detours (feature 28); null to board at the stop.
+     *               Its cost is worked out here by road, whatever the search said.
+     */
+    @Transactional
+    public Booking request(long passengerId, long rideId, int fromSeq, int toSeq, int seats,
+            PaymentChoice payment, String idempotencyKey, FlexTier tier, Point pickup) {
         if (toSeq <= fromSeq) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "toSeq must come after fromSeq");
@@ -266,11 +287,26 @@ public class BookingService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Those stops are not on this ride");
         }
+        // A pickup away from the stops is weighed under the ride lock, so two passengers cannot
+        // both spend the driver's last minutes.
+        DetourService.Pickup away = null;
+        if (pickup != null) {
+            if (underWay || ride.maxDetourMinutes() == 0) {
+                throw conflict("This ride picks up only at its stops");
+            }
+            away = detours.on(rideId, pickup, fromSeq);
+            if (away.detourMinutes() > detours.minutesLeft(rideId)) {
+                throw conflict("That pickup would take the driver further out of their way than they offered");
+            }
+        }
         Instant boarding = jdbc.queryForObject("""
                 SELECT r.departure_time + make_interval(mins => s.offset_minutes)
                 FROM rides r JOIN ride_stops s ON s.ride_id = r.id AND s.seq = ?
                 WHERE r.id = ?""",
                 OffsetDateTime.class, fromSeq, rideId).toInstant();
+        if (away != null) {
+            boarding = boarding.plus(Duration.ofMinutes(away.offsetMinutes()));
+        }
         Instant now = clock.instant();
         if (!boarding.isAfter(now)) {
             throw conflict("This ride has already left that stop");
@@ -338,6 +374,13 @@ public class BookingService {
         BigDecimal fare = jdbc.queryForObject(
                 "SELECT price FROM bookings WHERE id = ?", BigDecimal.class, bookingId);
         payments.hold(bookingId, passengerId, ride.driverId(), fare, payment);
+        if (away != null) {
+            jdbc.update("""
+                    UPDATE bookings SET pickup_location = ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography,
+                                        pickup_offset_minutes = ?, detour_minutes = ?
+                    WHERE id = ?""",
+                    pickup.lon(), pickup.lat(), away.offsetMinutes(), away.detourMinutes(), bookingId);
+        }
 
         // The seats are theirs now, so a hold on this ride has done its job.
         holds.of(passengerId).filter(hold -> hold.rideId() == rideId)
@@ -601,12 +644,12 @@ public class BookingService {
     /** Returns null when there is no such ride. */
     LockedRide lockRide(long rideId) {
         List<LockedRide> found = jdbc.query("""
-                SELECT driver_id, instant_booking, status, departure_time, women_only
+                SELECT driver_id, instant_booking, status, departure_time, women_only, max_detour_minutes
                 FROM rides WHERE id = ? FOR UPDATE""",
                 (rs, n) -> new LockedRide(rs.getLong("driver_id"),
                         rs.getBoolean("instant_booking"), rs.getString("status"),
                         rs.getObject("departure_time", OffsetDateTime.class).toInstant(),
-                        rs.getBoolean("women_only")),
+                        rs.getBoolean("women_only"), rs.getInt("max_detour_minutes")),
                 rideId);
         return found.isEmpty() ? null : found.get(0);
     }

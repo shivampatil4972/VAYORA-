@@ -75,7 +75,16 @@ public class RideService {
     public record PublishRide(long vehicleId, Instant departureTime, int seatsOffered,
             boolean instantBooking, List<StopInput> stops, List<BigDecimal> segmentPrices,
             String notes, boolean maxTwoInBack, Instant returnDepartureTime, int repeatWeeks,
-            boolean womenOnly) {
+            boolean womenOnly, int maxDetourMinutes) {
+
+        /** No detours: passengers board only at the stops. */
+        public PublishRide(long vehicleId, Instant departureTime, int seatsOffered,
+                boolean instantBooking, List<StopInput> stops, List<BigDecimal> segmentPrices,
+                String notes, boolean maxTwoInBack, Instant returnDepartureTime, int repeatWeeks,
+                boolean womenOnly) {
+            this(vehicleId, departureTime, seatsOffered, instantBooking, stops, segmentPrices,
+                    notes, maxTwoInBack, returnDepartureTime, repeatWeeks, womenOnly, 0);
+        }
 
         /** One ride, once, with nothing said about it. */
         public PublishRide(long vehicleId, Instant departureTime, int seatsOffered,
@@ -113,7 +122,7 @@ public class RideService {
             Instant departureTime, int seatsOffered, boolean instantBooking, String status,
             List<Stop> stops, List<Segment> segments, Double distanceKm, Integer durationMinutes,
             String routeSource, List<double[]> path, String notes, boolean maxTwoInBack,
-            int seriesSize, boolean womenOnly) {
+            int seriesSize, boolean womenOnly, int maxDetourMinutes) {
     }
 
     /**
@@ -143,7 +152,7 @@ public class RideService {
             String luggage, boolean electric, boolean womenOnly, int driverRidesCompleted,
             int driverRidesWithdrawn, int pickupWalkMinutes, int dropoffWalkMinutes, boolean suggestFlexible,
             boolean underWay, boolean keptRides, String insurer, LocalDate insuredUntil,
-            int matchScore, List<MatchScore.Reason> matchReasons) {
+            int matchScore, List<MatchScore.Reason> matchReasons, Integer detourMinutes) {
 
         Candidate withSeatsAvailable(int seats) {
             return new Candidate(rideId, driverName, instantBooking, fromSeq, toSeq, fromStop, toStop,
@@ -151,7 +160,7 @@ public class RideService {
                     driverRating, driverRatingCount, pickupDistanceM, dropoffDistanceM,
                     driverConfirmed, maxTwoInBack, vehicle, comfort, luggage, electric, womenOnly,
                     driverRidesCompleted, driverRidesWithdrawn, pickupWalkMinutes, dropoffWalkMinutes, suggestFlexible,
-                    underWay, keptRides, insurer, insuredUntil, matchScore, matchReasons);
+                    underWay, keptRides, insurer, insuredUntil, matchScore, matchReasons, detourMinutes);
         }
 
         Candidate withMatch(MatchScore.Match match) {
@@ -160,7 +169,17 @@ public class RideService {
                     driverRating, driverRatingCount, pickupDistanceM, dropoffDistanceM,
                     driverConfirmed, maxTwoInBack, vehicle, comfort, luggage, electric, womenOnly,
                     driverRidesCompleted, driverRidesWithdrawn, pickupWalkMinutes, dropoffWalkMinutes, suggestFlexible,
-                    underWay, keptRides, insurer, insuredUntil, match.score(), match.reasons());
+                    underWay, keptRides, insurer, insuredUntil, match.score(), match.reasons(), detourMinutes);
+        }
+
+        /** Picked up at the passenger's own point: no walk, later than the stop, and a detour for the driver. */
+        Candidate withPickup(DetourService.Pickup pickup) {
+            return new Candidate(rideId, driverName, instantBooking, fromSeq, toSeq, fromStop, toStop,
+                    boardingTime.plus(Duration.ofMinutes(pickup.offsetMinutes())), arrivalTime, pricePerSeat,
+                    seatsAvailable, fare, serviceFee, total, driverId, driverRating, driverRatingCount, 0,
+                    dropoffDistanceM, driverConfirmed, maxTwoInBack, vehicle, comfort, luggage, electric, womenOnly,
+                    driverRidesCompleted, driverRidesWithdrawn, 0, dropoffWalkMinutes, suggestFlexible,
+                    underWay, keptRides, insurer, insuredUntil, matchScore, matchReasons, pickup.detourMinutes());
         }
     }
 
@@ -289,6 +308,9 @@ public class RideService {
     private final Duration midRouteLead;
     private final KeptRides keptRides;
     private final MatchScore.Weights matchWeights;
+    private final DetourService detours;
+    private final int maxDetourMinutes;
+    private final double detourReachMetres;
     private final double suggestFlexibleBelow;
     private final SeatHolds holds;
     private final PassService passes;
@@ -307,8 +329,14 @@ public class RideService {
             @Value("${journex.search.match.distance}") int matchDistance,
             @Value("${journex.search.match.price}") int matchPrice,
             @Value("${journex.search.match.record}") int matchRecord,
-            @Value("${journex.search.match.preference}") int matchPreference) {
+            @Value("${journex.search.match.preference}") int matchPreference,
+            DetourService detours,
+            @Value("${journex.detour.max-minutes}") int maxDetourMinutes,
+            @Value("${journex.detour.reach-km}") double detourReachKm) {
         this.matchWeights = new MatchScore.Weights(matchDistance, matchPrice, matchRecord, matchPreference);
+        this.detours = detours;
+        this.maxDetourMinutes = maxDetourMinutes;
+        this.detourReachMetres = detourReachKm * 1000.0;
         this.keptRides = keptRides;
         this.supply = supply;
         this.stopovers = stopovers;
@@ -361,13 +389,14 @@ public class RideService {
         Long rideId = jdbc.queryForObject("""
                 INSERT INTO rides (driver_id, vehicle_id, departure_time, seats_offered,
                                    instant_booking, status, route, distance_m, duration_s,
-                                   route_source, notes, max_two_in_back, series_id, women_only)
-                VALUES (?, ?, ?, ?, ?, 'SCHEDULED', ST_GeogFromText(?), ?, ?, ?, ?, ?, ?, ?)
+                                   route_source, notes, max_two_in_back, series_id, women_only,
+                                   max_detour_minutes)
+                VALUES (?, ?, ?, ?, ?, 'SCHEDULED', ST_GeogFromText(?), ?, ?, ?, ?, ?, ?, ?, ?)
                 RETURNING id""",
                 Long.class, driverId, ride.vehicleId(), utc(departure),
                 ride.seatsOffered(), ride.instantBooking(), lineString(route.path()),
                 route.distanceMetres(), route.durationSeconds(), route.source(), notes,
-                ride.maxTwoInBack(), seriesId, ride.womenOnly());
+                ride.maxTwoInBack(), seriesId, ride.womenOnly(), ride.maxDetourMinutes());
 
         for (int seq = 0; seq < stops.size(); seq++) {
             StopInput stop = stops.get(seq);
@@ -452,6 +481,9 @@ public class RideService {
         if (ride.seatsOffered() > vehicle.seats() - 1) {
             throw badRequest("This vehicle can offer at most " + (vehicle.seats() - 1) + " seats");
         }
+        if (ride.maxDetourMinutes() < 0 || ride.maxDetourMinutes() > maxDetourMinutes) {
+            throw badRequest("That is more detour than a ride may offer");
+        }
         if (!ride.departureTime().isAfter(clock.instant())) {
             throw badRequest("Departure time must be in the future");
         }
@@ -499,7 +531,7 @@ public class RideService {
                 SELECT r.id, r.driver_id, r.vehicle_id, r.departure_time, r.seats_offered,
                        r.instant_booking, r.status, r.distance_m, r.duration_s, r.route_source,
                        ST_AsGeoJSON(r.route::geometry) AS route_json, u.full_name,
-                       r.notes, r.max_two_in_back, r.women_only,
+                       r.notes, r.max_two_in_back, r.women_only, r.max_detour_minutes,
                        CASE WHEN r.series_id IS NULL THEN 1
                             ELSE (SELECT COUNT(*) FROM rides s WHERE s.series_id = r.series_id)
                        END AS series_size
@@ -514,7 +546,8 @@ public class RideService {
                         rs.getObject("duration_s") == null ? null : minutes(rs.getDouble("duration_s")),
                         rs.getString("route_source"), path(rs.getString("route_json")),
                         rs.getString("notes"), rs.getBoolean("max_two_in_back"),
-                        rs.getInt("series_size"), rs.getBoolean("women_only")),
+                        rs.getInt("series_size"), rs.getBoolean("women_only"),
+                        rs.getInt("max_detour_minutes")),
                 rideId);
         if (found.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ride not found");
@@ -644,8 +677,10 @@ public class RideService {
         boolean covered = passes.covers(passengerId, clock.instant());
         // Each driver's stated preferences, read with the results, for the match score.
         Map<Long, MatchScore.Preferences> driverSays = new HashMap<>();
-        // sort.orderBy is one of four constants above, never caller text.
-        List<Candidate> candidates = named.query("""
+        // Which boarding stops to try: those near the passenger, or, for pickups away from the
+        // stops, the stop before each pickup. Both are constants here, never caller text, as
+        // is sort.orderBy.
+        java.util.function.Function<String, List<Candidate>> boardingAt = originMatch -> named.query("""
                 WITH want AS (
                     SELECT ST_SetSRID(ST_MakePoint(:olon, :olat), 4326)::geography AS origin,
                            ST_SetSRID(ST_MakePoint(:dlon, :dlat), 4326)::geography AS destination
@@ -685,7 +720,8 @@ public class RideService {
                            """ + DRIVER_CONFIRMED + """
                                 AS driver_confirmed
                     FROM want
-                    JOIN ride_stops o ON ST_DWithin(o.location, want.origin, :radius)
+                    JOIN ride_stops o ON\s""" + originMatch + """
+
                     JOIN rides r ON r.id = o.ride_id
                     JOIN users u ON u.id = r.driver_id
                     JOIN vehicles v ON v.id = r.vehicle_id
@@ -740,8 +776,15 @@ public class RideService {
                             walkMinutes(rs.getDouble("dropoff_m")),
                             weakRecord(rs.getInt("driver_completed"), rs.getInt("driver_withdrawn")),
                             rs.getBoolean("under_way"), kept, rs.getString("insurer"),
-                            rs.getObject("insured_until", LocalDate.class), 0, List.of());
+                            rs.getObject("insured_until", LocalDate.class), 0, List.of(), null);
                 });
+
+        List<Candidate> candidates = boardingAt.apply("ST_DWithin(o.location, want.origin, :radius)");
+        List<Candidate> pickedUp = pickupsAway(params, origin, boardingAt);
+        if (!pickedUp.isEmpty()) {
+            candidates = java.util.stream.Stream.concat(candidates.stream(), pickedUp.stream())
+                    .sorted(order(sort)).toList();
+        }
 
         candidates = candidates.stream()
                 .map(candidate -> lessHeld(candidate, passengerId)).filter(c -> c.seatsAvailable() >= seats)
@@ -759,6 +802,62 @@ public class RideService {
                     candidates.size(), candidates.stream().map(Candidate::rideId).toList()));
         }
         return candidates;
+    }
+
+    /**
+     * Rides with no stop near the passenger's start whose road passes near it, and whose
+     * driver will still go far enough out of their way to pick the passenger up there
+     * (feature 28). Each comes back as from the stop before the pickup, then moved to it.
+     */
+    private List<Candidate> pickupsAway(MapSqlParameterSource params, Point origin,
+            java.util.function.Function<String, List<Candidate>> boardingAt) {
+        params.addValue("reach", detourReachMetres);
+        List<long[]> eligible = named.query("""
+                WITH want AS (
+                    SELECT ST_SetSRID(ST_MakePoint(:olon, :olat), 4326)::geography AS origin,
+                           ST_SetSRID(ST_MakePoint(:dlon, :dlat), 4326)::geography AS destination
+                )
+                SELECT DISTINCT ON (r.id) r.id, d.seq AS to_seq
+                FROM want
+                JOIN rides r ON r.status = 'SCHEDULED' AND r.max_detour_minutes > 0
+                            AND r.route IS NOT NULL AND ST_DWithin(r.route, want.origin, :reach)
+                            AND r.departure_time >= CAST(:dayStart AS timestamptz) - interval '12 hours'
+                            AND r.departure_time < :dayEnd
+                JOIN ride_stops d ON d.ride_id = r.id AND d.seq > 0
+                                 AND ST_DWithin(d.location, want.destination, :radius)
+                WHERE NOT EXISTS (SELECT 1 FROM ride_stops o WHERE o.ride_id = r.id AND o.seq < d.seq
+                                    AND ST_DWithin(o.location, want.origin, :radius))
+                ORDER BY r.id, ST_Distance(d.location, want.destination)""",
+                params, (rs, n) -> new long[] {rs.getLong("id"), rs.getInt("to_seq")});
+        Map<Long, DetourService.Pickup> pickups = new HashMap<>();
+        for (long[] ride : eligible) {
+            int left = detours.minutesLeft(ride[0]);
+            if (left > 0) {
+                detours.cheapest(ride[0], origin, (int) ride[1], left).ifPresent(p -> pickups.put(ride[0], p));
+            }
+        }
+        if (pickups.isEmpty()) {
+            return List.of();
+        }
+        params.addValue("pickups", pickups.entrySet().stream()
+                .map(e -> new Object[] {e.getKey(), e.getValue().fromSeq()}).toList());
+        return boardingAt.apply("(o.ride_id, o.seq) IN (:pickups)").stream()
+                .filter(c -> pickups.containsKey(c.rideId()))
+                .map(c -> c.withPickup(pickups.get(c.rideId())))
+                .toList();
+    }
+
+    /** The order {@code sort.orderBy} gives in SQL, for results put together from two queries. */
+    private static Comparator<Candidate> order(Sort sort) {
+        Comparator<Candidate> byTime = Comparator.comparing(Candidate::boardingTime)
+                .thenComparingLong(Candidate::rideId);
+        return switch (sort) {
+            case PRICE -> Comparator.comparing(Candidate::pricePerSeat).thenComparing(byTime);
+            case RATING -> Comparator.comparing(Candidate::driverRating,
+                    Comparator.nullsLast(Comparator.reverseOrder())).thenComparing(byTime);
+            case PROXIMITY -> Comparator.comparingLong(Candidate::pickupDistanceM).thenComparing(byTime);
+            case TIME, BEST_MATCH -> byTime;
+        };
     }
 
     /** Each result scored for both people, against the cheapest result offered. */

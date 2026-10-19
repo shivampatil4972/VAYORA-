@@ -1401,6 +1401,32 @@ export const mr: Record<string, string> = {
     'तुम्हा दोघांना सारख्याच प्रमाणात गप्पा आवडतात',
   'One of you wants a quiet ride, the other likes to talk':
     'तुमच्यापैकी एकाला शांत प्रवास हवा आहे, दुसऱ्याला गप्पा आवडतात',
+  'Minutes you will go out of your way, in all, to pick passengers up at their own point':
+    'प्रवाशांना त्यांच्या स्वतःच्या ठिकाणाहून घेण्यासाठी तुम्ही एकूण किती मिनिटे मार्गापासून दूर जाल',
+  '0 for none: passengers then board only at your stops. Each pickup is worked out by road before it is offered.':
+    'काहीही नाही यासाठी 0: मग प्रवासी फक्त तुमच्या थांब्यांवर चढतात. प्रत्येक पिकअप देऊ करण्यापूर्वी रस्त्याच्या हिशोबाने काढले जाते.',
+  'Enter whole minutes':
+    'पूर्ण मिनिटे लिहा',
+  'Enter 0 or more':
+    '0 किंवा अधिक लिहा',
+  'At most 30 minutes':
+    'जास्तीत जास्त 30 मिनिटे',
+  'The driver picks you up at your start, about {time}: {n} min out of their way.':
+    'चालक तुम्हाला तुमच्या सुरुवातीच्या ठिकाणाहून सुमारे {time} ला घेतो: त्यांच्या मार्गापासून {n} मिनिटे दूर.',
+  'Picked up at your own point after {stop}, not at the stop.':
+    '{stop} नंतर तुमच्या स्वतःच्या ठिकाणाहून घेतले जाईल, थांब्यावरून नाही.',
+  'You offered up to {n} min in all to pick passengers up at their own point':
+    'प्रवाशांना त्यांच्या स्वतःच्या ठिकाणाहून घेण्यासाठी तुम्ही एकूण {n} मिनिटांपर्यंत देऊ केले',
+  'Picks up at their own point after {stop}: {n} min out of your way.':
+    '{stop} नंतर त्यांच्या स्वतःच्या ठिकाणाहून घ्यायचे: तुमच्या मार्गापासून {n} मिनिटे दूर.',
+  'See the point on a map':
+    'ठिकाण नकाशावर पहा',
+  'That is more detour than a ride may offer':
+    'एखादी राइड देऊ शकते त्यापेक्षा हा जास्त वळसा आहे',
+  'This ride picks up only at its stops':
+    'ही राइड फक्त तिच्या थांब्यांवरून प्रवासी घेते',
+  'That pickup would take the driver further out of their way than they offered':
+    'त्या पिकअपसाठी चालकाला देऊ केल्यापेक्षा जास्त मार्गापासून दूर जावे लागेल',
   'Those stops are not on this ride':
     'हे थांबे या राइडवर नाहीत',
   'Too many wrong attempts. Request a new code.':

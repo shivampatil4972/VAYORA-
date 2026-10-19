@@ -5,7 +5,10 @@ import com.dypcet.journex.booking.BookingService.Booking;
 import com.dypcet.journex.booking.BookingService.RequestTerms;
 import com.dypcet.journex.identity.CurrentUser;
 import com.dypcet.journex.payment.PaymentChoice;
+import com.dypcet.journex.routing.RouteService.Point;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -40,7 +43,10 @@ public class BookingController {
             // Mock provider only: "DECLINE" makes the payment fail.
             @Size(max = 20) String mockOutcome,
             // What happens if the driver withdraws; left out, this ride only.
-            FlexTier tier) {
+            FlexTier tier,
+            // To be picked up at this point rather than at stop fromSeq (feature 28); both or neither.
+            @DecimalMin("-90") @DecimalMax("90") Double pickupLat,
+            @DecimalMin("-180") @DecimalMax("180") Double pickupLon) {
     }
 
     private static final int MAX_IDEMPOTENCY_KEY_LENGTH = 100;
@@ -88,7 +94,9 @@ public class BookingController {
         return bookings.request(CurrentUser.id(jwt), request.rideId(), request.fromSeq(),
                 request.toSeq(), request.seats(),
                 new PaymentChoice(request.paymentMethod(), request.mockOutcome()), idempotencyKey,
-                request.tier() == null ? FlexTier.EXACT : request.tier());
+                request.tier() == null ? FlexTier.EXACT : request.tier(),
+                request.pickupLat() == null || request.pickupLon() == null ? null
+                        : new Point(request.pickupLat(), request.pickupLon()));
     }
 
     /** How long a driver has to answer a request. The same for everyone, so open to all. */

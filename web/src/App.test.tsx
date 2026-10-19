@@ -105,6 +105,7 @@ const candidate: Candidate = {
   insuredUntil: null,
   matchScore: 72,
   matchReasons: [],
+  detourMinutes: null,
   vehicle: 'Maruti Ertiga',
   comfort: null,
   luggage: null,
@@ -1495,6 +1496,27 @@ describe('publishing a ride through the page', () => {
     expect(body.stops[0].offsetMinutes).toBe(0);
   });
 
+  it('sends the minutes the driver will go out of their way, and none unless they say', async () => {
+    signIn('DRIVER');
+    const fetchMock = serve({
+      'GET /vehicles': () => json([vehicle]),
+      'POST /rides': () => json(published, 201),
+      'GET /rides/mine': () => json([published]),
+    });
+    open('/rides/new');
+
+    await fillIn();
+    const field = screen.getByLabelText('Minutes you will go out of your way, in all, to pick passengers up at their own point');
+    expect(field).toHaveValue(0);
+    await userEvent.clear(field);
+    await userEvent.type(field, '10');
+    await userEvent.click(screen.getByRole('button', { name: 'Publish ride' }));
+
+    await screen.findByRole('heading', { name: 'My rides' });
+    const sent = fetchMock.mock.calls.find(([url, init]) => init?.method === 'POST' && new URL(String(url)).pathname.endsWith('/rides'));
+    expect(JSON.parse(String(sent?.[1]?.body))).toMatchObject({ maxDetourMinutes: 10 });
+  });
+
   it("keeps the form and shows the server's reason when publishing is refused", async () => {
     signIn('DRIVER');
     serve({
@@ -2618,5 +2640,52 @@ describe('best match for both people', () => {
     await waitFor(() =>
       expect(fetchMock.mock.calls.some(([url]) => new URL(String(url)).searchParams.get('sort') === 'BEST_MATCH')).toBe(true),
     );
+  });
+});
+describe('a pickup away from the stops', () => {
+  it('says the driver comes to the passenger, at what cost to them, and books with that point', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({
+      'GET /rides/search': () => json([{ ...candidate, detourMinutes: 6, boardingTime: '2026-11-02T03:50:00Z' }]),
+      'POST /bookings': () => json({ ...booking, status: 'CONFIRMED' }, 201),
+    });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+    expect(await screen.findByText(/^The driver picks you up at your start, about .*: 6 min out of their way\.$/)).toBeInTheDocument();
+    await userEvent.click(screen.getAllByRole('button', { name: /^(Book|Request)/ })[0]);
+
+    await waitFor(() => {
+      const post = fetchMock.mock.calls.find(([url, init]) => init?.method === 'POST' && String(url).endsWith('/bookings'));
+      const body = JSON.parse(String(post?.[1]?.body));
+      expect(typeof body.pickupLat).toBe('number');
+      expect(typeof body.pickupLon).toBe('number');
+    });
+  });
+
+  it('sends no pickup point for a ride boarded at a stop', async () => {
+    signIn('PASSENGER');
+    const fetchMock = serve({
+      'GET /rides/search': () => json([candidate]),
+      'POST /bookings': () => json({ ...booking, status: 'CONFIRMED' }, 201),
+    });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+    await userEvent.click((await screen.findAllByRole('button', { name: /^(Book|Request)/ }))[0]);
+
+    await waitFor(() => {
+      const post = fetchMock.mock.calls.find(([url, init]) => init?.method === 'POST' && String(url).endsWith('/bookings'));
+      expect(JSON.parse(String(post?.[1]?.body))).not.toHaveProperty('pickupLat');
+    });
+    expect(screen.queryByText(/picks you up at your start/)).not.toBeInTheDocument();
+  });
+
+  it('tells the passenger they are picked up at their own point', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /bookings': () => json([{ ...booking, status: 'CONFIRMED', pickupLat: 17.289, pickupLon: 74.13, detourMinutes: 6 }]) });
+    open('/bookings');
+
+    expect(await screen.findByText('Picked up at your own point after Kolhapur, not at the stop.')).toBeInTheDocument();
   });
 });

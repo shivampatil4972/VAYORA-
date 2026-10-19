@@ -86,6 +86,11 @@ journex:
     cache-ttl: P7D
     # Only used to guess a driving time when there is no road route.
     fallback-speed-kmh: 50
+  detour:
+    # Detour tolerance (feature 28): the most a driver may offer in all on one ride, and how
+    # far from a ride's road a passenger's start may be for a pickup there to be worked out.
+    max-minutes: 30
+    reach-km: 8
   google:
     # "Sign in with Google" is off unless this is set to an OAuth client ID from the Google
     # Cloud console (a Web application client whose origins include the web app's address).

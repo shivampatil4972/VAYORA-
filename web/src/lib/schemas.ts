@@ -96,6 +96,8 @@ export function toVehicleRequest(form: VehicleForm) {
 
 /** How many further weeks a ride can be repeated for. The server enforces the same limit. */
 export const MAX_REPEAT_WEEKS = 8;
+/** As journex.detour.max-minutes on the server, which has the last word. */
+export const MAX_DETOUR_MINUTES = 30;
 
 /** How many rides the form will publish: out and back, for each week. */
 export const ridesPublished = (form: Pick<RideForm, 'returnDeparture' | 'repeatWeeks'>): number =>
@@ -113,6 +115,12 @@ export const rideSchema = z
     // Empty for no return ride.
     returnDeparture: z.string(),
     repeatWeeks: z.coerce.number().int().min(0).max(MAX_REPEAT_WEEKS),
+    // Minutes in all the driver will go out of their way for pickups; 0 for none.
+    maxDetourMinutes: z.coerce
+      .number()
+      .int(msg('Enter whole minutes'))
+      .min(0, msg('Enter 0 or more'))
+      .max(MAX_DETOUR_MINUTES, msg('At most 30 minutes')),
     // One entry per corridor stop, in travel order. The numbers are checked below, and
     // only for stops the driver included: an unticked stop's fields are hidden, so an
     // error on one could never be seen or fixed.
@@ -193,5 +201,6 @@ export function toPublishRequest(form: RideForm) {
     womenOnly: form.womenOnly,
     returnDepartureTime: form.returnDeparture === '' ? null : new Date(form.returnDeparture).toISOString(),
     repeatWeeks: form.repeatWeeks,
+    maxDetourMinutes: form.maxDetourMinutes,
   };
 }
