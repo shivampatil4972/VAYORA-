@@ -42,6 +42,10 @@ mistake for more. Updated 2026-10-19.
   response: +0.05 to +0.22 as the chance of releasing at once goes from 0.25 to 1.0
   (section 15).
 - It is one synthetic corridor. It is not evidence that the idea fails in reality.
+- **A live what-if run is an exploration, not a result.** It gives means and the mean
+  paired difference with no interval, on as few as 5 seeds; only the saved sweeps carry
+  intervals. intel checks the administrator's token but cannot see a suspension made
+  after it was issued, and it answers browsers on that one path.
 - Variants B1, B2 and B6 to B11 are not built.
 - The one gain found, B3's ranking (+0.34), needs no booking features: a model that knows
   only the time to departure does as well (section 14). The scheduler does no better than

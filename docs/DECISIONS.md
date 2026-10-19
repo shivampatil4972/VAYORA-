@@ -27,6 +27,10 @@ was decided while building within them.
 | The public hotel bookings are written into the event log under a run of their own | Every reported number must come from `metrics.sql` over `events`; one query then counts the hotels and the simulator the same way | Rows in `events` that are not JOURNEX's; every query already selects by run |
 | Hotel dates are read as noon UTC | The data has days only; a real time zone would move some intervals by an hour at summer time | Day 0 is a calendar day for the hotels and 24 hours in the simulator |
 | The hotel file is downloaded and checked by hash, not committed | 16 MB of someone else's data; the hash makes any copy provably the same | Reproducing needs a network the first time |
+| A live what-if run is simulated by intel, which the administrator's browser calls | It keeps nothing, so by the placement rule it is intel's; core-api relaying it would forward a request for another | intel answers browsers on that path and checks tokens itself; the deployment must expose only that path |
+| A live run gives means, the mean paired difference and seeds up and down, but no interval | It is an exploration, not a result; an interval would need scipy in intel and would look like a report figure | A small difference can be over-read; a sweep gives the interval |
+| Each sweep says in its YAML how far a live run may take its setting | Bounds are tunables (rule 5); outside them a run may mean nothing or take long | A sweep with no bounds is not offered live |
+| A live run builds its cell with the sweeps' own code (`sim.config.apply_cell`) | So a live run at a value a sweep covered reproduces it exactly, which a test checks | |
 
 ## Platform: correctness
 
@@ -130,3 +134,5 @@ Each was justified in one sentence when it was added, as CLAUDE.md requires.
 | Leaflet, react-leaflet | web | Maps for routes and meeting points |
 | socket.io-client | web | Chat and live position |
 | matplotlib | research only | Draws the report's figures from the committed results |
+| SimPy, PyYAML | intel (already research) | Run the simulator and read its configurations for a live what-if run |
+| PyJWT | intel, research | intel checks an administrator's token for a live what-if run, as the gateway does; the tests sign the tokens they present |

@@ -172,14 +172,19 @@ returns the booking the first request made instead of making another.
 
 ## intel
 
-Base URL `http://localhost:8000`. No authentication: it is called by core-api and by
-research code, holds nothing, and is not meant to be reachable from a browser.
+Base URL `http://localhost:8000`. Holds nothing. The model and the scheduler have no
+authentication: they are called by core-api and by research code and are not meant to be
+reachable from a browser. The what-if runs are: an administrator's browser calls them
+with the session token core-api issued, which intel checks itself (HS256, issuer
+`journex-core-api`, not expired, role `ADMIN`).
 
-| Method and path | What |
-|---|---|
-| `GET /health` | Liveness |
-| `POST /v1/hazard/score` | The probability a booking lasts to a horizon, given its nine features and the time elapsed. Says `trained_on: synthetic` |
-| `POST /v1/scheduler/plan` | Which bookings to ask to reconfirm, given candidates and limits. Never recommends cancelling |
+| Method and path | Who | What |
+|---|---|---|
+| `GET /health` | any | Liveness |
+| `POST /v1/hazard/score` | core-api | The probability a booking lasts to a horizon, given its nine features and the time elapsed. Says `trained_on: synthetic` |
+| `POST /v1/scheduler/plan` | core-api, research | Which bookings to ask to reconfirm, given candidates and limits. Never recommends cancelling |
+| `GET /v1/whatif/sweeps` | ADMIN | The sweeps that can be run live, each with its setting and the values it may take |
+| `POST /v1/whatif/run` | ADMIN | `{sweep, value, seeds}` (2 to 30 seeds): the sweep's variant and baseline at that value, simulated now. Means and the mean paired difference of completed rides per 100 searches and the late share, with seeds up and down; no interval. Exploratory, kept nowhere. 400 outside the sweep's bounds, 404 for a sweep not offered live, 503 if intel has no `JWT_SECRET` |
 
 ## gateway
 

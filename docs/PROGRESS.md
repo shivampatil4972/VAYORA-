@@ -1,5 +1,27 @@
 # Progress
 
+## 2026-10-19 (end of day) — the live what-if simulator
+
+- **Live what-if (87)**, as chosen: below the saved sweeps, an administrator can simulate any
+  value of a question's setting within bounds each sweep's configuration sets, on 5, 10 or
+  30 seeds, for the variant and its baseline. intel runs it in memory and keeps nothing;
+  the answer is means, the mean paired difference and seeds up and down, with no interval,
+  labelled an exploration and never a report figure. Its two measures are counted as
+  metrics.sql counts them (tested on the same events), and a 30-seed run at a value a sweep
+  covered reproduces that sweep exactly (tested). 87 is Verified.
+- **Placement.** The browser calls intel for this alone: core-api relaying it would forward
+  a request for another. So intel checks the administrator's token itself and allows the
+  app's origin; DEPLOYMENT.md now says only `/v1/whatif/*` may be exposed. intel's image is
+  built from the repository root, carrying the simulator. New in intel: SimPy, PyYAML, PyJWT.
+- Through the running stack: in a browser, an administrator signed in through core-api
+  simulated 3 hours either side on 10 seeds in a few seconds, and the form refused 30 hours
+  before anything was sent; over HTTP, a passenger's token was refused and a value outside
+  the bounds was refused with its reason.
+- The sweeps and live runs now share how a cell is built and how a changed variant is
+  checked; the contact-budget sweep rebuilt from nothing came out identical.
+- Tests: 275 Java, 204 Python, 215 web, 28 gateway, all passing.
+- Feature count: 80 Verified, 14 Partial, 1 Not started of 95.
+
 ## 2026-10-19 (later still) — real hotel cancellations beside the simulator
 
 - **The public hotel bookings**, as chosen (Antonio et al. 2019, CC BY 4.0): the one real

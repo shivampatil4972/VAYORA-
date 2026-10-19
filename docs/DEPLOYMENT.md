@@ -24,7 +24,7 @@ road graph for the corridor, which takes several minutes. Later starts reuse it.
 | web | http://localhost:5173 | The app |
 | core-api | http://localhost:8080 | The API; health at `/actuator/health` |
 | gateway | http://localhost:3000 | Chat and live position; health at `/health` |
-| intel | http://localhost:8000 | The model and scheduler; health at `/health` |
+| intel | http://localhost:8000 | The model, the scheduler and live what-if runs; health at `/health` |
 | osrm | http://localhost:5000 | Road routing |
 | postgres | localhost:5432 | Database `journex`, user `journex` |
 | mongo | localhost:27017 | |
@@ -43,10 +43,10 @@ Every setting has a working default in `docker-compose.yml`. To change one, copy
 
 | Variable | Default | Notes |
 |---|---|---|
-| `JWT_SECRET` | a public development value | At least 32 bytes. core-api signs with it and the gateway verifies with it, so both must have the same one. **Change it** |
+| `JWT_SECRET` | a public development value | At least 32 bytes. core-api signs with it; the gateway, and intel for live what-if runs, verify with it, so all three must have the same one. **Change it** |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | empty | Set both to have an administrator created when core-api starts. The password needs 12 characters or more. There is no other way to make one |
 | `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | `journex` | |
-| `CORS_ALLOWED_ORIGINS` | `http://localhost:5173` | Where the browser app is served from. Change it together with `WEB_PORT` |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:5173` | Where the browser app is served from, for core-api, the gateway and intel. Change it together with `WEB_PORT` |
 | `*_PORT` | see the table above | Change one if the port is taken |
 | `OSRM_PBF_URL`, `OSRM_BBOX` | western India, clipped to the corridor | |
 | `JOURNEX_PUSH_PUBLIC_KEY`, `JOURNEX_PUSH_PRIVATE_KEY` | empty | Push notifications are off unless both are set. `node scripts/vapid-keys.mjs` prints a new pair. Keep the private key secret; a new pair makes every browser subscribe again |
@@ -55,9 +55,13 @@ Every setting has a working default in `docker-compose.yml`. To change one, copy
 | `JOURNEX_MAIL_FROM` | empty | The sender address. Required once an SMTP server is set; core-api will not start without it |
 | `JOURNEX_PUSH_SUBJECT` | `mailto:journex@example.invalid` | A contact push services can use about this server's messages. Set a real one before turning push on |
 
-The web app's addresses for core-api and the gateway are fixed when its image is built
-(`VITE_API_URL`, `VITE_GATEWAY_URL`). Changing `CORE_API_PORT` or `GATEWAY_PORT` means
-rebuilding it: `docker compose up -d --build web`.
+The web app's addresses for core-api, the gateway and intel are fixed when its image is
+built (`VITE_API_URL`, `VITE_GATEWAY_URL`, `VITE_INTEL_URL`). Changing `CORE_API_PORT`,
+`GATEWAY_PORT` or `INTEL_PORT` means rebuilding it: `docker compose up -d --build web`.
+
+intel's image is built from the repository root, as it carries the simulator and its
+configurations for live what-if runs: `docker compose up -d --build intel` after changing
+`sim/` or `experiments/configs/`.
 
 Application settings that are not secrets (refund tiers, service fee, hold length, code
 expiry, search radius) are in `core-api/src/main/resources/application.yml`. Research
@@ -125,7 +129,9 @@ None of this exists.
 - Secrets from a secret store, not from a file or a default.
 - Databases on a private network with their own credentials, backups, and a tested
   restore.
-- intel reachable only from core-api.
+- intel reachable only from core-api, except `/v1/whatif/*`, which an administrator's
+  browser calls and which checks the token itself. The model and scheduler endpoints have
+  no authentication and must not be exposed.
 - More than one core-api instance would need the simulated outbox gone (it is in
   memory) and has not been tried.
 - More than one gateway instance would need a Socket.IO adapter so that a message

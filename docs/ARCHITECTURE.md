@@ -25,7 +25,7 @@ FEATURE_MATRIX.md; for what it cannot, KNOWN_LIMITATIONS.md.
 |---|---|---|---|
 | `web/` | React 18, TypeScript, Vite, Tailwind | Rendering | A session token in the browser tab |
 | `core-api/` | Spring Boot 3, Java 21, JdbcTemplate, Flyway | Every transaction and every fact | No; PostgreSQL does |
-| `intel/` | FastAPI, Python 3.11 | Inference: the survival model and the contact scheduler | No |
+| `intel/` | FastAPI, Python 3.11 | Inference: the survival model and the contact scheduler; and for an administrator, a live run of the simulator that is kept nowhere | No |
 | `gateway/` | Express 4, Socket.IO 4 | Live streams: ride chat and driver position | Only who is connected |
 | PostgreSQL 16 + PostGIS | | Users, vehicles, rides, routes, bookings, payments, ratings, moderation, the event log | Yes |
 | MongoDB 7 | | Chat messages, GPS points, in-app notifications | Yes |
@@ -39,8 +39,10 @@ FEATURE_MATRIX.md; for what it cannot, KNOWN_LIMITATIONS.md.
 - gateway owns ephemeral streams only.
 - web renders.
 - **No service forwards a request on another's behalf.** The browser calls core-api for
-  facts and the gateway for streams. The gateway does not proxy to core-api and core-api
-  does not proxy to intel for the browser.
+  facts, the gateway for streams, and intel for one administrator's tool only: a live
+  what-if run (feature 87). The gateway does not proxy to core-api and core-api does not
+  proxy to intel for the browser; intel checks the administrator's token itself, as the
+  gateway does.
 
 Two places where one service calls another, and why neither breaks the rule:
 
