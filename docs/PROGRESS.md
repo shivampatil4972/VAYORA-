@@ -1,5 +1,19 @@
 # Progress
 
+## 2026-10-19 (late night) — electric range enforced, an identity document declared
+
+- **Electric range (75)**, as chosen after a correction: the option first offered refused
+  any ride longer than the car's range, which would have stopped every trip that charges
+  on the way, as the app tells drivers to. Instead a ride is refused only when one
+  stretch between stops is longer than the range: the car can charge at a stop, not
+  between two. The publish screen names the stretch first. 75 is Verified.
+- **Government ID (7)**, as chosen, a labelled mock like the insurance badge: a driver
+  says which identity document they hold. Only the kind is kept, never a number or a
+  copy; the profile says "not checked", and it counts towards no level and no filter.
+  7 is Partial; nothing is checked.
+- Tests: 275 Java, 187 Python, 213 web, 28 gateway, all passing.
+- Feature count: 79 Verified, 15 Partial, 1 Not started of 95.
+
 ## 2026-10-19 (night) — the detour work read back
 
 No new features. Reading the detour pickups (28) back against the rest of the platform

@@ -20,7 +20,7 @@ profile; the emergency panel; notifications; Hindi and Marathi; phone width; eve
 administrator page; and live position between a driver's and a passenger's browser.
 Screens were checked by eye from screenshots, not by a person using the app.
 
-Last updated: 2026-10-17. Test suites and how to run them are in [TESTING.md](TESTING.md).
+Last updated: 2026-10-19. Test suites and how to run them are in [TESTING.md](TESTING.md).
 
 ## Identity and profile
 
@@ -32,8 +32,8 @@ Last updated: 2026-10-17. Test suites and how to run them are in [TESTING.md](TE
 | 4 | Bio, age, and gender | TBD | TBD | Verified (API and UI tests): bio and an approximate age on the profile; gender is stored and shown to nobody |
 | 5 | Email verification | TBD | TBD | Verified (API and UI tests): the code goes by real email when an SMTP server is configured (see 63); otherwise the sender is simulated, nothing is sent, and the code is read from an administrator-only outbox |
 | 6 | Phone OTP verification | TBD | TBD | Verified (API and UI tests), simulated sender, nothing is sent: the code is read from an administrator-only outbox |
-| 7 | Government ID verification | TBD | TBD | Not started |
-| 8 | Verified-profile badge | TBD | TBD | Partial: "Email confirmed" and "Phone confirmed" on the profile, which also says no identity document was checked |
+| 7 | Government ID verification | TBD | TBD | Partial, a labelled mock (API and UI tests): a driver says which identity document they hold (Aadhaar, PAN card, driving licence, passport or voter ID). Only the kind is kept: no number or copy is asked for, and a number sent along is kept nowhere. The profile shows it as "not checked", beside "JOURNEX has not checked any identity documents."; it earns no level and passes no verified filter. **No identity provider is connected and nothing is checked** |
+| 8 | Verified-profile badge | TBD | TBD | Partial: "Email confirmed" and "Phone confirmed" on the profile, which also says no identity document was checked. A declared identity document (7) is shown as declared and not checked, never as confirmed |
 | 9 | Experience levels from Newcomer to Ambassador | TBD | TBD | Verified (API and UI tests): five levels from completed trips, ratings and confirmed contact details, shown on profiles. The thresholds are the authors' assumptions, in `application.yml` |
 | 10 | Smoking, pets, music, and travel preferences | TBD | TBD | Verified (API and UI tests): shown on the profile; smoking and pets can filter a search |
 | 11 | Chattiness level | TBD | TBD | Verified (API and UI tests): shown on the profile; not yet used by search |
@@ -45,7 +45,7 @@ Last updated: 2026-10-17. Test suites and how to run them are in [TESTING.md](TE
 | 12 | Make, model, year, and colour | TBD | TBD | Verified (API and UI tests) |
 | 13 | Seat count and comfort class | TBD | TBD | Verified (API and UI tests): comfort is the driver's own description, shown on search results; nothing inspects the car |
 | 14 | Luggage allowance | TBD | TBD | Verified (API and UI tests): the largest bag each passenger may bring, shown on search results; not a search filter |
-| 15 | EV status, battery capacity, and consumption rate | TBD | TBD | Verified (API and UI tests): stored and shown, with the range the two figures imply. When a driver works out a route longer than that range, the publish screen tells them to plan a charging stop (UI tested); it does not stop them publishing and plans no stop |
+| 15 | EV status, battery capacity, and consumption rate | TBD | TBD | Verified (API and UI tests): stored and shown, with the range the two figures imply. A ride with a stretch between stops longer than that range is not published (75); when only the whole route is longer, the publish screen tells the driver to plan a charge at one of the stops (UI tested). No charging stop is planned for them |
 | 16 | Vehicle photo | TBD | TBD | Verified (API and UI tests): as for profile photos, on the vehicles page; only the owner can change it |
 
 ## Driver ride publishing
@@ -145,7 +145,7 @@ Last updated: 2026-10-17. Test suites and how to run them are in [TESTING.md](TE
 
 | ID | Feature | Tier | Stage | Status |
 |---|---|---|---|---|
-| 75 | PostGIS/OSRM feasibility filter | TBD | TBD | Partial: the access distance is a hard limit enforced in PostGIS, and rides carry an OSRM road route; an electric car's route is compared with its stated range and the driver warned (UI only, not enforced). A pickup away from the stops is checked by road against the driver's detour allowance (28) |
+| 75 | PostGIS/OSRM feasibility filter | TBD | TBD | Verified (API and UI tests): the access distance is a hard limit enforced in PostGIS, and rides carry an OSRM road route. An electric car is not published on a stretch between stops longer than its stated range, out or back, as the driver can charge at a stop but not between two; the publish screen names the stretch first. The range is the driver's own figures, and with the routing service down the straight lines make the check lenient. A pickup away from the stops is checked by road against the driver's detour allowance (28) |
 | 76 | Two-sided match scoring | TBD | TBD | Verified (API and UI tests): every search result is scored out of 100 for both people, from how near the pickup and drop-off are, the price against the cheapest result, the driver's record of rides kept, and whether the two agree on smoking, pets, music and conversation as each said on their profile. A "Best match for both of you" order sorts by it and shows the score with its reasons; seen in a browser putting the driver the passenger agrees with first (83 against 63). Never from the durability model or any prediction. The weights are assumptions, in `application.yml` |
 | 77 | CommitmentDecay survival modelling | TBD | TBD | Partial: model trained, evaluated, served and scored in the app, on synthetic data only; see AI_ML_METHODOLOGY.md. Its features add nothing measurable in the simulator: a no-feature model ranks as well (EXPERIMENT_PROTOCOL.md section 14) |
 | 78 | Reliability indicator in search results | TBD | TBD | Verified (API and UI tests): each result shows the driver's own record, rides completed out of those completed or withdrawn. From past rides only: no prediction about the driver or any passenger is shown |

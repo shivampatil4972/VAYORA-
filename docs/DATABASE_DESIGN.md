@@ -43,6 +43,7 @@ Access is through `JdbcTemplate` with hand-written SQL. There is no ORM.
 | V29 | On passes: `reward_for_referee`; a reward pass is free with no payment method, one per person per referral |
 | V30 | On bookings: `release_reminded_at`, so each seat is asked to be released once at most |
 | V31 | On rides: `max_detour_minutes` (0 to 60, default 0); on bookings: `pickup_location`, `pickup_offset_minutes` and `detour_minutes`, all three or none |
+| V32 | On users: `id_document`, the kind of identity document a driver says they hold (one of five). Never a number or a copy, and never checked |
 
 ### Tables
 
@@ -50,7 +51,7 @@ Access is through `JdbcTemplate` with hand-written SQL. There is no ORM.
 
 | Table | One row is | Notes |
 |---|---|---|
-| `users` | An account | Unique email, BCrypt password hash, one role, `ACTIVE` or `SUSPENDED`, optional phone, when email and phone were confirmed |
+| `users` | An account | Unique email, BCrypt password hash, one role, `ACTIVE` or `SUSPENDED`, optional phone, when email and phone were confirmed, the kind of identity document a driver declared |
 | `profiles` | What a member says about themselves | Bio, birth year, gender, smoking, pets, music, chattiness. Every column optional; null means not said |
 | `verification_codes` | A one-time code sent to an address | Only the hash is stored, with the address it was sent to, an expiry, and a count of wrong attempts |
 | `emergency_contacts` | Someone to tell in an emergency | At most three per member, enforced in the service under a row lock |

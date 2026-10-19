@@ -132,7 +132,8 @@ mistake for more. Updated 2026-10-17.
   and nothing measures whether matched rides go better.
 - Search filters for smoking and pets leave out every driver who has not said either
   way, which today is nearly all of them. Filters are not recorded in the event log.
-- No identity document is checked.
+- No identity document is checked. A driver may say which one they hold; the profile
+  shows it as declared and not checked, and it counts towards nothing.
 - With MongoDB down, a booking still succeeds but its response waits about two seconds
   for the notification write to time out.
 - **Chat is one room per ride.** Every booked passenger sees every message; there is no
@@ -181,8 +182,10 @@ mistake for more. Updated 2026-10-17.
   "Woman" on their profile, and nothing checks it. Changing the profile later changes
   what they can see and book, but does not touch a booking already made.
 - **Everything about a vehicle is the driver's word**: comfort, luggage, battery and
-  consumption. The range shown is those two figures divided, not a measurement, and
-  no ride is checked against it. A vehicle cannot be edited or removed, and has no photo.
+  consumption. The range shown is those two figures divided, not a measurement; a ride
+  is refused only when one stretch between stops is longer than it, and nothing checks
+  that the time allowed at a stop is enough to charge. A vehicle cannot be edited or
+  removed.
 - **A repeated ride is a batch, not a schedule.** Up to 8 further weeks are published at
   once as separate rides. There is no open-ended repeat, a series cannot be edited or
   withdrawn as a whole, and nothing checks that a vehicle is not on two rides at once.

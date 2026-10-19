@@ -50,6 +50,8 @@ territory.
 | `PUT /api/v1/me/profile` | any | Replace own profile. A changed phone must be confirmed again |
 | `POST /api/v1/me/verification/{email\|phone}/request` | any | Send a 6-digit code (simulated sender) |
 | `POST /api/v1/me/verification/{email\|phone}/confirm` | any | Confirm with the code |
+| `PUT /api/v1/me/id-declaration` | D | `{document}`: which identity document the driver says they hold (`AADHAAR`, `PAN`, `DRIVING_LICENCE`, `PASSPORT` or `VOTER_ID`). Only the kind is taken; nothing is checked. Returns the own profile |
+| `DELETE /api/v1/me/id-declaration` | any | Remove the declaration. Returns the own profile |
 | `GET /api/v1/users/{id}/profile` | any | What anyone may know about a member: no contact details. Includes the experience level |
 | `GET /api/v1/me/reliability` | D | The driver's own record |
 
@@ -62,7 +64,7 @@ territory.
 | `PUT /api/v1/vehicles/{id}/insurance` | D | Declare the insurer and `insuredUntil` (not checked, no policy number) |
 | `DELETE /api/v1/vehicles/{id}/insurance` | D | Remove the declaration |
 | `POST /api/v1/rides/route-preview` | D | Road route through some stops, with a suggested price per leg |
-| `POST /api/v1/rides` | D | Publish a ride; optionally its return and up to 8 weekly repeats, all or nothing |
+| `POST /api/v1/rides` | D | Publish a ride; optionally its return and up to 8 weekly repeats, all or nothing. An electric car is refused (400) if a stretch between two stops is longer than its stated range |
 | `GET /api/v1/rides/mine` | D | Own rides |
 | `GET /api/v1/rides/{id}` | any | A ride with its stops, legs, route and notes |
 | `GET /api/v1/rides/{id}/membership` | any | Whether the caller is on the ride. Used by the gateway |
