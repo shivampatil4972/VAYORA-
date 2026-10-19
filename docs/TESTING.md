@@ -4,9 +4,9 @@ Counts are from the runs on 2026-10-19, after the tools were reinstalled. Every 
 
 | Suite | Command, from the repository root | Tests |
 |---|---|---|
-| core-api | `docker compose --profile test run --rm core-api-tests` | 267 |
+| core-api | `docker compose --profile test run --rm core-api-tests` | 269 |
 | Python (events, simulator, model, scheduler, experiments, intel API) | `docker compose --profile research run --rm research` | 187 |
-| web | `cd web && npm ci && npm test` | 208 |
+| web | `cd web && npm ci && npm test` | 209 |
 | gateway | `cd gateway && npm ci && npm test` | 28 |
 
 The first two need only Docker. The Python suite also needs PostgreSQL running:
@@ -22,7 +22,7 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 | `BookingFlowIntegrationTest` | 11 | Per-leg inventory, a full middle leg, **8 concurrent requests for the last seat**, approval hold, release on reject and cancel exactly once, ownership, search, events |
 | `TripFlowIntegrationTest` | 6 | Start, no-show, complete, driver withdrawal; started = completed + failed |
 | `ReleaseReminderIntegrationTest` | 4 | **One reminder per seat inside the window, with the refund it would get then**, logged as an intervention with no survival probability, nothing done to the booking, not before the window nor for a booking made inside it, only confirmed seats, **everyone asked alike whatever the model says** |
-| `DetourIntegrationTest` | 6 | **A passenger off the stops is offered a pickup where the road passes, at its cost and time, and books it**, a ride offering no detour neither found nor booked away, a point too far from the road never offered, **the allowance shared across bookings and never overspent**, a cancellation gives its minutes back, more than the most refused, a passenger near a stop still boards there |
+| `DetourIntegrationTest` | 8 | **A passenger off the stops is offered a pickup where the road passes, at its cost and time, and books it**, a ride offering no detour neither found nor booked away, a point too far from the road never offered, **the allowance shared across bookings and never overspent**, a cancellation gives its minutes back, more than the most refused, a passenger near a stop still boards there, **when the driver withdraws, a flexible passenger rebooked and every passenger told of other rides from their own point, not the stop before it** |
 | `WalkingSearchIntegrationTest` | 2 | Footpath times replace the straight-line estimate and say so; without an answer the straight line stays and says so |
 | `MatchScoreTest` | 6 | **Agreeing on everything near and at the best price is 100**, each disagreement costs its whole weight and is named, what either left unsaid counts half, conversation one step apart, distance, price and record each scale their own part, **weights that do not add up to 100 are refused** |
 | `MatchScoringIntegrationTest` | 3 | **Best match puts the driver the passenger agrees with first, and says why**, every other order untouched but scored, a passenger who said nothing matched on distance, price and record alone |
@@ -60,6 +60,13 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 | `ApiIntegrationTest` | 7 | 401 without a token, hashed passwords, bad credentials, role checks, another user's booking is invisible, **a bad query is a 400, not a 500**, full journey over HTTP, CORS |
 | `EventLogService*` | 11 | The event writer never throws into its caller; events commit with the business change |
 
+Also in the suite, not described above (37 tests): `PhoneSignUpIntegrationTest` (5),
+`EmailDeliveryIntegrationTest` (4), `TextTest` (4), `FlexTierIntegrationTest` (3),
+`BusIntegrationTest` (3), `GoogleSignInIntegrationTest` (3), `PhotoIntegrationTest` (3),
+`WebPushTest` (3), `StopoverIntegrationTest` (3), `PushIntegrationTest` (2),
+`ServerMessagesTest` (1), `NotificationTemplatesTest` (1), `DriverRecordIntegrationTest` (1),
+`SupplyGapIntegrationTest` (1).
+
 ### Python (pytest, Python 3.11)
 
 | Path | Tests | Covers |
@@ -73,10 +80,10 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 
 | File | Tests | Covers |
 |---|---|---|
-| `App.test.tsx` | 108 | A walk said to be on footpaths only when it was, The detour allowance sent, a pickup offered and booked with its point, none sent for a stop, a pickup shown on the booking, Best match asked for and its reasons shown only then, What an invitation earns, a reward pass shown as free, Declared insurance sent, shown as not checked and removed, a simulated call that says no call was placed and shows no number, Why a fee is lower, A ride already on the road said so, Invitations, Withdrawing a series, browsing rides and bookings, Notification preferences, Levels on profiles, the driver's record page, more search filters, Confirming or disputing a trip, disputed trips for administrators, Boarding codes for passenger and driver, A driver's response rate on the profile, The two main reasons for a durability estimate, Downloading a receipt with the session token, Buying a pass, running, waiting and ended passes, Women-only rides offered and filtered only where the profile allows, A passenger's payments and refunds, Publishing a ride through the page, a driver accepting and declining requests, starting, marking a no-show and completing, each irreversible step only after confirming, The deadline shown on a pending request, Holding seats and being told it is not a booking, Adding a vehicle through the page, the car named on a search result, How many rides a form will publish, driver notes shown as text, Search filters sent only when set and only on Search, the account page, confirmation by code, emergency contacts, **the emergency panel puts 112 first and says the contacts were not messaged**, the administrator emergency queue and simulated outbox, route protection by role, sign-in, search and booking with fee and payment method, idempotency key reuse, refund terms, earnings, ratings and profiles, notifications, reporting and moderation, the back office, maps and location search, the route planner, failure and retry states |
-| `lib/schemas.test.ts` | 26 | Vehicle details and their request mapping, A return that leaves before arrival is refused, repeat and notes limits, Form validation and the publish request mapping |
+| `App.test.tsx` | 133 | A walk said to be on footpaths only when it was, The detour allowance sent, a pickup offered and booked with its point, none sent for a stop, a pickup shown on the booking, **a pickup's own point marked on the map as where the passenger boards**, Best match asked for and its reasons shown only then, What an invitation earns, a reward pass shown as free, Declared insurance sent, shown as not checked and removed, a simulated call that says no call was placed and shows no number, Why a fee is lower, A ride already on the road said so, Invitations, Withdrawing a series, browsing rides and bookings, Notification preferences, Levels on profiles, the driver's record page, more search filters, Confirming or disputing a trip, disputed trips for administrators, Boarding codes for passenger and driver, A driver's response rate on the profile, The two main reasons for a durability estimate, Downloading a receipt with the session token, Buying a pass, running, waiting and ended passes, Women-only rides offered and filtered only where the profile allows, A passenger's payments and refunds, Publishing a ride through the page, a driver accepting and declining requests, starting, marking a no-show and completing, each irreversible step only after confirming, The deadline shown on a pending request, Holding seats and being told it is not a booking, Adding a vehicle through the page, the car named on a search result, How many rides a form will publish, driver notes shown as text, Search filters sent only when set and only on Search, the account page, confirmation by code, emergency contacts, **the emergency panel puts 112 first and says the contacts were not messaged**, the administrator emergency queue and simulated outbox, route protection by role, sign-in, search and booking with fee and payment method, idempotency key reuse, refund terms, earnings, ratings and profiles, notifications, reporting and moderation, the back office, maps and location search, the route planner, failure and retry states |
+| `lib/schemas.test.ts` | 27 | Vehicle details and their request mapping, A return that leaves before arrival is refused, repeat and notes limits, Form validation and the publish request mapping |
 | `components/RideChat.test.tsx` | 17 | Joining with the session token, history, sending, **a message shown once and only when relayed**, text rendered as text, refusal and outage states, rejoining after a dropped connection, position shown to passengers, sharing offered to the driver only while under way, including a chat opened before the ride started, **a moment without a fix does not end sharing**, a refused permission does |
-| `lib/i18n.test.tsx` | 21 | **Every marked string has a Hindi and a Marathi entry with the same placeholders**, no unused entries, **no screen has text that bypasses translation**, fallback to English, switching and remembering the language, the same digits for money in every language |
+| `lib/i18n.test.tsx` | 25 | **Every marked string has a Hindi and a Marathi entry with the same placeholders**, no unused entries, **no screen has text that bypasses translation**, fallback to English, switching and remembering the language, the same digits for money in every language |
 | `lib/api.test.ts` | 7 | Token header, problem-document errors, unreachable server, sign-out on a rejected token, **no sign-out on a stale rejection** |
 
 ### gateway (node:test, real Socket.IO server and clients)
@@ -93,8 +100,10 @@ because Leaflet needs a real browser to draw.
 
 ## Reproduction
 
-`scripts/reproduce.sh` (EXPERIMENT_PROTOCOL.md section 4) was run in full on 2026-10-16
-and reproduced every committed number exactly.
+`scripts/reproduce.sh` (EXPERIMENT_PROTOCOL.md section 4) was last run in full on
+2026-10-19, after the tools were reinstalled and the flexible-booking sweep was added:
+tests, the durability model, both ladders, every sweep, the what-if explorer's data and
+the figures were rebuilt and every committed number reproduced exactly.
 
 ## Checked by hand against the running stack
 
@@ -146,6 +155,23 @@ Kept here because each is a class of mistake worth remembering.
 
 ## Bugs the tests did not find
 
+- **Found by reading the detour work back** (2026-10-19), three faults. Every test with a
+  pickup away from the stops stopped at the booking; none went on to the meeting point, a
+  withdrawal or a slow routing service:
+  - **The meeting-point map sent a passenger picked up at their own point to the stop
+    before it**: "Board here" on Kolhapur and "Board at Kolhapur, leaving 7:30", though
+    the driver comes to them near Karad 80 minutes later. The map now marks the pickup
+    point and its time.
+  - **When the driver withdrew, a flexible passenger picked up near Karad was rebooked
+    from Kolhapur**, the stop before the pickup and 66 km from where they were, and every
+    passenger picked up away was told of other rides from there. Both now look from the
+    pickup point, and a ride that offers detours is booked with it.
+  - **Booking a pickup asked the routing service while holding the ride lock**, so a slow
+    routing service would have stalled every other booking on that ride. It is now asked
+    first, and only the check against the minutes left is under the lock. No test covers
+    this one: the tests have no routing service to slow down.
+
+  The first two each have a test that fails without the fix.
 - **Found by driving detour pickups in a browser** (headless Edge, real road map,
   2026-10-19): **a pickup's heading named the stop before it, at the pickup's time**
   ("8:25 am Kolhapur" for a pickup in Karad), and the search help still said only rides

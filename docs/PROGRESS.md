@@ -1,5 +1,28 @@
 # Progress
 
+## 2026-10-19 (night) — the detour work read back
+
+No new features. Reading the detour pickups (28) back against the rest of the platform
+found three faults, all fixed (TESTING.md, "Bugs the tests did not find"):
+
+- The meeting-point map sent a passenger picked up at their own point to the stop before
+  it. It now marks the pickup and its time.
+- When a driver withdrew, a passenger picked up near Karad was rebooked, or told of other
+  rides, from Kolhapur, 66 km away. Both now look from the pickup point, and a ride that
+  offers detours is booked with it.
+- Booking a pickup asked the routing service while holding the ride lock. It is now asked
+  first, and only the check against the minutes left is under the lock, as DECISIONS.md
+  now says. (The entry below says the cost was worked out under the lock; it was, then.)
+- The first two have tests that were seen to fail without the fix. The third has none:
+  the tests have no routing service to slow down.
+- TESTING.md's per-file counts had fallen behind (the web app's main test file has 133,
+  not 108); they are corrected, and the 14 core-api classes the table never described are
+  listed.
+- `scripts/reproduce.sh` run in full on the reinstalled machine, the flexible-booking sweep
+  included: every committed number reproduced exactly.
+- Tests: 269 Java, 187 Python, 209 web, 28 gateway, all passing.
+- Feature count unchanged: 78 Verified, 15 Partial, 2 Not started of 95.
+
 ## 2026-10-19 (evening) — recovery simulated, and walks on footpaths
 
 - **Cascade-aware recovery (88), simulated**: the simulator now rebooks a passenger who
