@@ -24,6 +24,9 @@ was decided while building within them.
 | Metric queries group rather than join on keys inside the JSON payload | A join on payload keys did not finish in ten minutes; grouping takes seconds | Queries are longer to read |
 | SOS presses and seat holds write no event | The 22-event vocabulary is frozen and neither is a research measurement | They cannot be analysed from the log |
 | A request closed for want of an answer is logged as `booking_rejected` by the platform, with a reason | Tells a lapse from a driver's refusal without a new event type | Queries must read the actor to tell them apart |
+| The public hotel bookings are written into the event log under a run of their own | Every reported number must come from `metrics.sql` over `events`; one query then counts the hotels and the simulator the same way | Rows in `events` that are not JOURNEX's; every query already selects by run |
+| Hotel dates are read as noon UTC | The data has days only; a real time zone would move some intervals by an hour at summer time | Day 0 is a calendar day for the hotels and 24 hours in the simulator |
+| The hotel file is downloaded and checked by hash, not committed | 16 MB of someone else's data; the hash makes any copy provably the same | Reproducing needs a network the first time |
 
 ## Platform: correctness
 

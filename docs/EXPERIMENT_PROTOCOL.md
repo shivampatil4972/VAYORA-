@@ -67,6 +67,9 @@ it was identical, and the fuller report is now the committed one. Ladders `...00
 `...002` and sweeps `...001` and `...002` were made with earlier code and are kept as
 history; the script does not rebuild them.
 
+Since 2026-10-19 it also rebuilds the hotel comparison (section 18), downloading the
+public file the first time.
+
 To run a single comparison by hand:
 
 ```sh
@@ -705,3 +708,72 @@ the behaviour changed nothing else.
 - Who chooses flexible is drawn independently of the hidden passenger types. If, as is
   likely, committed passengers chose it more, the rescued trips would last better and the
   gain could be larger; that is not measured.
+
+## 18. Real cancellations: the public hotel bookings
+
+Run on 2026-10-19. **Real data, but not ride-sharing**: Nuno Antonio, Ana de Almeida and
+Luis Nunes (2019), Hotel booking demand datasets, *Data in Brief* 22, 41–49,
+doi:10.1016/j.dib.2018.11.126, licence CC BY 4.0. It holds 119,390 bookings at two hotels
+in Portugal, arriving from July 2015 to August 2017. Hotel run
+`407e1000-0000-4000-8000-000000000001`; report
+`experiments/reports/hotel-407e1000-0000-4000-8000-000000000001.md`; set beside the
+ladder's B0 (run `...003`), the simulator with no intervention at all.
+
+**Can it support a time-to-event check?** Yes, to the day. Earlier documents doubted it,
+expecting only a cancellation flag and a lead time. This dataset also records the date
+each cancelled booking was cancelled (`reservation_status_date`), and none falls before
+its booking was made or after arrival, so a survival curve can be counted.
+
+**How it is counted.** `experiments/hotel/load.py` downloads the file once, refuses it
+unless its SHA-256 matches `experiments/configs/hotel.yaml`, and writes the bookings made
+at most 7 days before arrival (the platform's horizon; 19,746 of them) into the event log
+as a seat booking is logged: requested and accepted when made, cancelled when cancelled,
+a no-show at arrival. Each hotel is a variant, each year of arrival a seed. A new named
+query, `daily_cancellation_hazard`, counts for each day before departure the bookings
+standing and those their passenger cancelled; the same query is run on the simulator,
+and a test checks it on hand-made events. Dates are read as noon UTC, so day 0 is the day
+of arrival, whatever the hour; in the simulator a day is 24 hours counted back from
+departure.
+
+| Days before departure | City hotel | Resort hotel | Simulated B0 |
+|---|---|---|---|
+| 7 | 2.64% | 2.79% | nobody standing |
+| 6 | 4.26% | 1.37% | 4.42% |
+| 5 | 3.50% | 1.37% | 6.32% |
+| 4 | 2.85% | 1.12% | 5.75% |
+| 3 | 3.32% | 1.46% | 5.77% |
+| 2 | 1.55% | 1.41% | 5.99% |
+| 1 | 3.14% | 1.52% | 5.25% |
+| 0 | 3.36% | 2.49% | 5.54% |
+
+Each figure is the share of the bookings standing that day that were cancelled then.
+
+| Over the week | City hotel | Resort hotel | Simulated B0 |
+|---|---|---|---|
+| Bookings accepted | 10,808 | 8,938 | 40,512 |
+| Standing 6 days out and still standing at departure | 80.0% | 89.7% | 66.9% |
+| Of the week's cancellations, on day 0 | 31.5% | 44.9% | 36.1% |
+| On day 0 or 1 | 52.5% | 62.4% | 61.2% |
+| No-shows, per booking accepted | 2.3% | 1.1% | 2.0% |
+
+### What this shows
+
+- **The simulated world cancels far more in the last week than these hotels do.** A
+  simulated booking is cancelled at 4.4% to 6.3% a day; a city-hotel booking at 1.6% to
+  4.3%, a resort booking at 1.1% to 2.8%. Of bookings standing six days out, 67% reach
+  departure in the simulator, against 80% and 90% at the hotels. Year by year the hotels
+  move by no more than three points (78.5% to 81.3%, 87.9% to 90.7%), so this is not one
+  year's accident.
+- **When cancellations come is much the same.** Half or more of the week's cancellations
+  fall on the last two days in all three (52%, 62%, 61%), because that is when the most
+  bookings stand. The city hotel's daily rate does not rise towards arrival, the resort's
+  rises only on the day itself, and the simulator's not at all.
+- **No-shows are of the same size**, 1% to 2% of bookings.
+- **What it means for the results.** Every simulated result rests on a world that, in the
+  final week, cancels about twice as often as the city hotel and nearly four times as often
+  as the resort. How the results move with a lower rate is not measured here; `world.yaml` has not
+  been changed to match hotels, which are not evidence about passengers.
+- **What it cannot show.** Hotels are not rides: other people, prices, deposits and
+  cancellation rules. Nothing records whether a cancelled room was let again, so nothing
+  here speaks to refills. The durability model cannot be tried on it, since none of its
+  features exist in this data.

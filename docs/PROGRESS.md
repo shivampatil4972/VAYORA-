@@ -1,5 +1,26 @@
 # Progress
 
+## 2026-10-19 (later still) — real hotel cancellations beside the simulator
+
+- **The public hotel bookings**, as chosen (Antonio et al. 2019, CC BY 4.0): the one real
+  set of cancellations within reach. Earlier documents doubted it could support a
+  time-to-event check; this dataset records the day each booking was cancelled, so it
+  can, to the day. The 19,746 bookings made within a week of arrival are written into the
+  event log under a run of their own, and a new metric query counts, day by day, the
+  bookings standing and those cancelled; the same query runs on the simulator.
+- **What it shows** (EXPERIMENT_PROTOCOL.md section 18): over the last week the hotels
+  cancel at about a half (city) and a quarter (resort) of the simulator's rate. From six
+  days out, 80% and 90% of their bookings reach arrival against 67% in the simulator.
+  When cancellations come is much the same: half or more fall in the last two days in all
+  three. It says nothing about refills or passengers, and the model's features do not
+  exist in it. `world.yaml` is unchanged.
+- `scripts/reproduce.sh` gains the step (it downloads the file the first time and checks
+  its hash); rebuilt from nothing it came out byte for byte the same.
+- TESTING.md's Python counts had fallen behind (the simulator's tests are 73, not 70; the
+  experiments' were 35 before this, not 29); corrected.
+- Tests: 275 Java, 194 Python, 213 web, 28 gateway, all passing.
+- Feature count unchanged: 79 Verified, 15 Partial, 1 Not started of 95.
+
 ## 2026-10-19 (late night) — electric range enforced, an identity document declared
 
 - **Electric range (75)**, as chosen after a correction: the option first offered refused

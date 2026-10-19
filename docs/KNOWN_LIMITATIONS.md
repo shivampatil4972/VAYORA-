@@ -1,15 +1,19 @@
 # Known limitations
 
 What the project does not do, does only in part, or does in a way a reader could
-mistake for more. Updated 2026-10-17.
+mistake for more. Updated 2026-10-19.
 
 ## Nothing here is evidence about real people
 
-- There is no real booking data. The model is trained, and every experiment is run, on
-  simulator output.
+- There is no real ride booking data. The model is trained, and every experiment is run,
+  on simulator output.
 - Every number in `experiments/configs/world.yaml` is an assumption chosen to be
   plausible. None is estimated from data.
-- The public hotel-reservation dataset named in the synopsis has not been examined.
+- The only real data is a public set of hotel bookings (EXPERIMENT_PROTOCOL.md section
+  18). Over the last week before arrival they cancel at about a half (city) and a quarter
+  (resort) of the simulator's rate, with similar timing. So every simulated result rests
+  on a world that cancels more than these hotels; `world.yaml` has not been changed,
+  because hotels are not evidence about passengers.
 
 ## The research result so far
 
@@ -18,11 +22,11 @@ mistake for more. Updated 2026-10-17.
   when every passenger destined to cancel releases the moment they are asked. See
   EXPERIMENT_PROTOCOL.md sections 5 and 6.
 - It held when passengers' responses were varied, when unserved passengers were allowed
-  to search again, and across supply densities of 6, 12 and 20 rides a day. The survival
-  threshold has not been varied, and why refills do not convert has not been explained.
+  to search again, across supply densities of 6, 12 and 20 rides a day, and at every
+  survival threshold tried (section 14). Why refills add so little is section 11.
 - A contact budget (B5) reduces the effect on the late share roughly in proportion to
   the requests withheld. The scheduler's choice of whom to ask concentrates nothing,
-  and it has not been compared with choosing at random. Its worth formula is an
+  and choosing at random does as well (section 14). Its worth formula is an
   assumption with no evidence behind it. See EXPERIMENT_PROTOCOL.md section 8.
 - The likeliest reason refills add no rides: the extra seats B4 frees are all taken by
   passengers who were offered another ride as well. That is an upper-bound argument

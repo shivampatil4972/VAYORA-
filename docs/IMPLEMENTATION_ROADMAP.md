@@ -66,7 +66,7 @@ mock that says so, as payments and SMS already are.
 | ~~B5 with random choice~~ | Done: random choice does as well; the scheduler does not beat chance (EXPERIMENT_PROTOCOL.md section 14) | |
 | ~~Survival-threshold sweep; B4 with the no-feature model; component removal~~ | Done: no threshold helps, the features add nothing, all the gain is the ranking (EXPERIMENT_PROTOCOL.md section 14) | |
 | Variants B6 to B11 | Not defined anywhere in the repository | Need their definitions |
-| The public hotel dataset | Decide whether it can support a time-to-event check at all | The only route to any real data |
+| ~~The public hotel dataset~~ | Done: it records the day of each cancellation, so it supports a check to the day; over the last week its bookings cancel at well under the simulator's rate, with similar timing (EXPERIMENT_PROTOCOL.md section 18) | |
 
 ### D. Not code
 
@@ -81,8 +81,7 @@ mock that says so, as payments and SMS already are.
 
 1. ~~The browser check (D)~~: done by script, 2026-10-15 to 17. A person using it on a
    phone is still owed.
-2. ~~The research items (C)~~: done except those waiting on a decision (B6 to B11, the
-   hotel dataset).
+2. ~~The research items (C)~~: done except B6 to B11, which wait on their definitions.
 3. ~~Small platform items from A~~: boarding code, completion confirmation, rating
    reminder, response rate and the reproducibility capsule are all built.
 4. ~~The two reserved event families (81, 93)~~: flexibility tiers and supply-gap nudges

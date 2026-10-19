@@ -5,7 +5,7 @@ Counts are from the runs on 2026-10-19, after the tools were reinstalled. Every 
 | Suite | Command, from the repository root | Tests |
 |---|---|---|
 | core-api | `docker compose --profile test run --rm core-api-tests` | 275 |
-| Python (events, simulator, model, scheduler, experiments, intel API) | `docker compose --profile research run --rm research` | 187 |
+| Python (events, simulator, model, scheduler, experiments, intel API) | `docker compose --profile research run --rm research` | 194 |
 | web | `cd web && npm ci && npm test` | 213 |
 | gateway | `cd gateway && npm ci && npm test` | 28 |
 
@@ -73,9 +73,9 @@ Also in the suite, not described above (37 tests): `PhoneSignUpIntegrationTest` 
 
 | Path | Tests | Covers |
 |---|---|---|
-| `sim/tests` | 70 | **A flexible passenger rebooked at once, on a ride within the window, and only the flexible share**, nobody rebooked with no share, trips still all accounted for, the new settings refused out of range, **An empty search says whether no ride ran then or every one was full, and an unpublished ride is not counted**, **The oracle asks exactly the late cancellers and leaks nothing**, **A contact budget is never exceeded and, when too large to bind, reproduces the threshold policy exactly**, **the scheduler is given no ground truth**, reproducibility by seed, frozen vocabulary, **no latent type in any payload**, legal booking paths, no overselling, paired environments, each variant's rules, repeat search, strict config, the hazard sampler |
+| `sim/tests` | 73 | **A flexible passenger rebooked at once, on a ride within the window, and only the flexible share**, nobody rebooked with no share, trips still all accounted for, the new settings refused out of range, **An empty search says whether no ride ran then or every one was full, and an unpublished ride is not counted**, **The oracle asks exactly the late cancellers and leaks nothing**, **A contact budget is never exceeded and, when too large to bind, reproduces the threshold policy exactly**, **the scheduler is given no ground truth**, reproducibility by seed, frozen vocabulary, **no latent type in any payload**, legal booking paths, no overselling, paired environments, each variant's rules, repeat search, strict config, the hazard sampler |
 | `intel/tests` | 68 | Exact per-feature explanations that reproduce the score, Feature tracker, model maths, shipped models, scoring API and its validation; the contact scheduler: each limit, **the plan equals the best of every subset on 25 random instances**, ties, order-independence, a 400-booking round, its API |
-| `experiments/tests` | 29 | Why searches find nothing against hand-computed values, Refill share by release timing against hand-computed values, The refill-additionality metric against hand-computed values, sweeps over a variant's parameters, metric queries against hand-computed values, the training set, **disjoint seeds**, exported Cox model against lifelines, paired comparison statistics, parameter sweeps |
+| `experiments/tests` | 42 | **Real hotel bookings read as seat bookings, and the file refused unless its hash matches**, the daily cancellation hazard against hand-computed values, Why searches find nothing against hand-computed values, Refill share by release timing against hand-computed values, The refill-additionality metric against hand-computed values, sweeps over a variant's parameters, metric queries against hand-computed values, the training set, **disjoint seeds**, exported Cox model against lifelines, paired comparison statistics, parameter sweeps |
 | `journex_events/tests` | 11 | Event writer and vocabulary |
 
 ### web (Vitest, Testing Library)

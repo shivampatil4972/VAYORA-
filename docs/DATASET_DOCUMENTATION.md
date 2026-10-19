@@ -1,9 +1,11 @@
 # Datasets
 
-**Every dataset in this project is synthetic.** It is produced by the simulator in `sim/`
-from assumptions in `experiments/configs/world.yaml`. No data about real people, real
-bookings or real cancellations has been collected or used. Nothing in this document, or
-any result built on it, is evidence about how real passengers behave.
+**Every dataset the project produces is synthetic.** It is produced by the simulator in
+`sim/` from assumptions in `experiments/configs/world.yaml`. No data about real
+passengers has been collected or used. The one real dataset is a public set of hotel
+bookings, used only to set real cancellation timing beside the simulator's (the last
+section below); it is not about passengers either. Nothing in this document, or any
+result built on it, is evidence about how real passengers behave.
 
 ## Where the data comes from
 
@@ -14,6 +16,7 @@ any result built on it, is evidence about how real passengers behave.
 | Fitted models | `experiments/hazard/train.py` | `intel/app/hazard/models/*.json` |
 | Experiment reports | `experiments/analysis/compare.py`, `experiments/sweep.py` | `experiments/reports/*.json` and `.md` |
 | Platform use | core-api, from people using the app | The same `events` table, with no `run_id` |
+| Public hotel bookings (real) | Downloaded by `experiments/hotel/load.py`, checked by SHA-256 | The file in `experiments/data/` (not committed); its bookings in the `events` table under run `407e1000-…-001` |
 
 Platform rows exist only from development and testing on the authors' machines. None
 has been used for any result.
@@ -149,9 +152,27 @@ simulated person is a number. Platform events written by core-api carry user ids
 search positions rounded to about 100 metres. There is no export of real user data and no
 dataset of it.
 
-## Not examined
+## Real data: the public hotel bookings
 
-The project synopsis names a public hotel-reservation dataset as a possible check on the
-model. It has not been examined. A cancellation flag with a lead time does not give the
-time a cancellation happened, so it may not support a time-to-event validation at all;
-deciding that is still to be done.
+Nuno Antonio, Ana de Almeida and Luis Nunes (2019), Hotel booking demand datasets,
+*Data in Brief* 22, 41–49, doi:10.1016/j.dib.2018.11.126, licence CC BY 4.0: 119,390
+bookings at a city hotel and a resort hotel in Portugal, arriving from July 2015 to
+August 2017. It is read from the TidyTuesday copy (2020-02-11), which joins the article's
+two files into one; the address and SHA-256 are in `experiments/configs/hotel.yaml`, and
+a file with any other hash is refused. The file is not committed.
+
+Used: the hotel, the lead time in days, the arrival date, and the reservation's status
+(`Check-Out`, `Canceled` or `No-Show`) with the date it took that status, which for a
+cancellation is the day it was cancelled. Nothing about the guests is used. Only bookings
+made at most 7 days before arrival are loaded (19,746): the platform's horizon.
+
+Each becomes the events a seat booking makes (`booking_requested` and `booking_accepted`
+when made, `booking_cancelled` by the passenger when cancelled, `trip_failed` with
+`passenger_no_show` at arrival), with variant `HOTEL-CITY` or `HOTEL-RESORT` and the year
+of arrival as the seed, so the metric queries count it exactly as they count the
+simulator. Dates have no time, so each is read as noon UTC; a real time zone would move
+some intervals by an hour where summer time starts or ends.
+
+It supports a time-to-event check to the day, of cancellation timing only: nothing says
+whether a cancelled room was let again, and none of the durability model's features
+exist in it. The comparison is EXPERIMENT_PROTOCOL.md section 18.

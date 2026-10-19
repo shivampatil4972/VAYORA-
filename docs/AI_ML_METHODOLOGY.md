@@ -194,9 +194,10 @@ scheduler does not beat chance.
   Kaplan-Meier curve, which uses no booking feature and depends only on time to
   departure, keeps all of B3's gain over B0 (EXPERIMENT_PROTOCOL.md section 14). The
   ranking helps because of timing; the Cox model's reading of the passenger does not.
-- The public hotel-reservation dataset named in the synopsis has not been examined. A
-  cancellation flag with a lead time does not give a cancellation time, so it may not
-  support a time-to-event validation at all; that check is still to be done.
+- The public hotel bookings (EXPERIMENT_PROTOCOL.md section 18) record the day of each
+  cancellation, so they support a time-to-event check, but not of this model: none of
+  its features exist there. Over the last week they cancel at about a half (city) and a
+  quarter (resort) of the simulator's rate, with similar timing.
 - Features are fixed at the request. Nothing that happens after it (a reconfirmation,
   a message, a changed profile) updates them; only elapsed time does.
 - Explanations describe the model, not the person. "How far ahead it was booked makes
