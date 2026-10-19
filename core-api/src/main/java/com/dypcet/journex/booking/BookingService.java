@@ -254,6 +254,16 @@ public class BookingService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "toSeq must come after fromSeq");
         }
+        // A pickup's cost is asked of the routing service before the ride is locked: a slow
+        // routing service must not hold the lock. It depends on nothing the lock protects.
+        DetourService.Pickup away = null;
+        if (pickup != null) {
+            try {
+                away = detours.on(rideId, pickup, fromSeq);
+            } catch (IllegalArgumentException e) {
+                // No such leg, or no such ride: the checks below say which.
+            }
+        }
         LockedRide ride = lockRide(rideId);
         if (ride == null) {
             throw notFound("Ride not found");
@@ -287,14 +297,15 @@ public class BookingService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Those stops are not on this ride");
         }
-        // A pickup away from the stops is weighed under the ride lock, so two passengers cannot
-        // both spend the driver's last minutes.
-        DetourService.Pickup away = null;
+        // A pickup away from the stops is weighed against what is left under the ride lock, so
+        // two passengers cannot both spend the driver's last minutes.
         if (pickup != null) {
             if (underWay || ride.maxDetourMinutes() == 0) {
                 throw conflict("This ride picks up only at its stops");
             }
-            away = detours.on(rideId, pickup, fromSeq);
+            if (away == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Those stops are not on this ride");
+            }
             if (away.detourMinutes() > detours.minutesLeft(rideId)) {
                 throw conflict("That pickup would take the driver further out of their way than they offered");
             }
