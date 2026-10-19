@@ -41,6 +41,7 @@ Access is through `JdbcTemplate` with hand-written SQL. There is no ORM.
 | V27 | On rides: `started_at`, when the driver actually started it |
 | V28 | On vehicles: `insurer` and `insured_until`, as the driver declares them (both or neither) |
 | V29 | On passes: `reward_for_referee`; a reward pass is free with no payment method, one per person per referral |
+| V30 | On bookings: `release_reminded_at`, so each seat is asked to be released once at most |
 
 ### Tables
 

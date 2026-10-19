@@ -4,7 +4,7 @@ Counts are from the runs on 2026-10-17. Every suite passed with no failures.
 
 | Suite | Command, from the repository root | Tests |
 |---|---|---|
-| core-api | `docker compose --profile test run --rm core-api-tests` | 243 |
+| core-api | `docker compose --profile test run --rm core-api-tests` | 247 |
 | Python (events, simulator, model, scheduler, experiments, intel API) | `docker compose --profile research run --rm research` | 181 |
 | web | `cd web && npm ci && npm test` | 202 |
 | gateway | `cd gateway && npm ci && npm test` | 28 |
@@ -21,6 +21,7 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 | `BookingStatusTest` | 6 | Allowed and forbidden status transitions |
 | `BookingFlowIntegrationTest` | 11 | Per-leg inventory, a full middle leg, **8 concurrent requests for the last seat**, approval hold, release on reject and cancel exactly once, ownership, search, events |
 | `TripFlowIntegrationTest` | 6 | Start, no-show, complete, driver withdrawal; started = completed + failed |
+| `ReleaseReminderIntegrationTest` | 4 | **One reminder per seat inside the window, with the refund it would get then**, logged as an intervention with no survival probability, nothing done to the booking, not before the window nor for a booking made inside it, only confirmed seats, **everyone asked alike whatever the model says** |
 | `MidRouteIntegrationTest` | 6 | **A ride under way sold from a stop it is not yet near and from no other**, **a ride started early judged from its start**, only if it confirms instantly, **a no-show's seat sold again from a later stop**, the late booking's trip counted from start to finish, holds by the same rule |
 | `PaymentFlowIntegrationTest` | 16 | Hold on request, **a declined payment leaves no booking and no seat taken**, every refund tier, driver cancellation, payouts, **the ledger balances and cannot be rewritten**, idempotency key, the published terms |
 | `CallIntegrationTest` | 5 | Either side may call the other and the other is told, **the answer over HTTP carries no phone number**, nobody else may call, only while confirmed and shortly before the trip, only between confirmed numbers |

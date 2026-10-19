@@ -1,5 +1,18 @@
 # Progress
 
+## 2026-10-17 (late night) — a reminder to release a seat
+
+- **Seat-release reminder (79, platform side)**, as chosen: every passenger with a
+  confirmed seat, booked before the window, is asked once, 48 hours before boarding, to
+  cancel now if their plans have changed, so someone else can take the seat. The message
+  states the refund they would get at that moment (half the fare, just inside 48 hours),
+  not the whole-fare tier that is ending. Everyone is asked alike: nothing reads the
+  durability model, and nothing is cancelled for anyone. Logged as `intervention_issued`
+  with action `release_reminder`, a platform row outside every run. No gain is claimed.
+- 79 stays Partial: the backlog's version targets by prediction, which the platform does
+  not do.
+- Tests: 247 Java, 181 Python, 202 web, 28 gateway, all passing.
+
 ## 2026-10-17 (late night) — a reward for invitations
 
 - **Referral reward (72)**, as chosen: once an invited member completes a first trip, each

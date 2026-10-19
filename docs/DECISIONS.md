@@ -27,6 +27,8 @@ was decided while building within them.
 
 | Decision | Why | Cost |
 |---|---|---|
+| The seat-release reminder goes to every confirmed passenger alike, once, 48 hours before boarding | Choosing whom to ask by predicted risk would act on a guess about a real person; the simulator found targeting adds no rides anyway | People who were always going to travel get a message they did not need |
+| The reminder states the refund the passenger would get at that moment | At 48 hours the whole-fare tier is ending; promising it would mislead | The figure is 50% for most who read it later |
 | JdbcTemplate with hand-written SQL, no ORM | The existing code used it, and taking seats is one conditional `UPDATE` that reads more plainly without an ORM | More SQL to maintain |
 | Seats are counted per leg of a ride | A passenger on one stretch must not take a seat from another stretch | Every booking touches several rows |
 | Booking locks the ride row, then takes all legs in one conditional update | Concurrent requests for the last seat must produce exactly one booking | Bookings on one ride are serialised |

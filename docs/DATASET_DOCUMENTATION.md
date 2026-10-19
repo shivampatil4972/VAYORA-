@@ -46,6 +46,10 @@ empty answer says whether no ride ran then or every one was full (EXPERIMENT_PRO
 section 16). Runs made before then lack it, and the query reports their split as unknown.
 The platform's own rows do not carry it.
 
+On the platform, `intervention_issued` is also written for each seat-release reminder
+(feature 79), with `action` `release_reminder` and no `survival_probability`: the reminder
+goes to everyone alike and uses no model. It is a platform row, outside every run.
+
 On the platform, a booking made on a ride already under way (feature 84) is followed at
 once by its `trip_started`, written when the booking is made rather than when the
 passenger boards, so that every `trip_completed` or `trip_failed` has its start.

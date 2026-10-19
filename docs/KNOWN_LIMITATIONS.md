@@ -142,6 +142,11 @@ mistake for more. Updated 2026-10-17.
   it there arrives, and nothing warns either of them; the 30-minute margin only makes it
   less likely. Displayed times stay the timetable's, with a note that it may be early. Like everyone on a ride under way, such a
   passenger cannot cancel.
+- **The seat-release reminder is untested as an incentive.** Nothing measures whether
+  anyone releases a seat because of it, and the simulator suggests releases come earlier
+  but add no rides. Sent at 48 hours, it lands where the whole-fare refund ends, so most
+  who act on it get half the fare back; it says so. There is no way to turn it off
+  for oneself.
 - **A referral earns a driver nothing.** The reward is a pass, which only waives a
   passenger's fee; nothing has been decided for drivers. The weekly pass itself is an
   assumption.
