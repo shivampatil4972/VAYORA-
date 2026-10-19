@@ -191,10 +191,25 @@ def load_variant(path: Path) -> Variant:
         budget = intervention.get("budget")
         intervention = _build(Intervention, {"selector": "model", **intervention, "budget": None},
                               f"{path.name}: intervention")
-        if intervention.selector not in ("model", "oracle"):
-            raise ConfigError("intervention.selector must be model or oracle")
         if budget is not None:
             budget = _build(ContactBudget, {"chooser": "scheduler", **budget}, f"{path.name}: intervention.budget")
+            intervention = dataclasses.replace(intervention, budget=budget)
+    variant = Variant(raw["name"], raw["ranking"], raw.get("hazard_model"), intervention)
+    try:
+        validate_variant(variant)
+    except ConfigError as error:
+        raise ConfigError(f"{path.name}: {error}") from None
+    return variant
+
+
+def validate_variant(variant: Variant) -> None:
+    """Rejects a variant the simulator could not run, as loaded or as a sweep changed it."""
+    intervention = variant.intervention
+    if intervention is not None:
+        if intervention.selector not in ("model", "oracle"):
+            raise ConfigError("intervention.selector must be model or oracle")
+        budget = intervention.budget
+        if budget is not None:
             if min(budget.contacts_per_round, budget.max_contacts_per_ride,
                    budget.max_seats_asked_per_departure_day) < 1:
                 raise ConfigError("intervention.budget limits must be at least 1")
@@ -202,16 +217,13 @@ def load_variant(path: Path) -> Variant:
                 raise ConfigError("intervention.budget durations must be positive")
             if budget.chooser not in ("scheduler", "random"):
                 raise ConfigError("intervention.budget.chooser must be scheduler or random")
-            intervention = dataclasses.replace(intervention, budget=budget)
         if not 0 <= intervention.survival_threshold <= 1:
             raise ConfigError("intervention.survival_threshold must be between 0 and 1")
         if intervention.scoring_interval_hours <= 0 or intervention.min_hours_before_departure < 0:
             raise ConfigError("intervention intervals must be positive")
-    variant = Variant(raw["name"], raw["ranking"], raw.get("hazard_model"), intervention)
     needs_model = variant.ranking == "predicted_survival" or variant.intervention is not None
     if needs_model and variant.hazard_model is None:
-        raise ConfigError(f"{path.name}: this variant needs a hazard_model")
-    return variant
+        raise ConfigError("this variant needs a hazard_model")
 
 
 def validate(world: World) -> None:
@@ -302,3 +314,26 @@ def _require_keys(raw: Mapping[str, Any], expected: set[str], where: str,
         raise ConfigError(
             f"{where}: missing keys {sorted(missing)}, unknown keys {sorted(unknown)}"
         )
+
+
+# A dotted path that starts with this names a variant setting, not a world one.
+VARIANT_PREFIX = "variant."
+
+
+def with_parameter(target: Any, path: str, value: Any) -> Any:
+    """A copy of a world or a variant with the dotted `path` (e.g. ``demand.shock.rate_per_day``) set."""
+    head, _, rest = path.partition(".")
+    if not dataclasses.is_dataclass(target) or not hasattr(target, head):
+        raise KeyError(f"no such {type(target).__name__.lower()} parameter: {path}")
+    current = getattr(target, head)
+    return dataclasses.replace(target, **{head: with_parameter(current, rest, value) if rest else value})
+
+
+def apply_cell(world: World, variant: Variant, cell: dict[str, Any]) -> tuple[World, Variant]:
+    """The world and the variant of one cell of the grid."""
+    for path, value in cell.items():
+        if path.startswith(VARIANT_PREFIX):
+            variant = with_parameter(variant, path.removeprefix(VARIANT_PREFIX), value)
+        else:
+            world = with_parameter(world, path, value)
+    return world, variant

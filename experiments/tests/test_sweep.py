@@ -4,9 +4,8 @@ import uuid
 import pytest
 import yaml
 
-from experiments.sweep import (
-    CONFIGS, apply_cell, build_report, cell_label, cells, run_sweep, to_markdown, with_parameter)
-from sim.config import load_variant, load_world
+from experiments.sweep import CONFIGS, build_report, cell_label, cells, run_sweep, to_markdown
+from sim.config import apply_cell, load_variant, load_world, with_parameter
 
 WORLD = load_world(CONFIGS / "world.yaml")
 RELEASE = "demand.intervention_response.early_release_probability"

@@ -31,7 +31,7 @@ from sqlalchemy import Connection, create_engine, make_url
 
 from experiments.analysis.compare import paired, per_seed
 from journex_events import EventWriter
-from sim.config import Variant, World, load_variant, load_world, validate
+from sim.config import Variant, World, apply_cell, load_variant, load_world, validate, validate_variant
 from sim.frozen import SEEDS_PER_VARIANT
 from sim.simulator import Simulation
 
@@ -47,26 +47,6 @@ MEASURES = [("per_100", "Completed rides per 100 searches", 2),
             ("empty_share", "Searches offered no ride", 3)]
 
 
-VARIANT_PREFIX = "variant."
-
-
-def with_parameter(target: Any, path: str, value: Any) -> Any:
-    """A copy of a world or a variant with the dotted `path` (e.g. ``demand.shock.rate_per_day``) set."""
-    head, _, rest = path.partition(".")
-    if not dataclasses.is_dataclass(target) or not hasattr(target, head):
-        raise KeyError(f"no such {type(target).__name__.lower()} parameter: {path}")
-    current = getattr(target, head)
-    return dataclasses.replace(target, **{head: with_parameter(current, rest, value) if rest else value})
-
-
-def apply_cell(world: World, variant: Variant, cell: dict[str, Any]) -> tuple[World, Variant]:
-    """The world and the variant of one cell of the grid."""
-    for path, value in cell.items():
-        if path.startswith(VARIANT_PREFIX):
-            variant = with_parameter(variant, path.removeprefix(VARIANT_PREFIX), value)
-        else:
-            world = with_parameter(world, path, value)
-    return world, variant
 
 
 def cells(parameters: dict[str, list[Any]]) -> list[dict[str, Any]]:
@@ -99,6 +79,7 @@ def run_sweep(conn: psycopg.Connection, config: dict[str, Any], world: World, se
     for cell in cells(config["parameters"]):
         changed, varied = apply_cell(world, variant, cell)
         validate(changed)
+        validate_variant(varied)
         if per_cell:
             run(conn, changed, baseline, cell_label(baseline.name, cell), seeds, run_id)
         label = cell_label(variant.name, cell)
