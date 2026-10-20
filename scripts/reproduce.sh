@@ -59,6 +59,7 @@ echo "== 3c. real hotel cancellations beside the simulator"
 forget "$HOTEL"
 research python -m experiments.hotel.load --run-id "$HOTEL" > /dev/null
 research python -m experiments.hotel.report --run-id "$HOTEL" --simulated "$LADDER" B0 > /dev/null
+research python -m experiments.hotel.survival > /dev/null
 
 if $SWEEPS; then
   echo "== 4. the sweeps"

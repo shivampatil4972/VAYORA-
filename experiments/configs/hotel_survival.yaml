@@ -1,0 +1,51 @@
+# The survival models on the public hotel bookings (EXPERIMENT_PROTOCOL.md section 19):
+# the same three kinds as the platform's model, fitted on real cancellations to see whether
+# the method finds anything there. Bookings made within the horizon in hotel.yaml only.
+#
+# Years of arrival are the hotel data's seeds. The models are trained on some and checked on
+# the others, never the same (research integrity rule 3).
+train_years: [2015, 2016]
+validation_years: [2017]
+
+# Only what is known when the booking is made. Anything that can change afterwards is left
+# out (booking changes, special requests, parking, the room assigned, days on a waiting
+# list): it would carry the future into the prediction.
+features:
+  - lead_days            # days from booking to arrival
+  - city_hotel           # 1 for the city hotel, 0 for the resort
+  - adults
+  - children             # children and babies
+  - weekend_nights
+  - week_nights
+  - repeated_guest
+  - previous_cancellations
+  - previous_stays       # earlier bookings not cancelled
+  - non_refundable       # deposit type. "Refundable" is left out: so few bookings in the
+                         # week have it that it separates outcomes and the Cox fit fails.
+  - transient            # customer type
+  - online_agent         # market segment
+  - price_per_night      # the average daily rate, in euros
+
+# A Cox model knowing only how far ahead the booking was made, beside the full one: the
+# hotels' version of the simulator's question whether the features add anything to timing.
+timing_only: [lead_days]
+
+cox:
+  penalizer: 0.01
+  # Newton-Raphson's own defaults stop before converging on these data; with these it
+  # converges, and a penalty of 0.1 or 1.0 moves the validation concordance by under 0.02.
+  max_steps: 1000
+  step_size: 0.5
+gradient_boosting:
+  max_train_rows: 5000
+  params:
+    n_estimators: 200
+    learning_rate: 0.1
+    max_depth: 3
+    subsample: 0.8
+    random_state: 0
+
+# Days since booking at which the Brier score is evaluated and integrated.
+brier_times_days: [1, 2, 3, 4, 5, 6]
+# Equal-count bins for the calibration table of P(still booked at arrival).
+calibration_bins: 10
