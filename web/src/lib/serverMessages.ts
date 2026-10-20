@@ -72,6 +72,7 @@ export const SERVER_MESSAGES = [
   msg("The browser's keys are not valid"),
   msg('The earliest hour must be before the latest'),
   msg('The email could not be sent. Try again later.'),
+  msg('The text message could not be sent. Try again later.'),
   msg('The first stop must have offsetMinutes 0'),
   msg('The lowest price must not be above the highest'),
   msg('The payment was declined. No pass was bought.'),

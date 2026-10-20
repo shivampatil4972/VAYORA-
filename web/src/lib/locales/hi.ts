@@ -1515,6 +1515,12 @@ export const hi: Record<string, string> = {
     'मोटे तौर पर: सीधी रेखा में',
   'An estimate: the meter, traffic and hour decide. Fare published by {source}, in force from {date}.':
     'अनुमान: असली किराया मीटर, यातायात और समय तय करते हैं। किराया {source} द्वारा प्रकाशित, {date} से लागू।',
+  'The text message could not be sent. Try again later.':
+    'टेक्स्ट संदेश नहीं भेजा जा सका। बाद में फिर कोशिश करें।',
+  '{n} of your emergency contacts could not be messaged. Call them yourself, or call 112.':
+    'आपके {n} आपातकालीन संपर्कों को संदेश नहीं भेजा जा सका। उन्हें खुद फ़ोन करें, या 112 पर कॉल करें।',
+  '{n} emergency contacts could not be messaged.':
+    '{n} आपातकालीन संपर्कों को संदेश नहीं भेजा जा सका।',
   'Those stops are not on this ride':
     'ये स्टॉप इस सवारी पर नहीं हैं',
   'Too many wrong attempts. Request a new code.':

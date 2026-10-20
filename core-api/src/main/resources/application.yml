@@ -105,6 +105,16 @@ journex:
     # The sender address for real email. Email is sent only when SPRING_MAIL_HOST names an
     # SMTP server; without one, copies and codes go to the simulated outbox as before.
     from: ${JOURNEX_MAIL_FROM:}
+  sms:
+    # A real text-message provider (feature 64): Twilio's Messages API. Set all three or none;
+    # with none, texts go to the simulated outbox as before. With Twilio's test credentials
+    # and TWILIO_FROM=+15005550006, Twilio answers as if it sent and sends nothing.
+    twilio:
+      account-sid: ${TWILIO_ACCOUNT_SID:}
+      auth-token: ${TWILIO_AUTH_TOKEN:}
+      from: ${TWILIO_FROM:}
+      base-url: https://api.twilio.com
+      timeout: PT5S
   push:
     # The server's key pair, base64url. Empty: push notifications are off. Make a pair with
     # node scripts/vapid-keys.mjs; never commit a real private key.

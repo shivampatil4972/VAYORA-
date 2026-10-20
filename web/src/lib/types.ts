@@ -412,6 +412,8 @@ export interface SosRaised {
   /** False while messages are simulated: nobody outside the platform was told. */
   reallySent: boolean;
   emergencyNumber: string;
+  /** Contacts whose text a real provider could not take; always 0 while simulated. */
+  contactsMissed?: number;
 }
 
 export interface SosAlert {
@@ -427,6 +429,8 @@ export interface SosAlert {
   sender: string;
   status: 'OPEN' | 'ACKNOWLEDGED';
   createdAt: string;
+  /** Contacts whose text could not be sent. */
+  contactsMissed?: number;
 }
 
 /** A message the mock sender was asked to send and did not. */

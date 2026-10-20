@@ -60,7 +60,14 @@ export function SosPanel({ onClose }: { onClose: () => void }) {
           <div role="status" className="space-y-2">
             <p className="font-medium">{t('Your alert is recorded and the administrators can see it.')}</p>
             {raised.reallySent ? (
-              <p>{t('A message was sent to {n} of your emergency contacts.', { n: raised.contactsTold })}</p>
+              <>
+                <p>{t('A message was sent to {n} of your emergency contacts.', { n: raised.contactsTold })}</p>
+                {(raised.contactsMissed ?? 0) > 0 && (
+                  <p className="font-semibold">
+                    {t('{n} of your emergency contacts could not be messaged. Call them yourself, or call 112.', { n: raised.contactsMissed ?? 0 })}
+                  </p>
+                )}
+              </>
             ) : (
               <p className="font-semibold">
                 {t('Text messages are simulated in this project: your emergency contacts were NOT messaged. Call them yourself, or call 112.')}

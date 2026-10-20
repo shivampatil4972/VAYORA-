@@ -87,6 +87,11 @@ export function EmergenciesPage() {
                 ? t('{n} emergency contacts on file. They were NOT messaged: the sender is simulated.', { n: alert.contactsTold })
                 : t('A message was sent to {n} emergency contacts.', { n: alert.contactsTold })}
             </p>
+            {alert.sender !== 'MOCK' && (alert.contactsMissed ?? 0) > 0 && (
+              <p className="font-semibold text-red-800">
+                {t('{n} emergency contacts could not be messaged.', { n: alert.contactsMissed ?? 0 })}
+              </p>
+            )}
             <Button disabled={acknowledge.isPending} onClick={() => acknowledge.mutate(alert.id)}>
               {t('Acknowledge')}
             </Button>

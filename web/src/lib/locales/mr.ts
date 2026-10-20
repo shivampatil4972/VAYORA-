@@ -1515,6 +1515,12 @@ export const mr: Record<string, string> = {
     'ढोबळमानाने: सरळ रेषेत',
   'An estimate: the meter, traffic and hour decide. Fare published by {source}, in force from {date}.':
     'अंदाज: खरे भाडे मीटर, वाहतूक आणि वेळ ठरवतात. भाडे {source} यांनी प्रकाशित केलेले, {date} पासून लागू.',
+  'The text message could not be sent. Try again later.':
+    'मजकूर संदेश पाठवता आला नाही. नंतर पुन्हा प्रयत्न करा.',
+  '{n} of your emergency contacts could not be messaged. Call them yourself, or call 112.':
+    'तुमच्या {n} आपत्कालीन संपर्कांना संदेश पाठवता आला नाही. त्यांना स्वतः फोन करा, किंवा 112 वर कॉल करा.',
+  '{n} emergency contacts could not be messaged.':
+    '{n} आपत्कालीन संपर्कांना संदेश पाठवता आला नाही.',
   'Those stops are not on this ride':
     'हे थांबे या राइडवर नाहीत',
   'Too many wrong attempts. Request a new code.':

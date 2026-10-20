@@ -10,16 +10,16 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * Sends email for real through an SMTP server, when one is configured, and everything
- * else to the simulated outbox. Text messages always go to the outbox: there is no SMS
- * provider.
+ * Sends email for real through an SMTP server, and text messages through Twilio, when each
+ * is configured; anything else goes to the simulated outbox.
  *
  * <p>An SMTP server is configured with SPRING_MAIL_HOST (and SPRING_MAIL_PORT,
  * SPRING_MAIL_USERNAME, SPRING_MAIL_PASSWORD as it needs) and JOURNEX_MAIL_FROM. Without a
- * host, Spring makes no mail sender and nothing is emailed.
+ * host, Spring makes no mail sender and nothing is emailed. Twilio: see {@link TwilioSms}.
  */
 @Primary
 @Component
@@ -32,12 +32,14 @@ public class DeliveringMessageSender implements MessageSender {
     private final MockMessageSender mock;
     private final JavaMailSender mail;
     private final String from;
+    private final TwilioSms sms;
 
     public DeliveringMessageSender(MockMessageSender mock, ObjectProvider<JavaMailSender> mail,
-            @Value("${journex.mail.from:}") String from) {
+            @Value("${journex.mail.from:}") String from, TwilioSms sms) {
         this.mock = mock;
         this.mail = mail.getIfAvailable();
         this.from = from;
+        this.sms = sms;
         if (this.mail != null && from.isBlank()) {
             throw new IllegalStateException("An SMTP server is configured but JOURNEX_MAIL_FROM is not");
         }
@@ -45,12 +47,29 @@ public class DeliveringMessageSender implements MessageSender {
 
     @Override
     public String name(Channel channel) {
-        return channel == Channel.EMAIL && mail != null ? SMTP : mock.name(channel);
+        if (channel == Channel.PHONE) {
+            return sms.configured() ? TwilioSms.NAME : mock.name(channel);
+        }
+        return mail != null ? SMTP : mock.name(channel);
     }
 
     @Override
     public void send(Channel channel, String to, String text) {
-        if (channel != Channel.EMAIL || mail == null) {
+        if (channel == Channel.PHONE) {
+            if (!sms.configured()) {
+                mock.send(channel, to, text);
+                return;
+            }
+            try {
+                sms.send(to, text);
+            } catch (RestClientException e) {
+                log.warn("Text message to {} not sent: {}", to, e.getMessage());
+                throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                        "The text message could not be sent. Try again later.");
+            }
+            return;
+        }
+        if (mail == null) {
             mock.send(channel, to, text);
             return;
         }

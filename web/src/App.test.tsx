@@ -1154,6 +1154,22 @@ describe('the emergency button', () => {
     }
   });
 
+  it('with real text messages, says how many contacts were told and tells the member to call any it missed', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /bookings': () => json([]),
+      'POST /sos': () => json({ ...raised, reallySent: true, contactsTold: 2, contactsMissed: 1 }, 201) });
+    open('/bookings');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Emergency' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Send an alert' }));
+
+    const panel = within(screen.getByRole('region', { name: 'Emergency' }));
+    expect(await panel.findByText('A message was sent to 2 of your emergency contacts.')).toBeInTheDocument();
+    expect(panel.getByText('1 of your emergency contacts could not be messaged. Call them yourself, or call 112.'))
+      .toBeInTheDocument();
+    expect(panel.queryByText(/were NOT messaged/)).not.toBeInTheDocument();
+  });
+
   it("shows the server's reason if the alert could not be recorded, with 112 still on screen", async () => {
     signIn('PASSENGER');
     serve({ 'GET /bookings': () => json([]), 'POST /sos': () => json({ detail: 'Service unavailable' }, 503) });
