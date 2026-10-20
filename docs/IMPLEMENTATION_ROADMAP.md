@@ -19,7 +19,7 @@ below is the authors' recommendation, with reasons.
 
 ## Where things stand
 
-As of 2026-10-19: of 95 features, **80 verified, 14 partial, 1 not started**, about 92%
+As of 2026-10-20: of 95 features, **81 verified, 13 partial, 1 not started**, about 92%
 counting a partial feature as half. Everything left needs a decision, an outside service
 or data that does not exist; nothing remains that is only a matter of building.
 
@@ -45,13 +45,13 @@ mock that says so, as payments and SMS already are.
 | # | Feature | Needs |
 |---|---|---|
 | 2 | Google sign-in, tried for real | A Google Cloud OAuth client ID; everything else is built |
-| 1, 6, 64 | Phone sign-up, real SMS codes and notifications | An SMS gateway account |
+| 1, 6, 64 | Phone sign-up, real SMS codes and notifications | An SMS gateway account; built for Twilio on 2026-10-20, off until its settings are set, and untried |
 | 63 | Email with a real provider | Built for any SMTP server; needs an account with one to try it |
 | 61 | Masked calling | A telephony provider; built as a labelled mock on 2026-10-17 |
 | 46 | Card, UPI and wallet doing something different | A payment gateway in test mode |
 | 7, 8 | Government ID verification and a real verified badge | An identity verification provider, and a privacy review; built as a labelled mock (the driver's declaration of which document they hold) on 2026-10-19 |
 | 58 | Insurance badge | An insurer; built as a labelled mock (the driver's declaration) on 2026-10-17 |
-| 91 | Last-mile access beyond walking | Rickshaw data, and walking routes rather than straight lines |
+| ~~91~~ | ~~Last-mile access beyond walking~~ | Done, 2026-10-20: walks on footpaths, buses, and an auto-rickshaw estimate with Pune's published meter fare; other towns' fares are not published in full | |
 
 ### C. Research work
 

@@ -65,6 +65,8 @@ was decided while building within them.
 
 | Decision | Why | Cost |
 |---|---|---|
+| Texts go through Twilio when its three settings are set, to the simulated outbox otherwise | Its API is plain HTTP, and its test credentials allow a try that sends nothing and costs nothing | Real texts to Indian numbers need DLT registration, not done |
+| The emergency button texts each contact on its own and records those it missed | A real text can fail; an alert must never fail because of one, and the member must know whom to call | A missed text is reported, not retried |
 | Insurance is the driver's declaration, shown as such, with no policy number kept | No insurer is connected, so nothing can be checked; a policy number would be personal data for no purpose | A passenger has only the driver's word |
 | A masked call is simulated, only between confirmed numbers, from 24 hours before boarding while the booking is confirmed, and the other side is told | No telephony provider; a real relay must never ring a number nobody proved | Nobody can actually call; the chat is the working channel |
 | One role per account: passenger, driver or administrator | Simpler permissions | A person cannot be both passenger and driver |
@@ -85,6 +87,8 @@ was decided while building within them.
 
 | Decision | Why | Cost |
 |---|---|---|
+| A rickshaw fare is given only where a published fare says both how far its minimum goes and the rate after | A fare worked out from half a rule would be a guess shown as a price | Kolhapur, where the corridor starts, gets a time but no fare |
+| A rickshaw's time is the car route's | It is the only road time the platform has; an auto-rickshaw's pace in traffic is unknown | Labelled an estimate, it may still read as too quick |
 | Search is by location; town names are presets for coordinates | Passengers rarely start at a stop | A straight-line access limit, not a walking distance |
 | The 5 km access distance is a hard limit | A far-away ride ranked low is still not one a passenger can take | |
 | A road route unavailable from OSRM is drawn as straight lines and labelled so | A straight-line estimate must never pass for a road distance | |

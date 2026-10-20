@@ -54,6 +54,7 @@ Every setting has a working default in `docker-compose.yml`. To change one, copy
 | `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD` | unset | An SMTP server for real email. Unset: nothing is emailed. Add them to the core-api service's environment |
 | `JOURNEX_MAIL_FROM` | empty | The sender address. Required once an SMTP server is set; core-api will not start without it |
 | `JOURNEX_PUSH_SUBJECT` | `mailto:journex@example.invalid` | A contact push services can use about this server's messages. Set a real one before turning push on |
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` | empty | Text messages through Twilio. All three or none; none sends texts to the simulated outbox. Twilio's test credentials with `TWILIO_FROM=+15005550006` are answered as if sent and send nothing. Real texts to Indian numbers need DLT registration |
 
 The web app's addresses for core-api, the gateway and intel are fixed when its image is
 built (`VITE_API_URL`, `VITE_GATEWAY_URL`, `VITE_INTEL_URL`). Changing `CORE_API_PORT`,

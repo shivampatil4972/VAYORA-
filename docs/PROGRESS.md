@@ -1,5 +1,23 @@
 # Progress
 
+## 2026-10-20 — rickshaws to and from stops; texts through Twilio
+
+- **Rickshaw access (91)**, as chosen: where a walk to or from a stop is a kilometre or more,
+  a result also gives the time by auto-rickshaw, by road, and the meter fare where a
+  published one is known in full. Only Pune's is (Rs 30 for 1.5 km, then Rs 20 a km, from
+  1 September 2026, by the Pune RTA as Punekar News reported it); Kolhapur's 2025 revision
+  was found reported without how far its minimum goes, so it is left out rather than guessed.
+  Each fare names its source on screen. 91 is Verified, as an estimate.
+- **Text messages (64)**, as chosen, off until keys: with a Twilio account's three settings,
+  texts go through Twilio; without them, to the simulated outbox as before. Never tried with
+  Twilio itself. The emergency button now texts each contact on its own, so a failed text
+  can never stop an alert, and says how many contacts it missed (V33). 64 stays Partial.
+- Two faults the tests caught (TESTING.md): a half rupee lost to floating point, and the
+  first Twilio tests reaching the real Twilio with fake credentials. Both fixed.
+- docker-compose.yml passes GOOGLE_CLIENT_ID and the Twilio settings from .env to core-api.
+- Tests: 286 Java, 204 Python, 218 web, 28 gateway, all passing.
+- Feature count: 81 Verified, 13 Partial, 1 Not started of 95.
+
 ## 2026-10-19 (end of day) — the live what-if simulator
 
 - **Live what-if (87)**, as chosen: below the saved sweeps, an administrator can simulate any

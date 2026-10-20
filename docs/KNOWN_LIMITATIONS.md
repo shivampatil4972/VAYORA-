@@ -117,11 +117,12 @@ mistake for more. Updated 2026-10-19.
 - A suspended member's future rides and bookings are left as they are; nobody is told.
 - A reporter is never told what was decided.
 - Ratings are visible at once; one side can see the other's rating before giving theirs.
-- Notification copies by email and SMS go through the simulated sender: nothing is really
-  sent. There is no web push.
-- **No message ever leaves the platform.** Confirmation codes and emergency messages go
-  to a mock sender. "Email confirmed" therefore means only that someone read a code out
-  of the administrator outbox; it proves nothing about the address.
+- **By default no message leaves the platform.** Confirmation codes, notification copies
+  and emergency texts go to the simulated outbox unless an SMTP server or a Twilio account
+  is configured, and neither has been tried with a real provider. "Email confirmed" then
+  means only that someone read a code out of the administrator outbox; it proves nothing
+  about the address. Texts to Indian numbers through a real Twilio account would need the
+  sender registered under TRAI's DLT rules, which has not been done.
 - **The SOS button contacts nobody.** It records an alert for administrators, who are
   not an emergency service and are told only by an in-app notification and a queue
   that refreshes every 15 seconds. Emergency contacts are stored but not messaged.
@@ -133,7 +134,12 @@ mistake for more. Updated 2026-10-19.
   Drop-offs away from the stops are not offered. Without the routing service, costs are
   straight lines at 50 km/h, which understates them.
 - **Walking times need the walking graph.** Without it, or while it is building, walks are
-  straight lines at 4.5 km/h and say so. There is still no rickshaw data.
+  straight lines at 4.5 km/h and say so.
+- **A rickshaw is an estimate.** Its time is by road for a car, not an auto-rickshaw in
+  traffic, and nothing knows whether one is there. A fare is given only where a published
+  meter fare is known in full: Pune's, read from a newspaper's report of the RTA's
+  decision, not from the notification itself. Kolhapur's 2025 revision is reported
+  without its minimum's distance, so Kolhapur gets no fare.
 - **Match scoring treats any difference as a mismatch.** One person fine with smoking and
   the other not counts against the match, though the ride would simply be smoke-free.
   The weights (25 distance, 20 price, 15 record, 10 for each preference) are assumptions,
