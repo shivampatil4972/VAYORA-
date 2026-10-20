@@ -141,6 +141,12 @@ services:
       JOURNEX_PUSH_PUBLIC_KEY: ${JOURNEX_PUSH_PUBLIC_KEY:-}
       JOURNEX_PUSH_PRIVATE_KEY: ${JOURNEX_PUSH_PRIVATE_KEY:-}
       JOURNEX_PUSH_SUBJECT: ${JOURNEX_PUSH_SUBJECT:-mailto:journex@example.invalid}
+      # "Sign in with Google" is off unless set (see DEPLOYMENT.md).
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      # Real text messages through Twilio: all three or none. None: the simulated outbox.
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+      TWILIO_FROM: ${TWILIO_FROM:-}
     ports:
       - "${CORE_API_PORT:-8080}:8080"
     healthcheck:
