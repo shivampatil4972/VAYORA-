@@ -39,9 +39,12 @@ public class BookingController {
             @Min(0) int fromSeq,
             @Min(1) int toSeq,
             @Min(1) @Max(8) int seats,
-            @NotNull PaymentChoice.Method paymentMethod,
+            // How to pay; may be left out when a checkout has paid, as Razorpay says how.
+            PaymentChoice.Method paymentMethod,
             // Mock provider only: "DECLINE" makes the payment fail.
             @Size(max = 20) String mockOutcome,
+            // What Razorpay's checkout handed back once the passenger paid (feature 46).
+            @Valid PaymentChoice.Checkout razorpay,
             // What happens if the driver withdraws; left out, this ride only.
             FlexTier tier,
             // To be picked up at this point rather than at stop fromSeq (feature 28); both or neither.
@@ -93,7 +96,7 @@ public class BookingController {
         }
         return bookings.request(CurrentUser.id(jwt), request.rideId(), request.fromSeq(),
                 request.toSeq(), request.seats(),
-                new PaymentChoice(request.paymentMethod(), request.mockOutcome()), idempotencyKey,
+                PaymentChoice.of(request.paymentMethod(), request.mockOutcome(), request.razorpay()), idempotencyKey,
                 request.tier() == null ? FlexTier.EXACT : request.tier(),
                 request.pickupLat() == null || request.pickupLon() == null ? null
                         : new Point(request.pickupLat(), request.pickupLon()));

@@ -71,16 +71,16 @@ public class PassService {
         Instant start = nextStart(passengerId);
         Instant end = start.plus(Duration.ofDays(offer.days()));
 
-        String hold = provider.hold(offer.price(), choice).orElseThrow(
+        PaymentProvider.Hold hold = provider.hold(offer.price(), choice).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED,
                         "The payment was declined. No pass was bought."));
-        provider.capture(hold, offer.price());
+        provider.capture(hold.reference(), offer.price());
         Long id = jdbc.queryForObject("""
                 INSERT INTO passes (passenger_id, kind, price, starts_at, ends_at, method, provider,
                                     provider_ref)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id""",
                 Long.class, passengerId, kind.name(), offer.price(), utc(start), utc(end),
-                choice.method().name(), provider.name(), hold);
+                hold.method().name(), provider.name(), hold.reference());
         return new Pass(id, kind, offer.price(), start, end, provider.name(), false);
     }
 

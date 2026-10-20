@@ -20,11 +20,11 @@ public class MockPaymentProvider implements PaymentProvider {
     }
 
     @Override
-    public Optional<String> hold(BigDecimal amount, PaymentChoice choice) {
+    public Optional<Hold> hold(BigDecimal amount, PaymentChoice choice) {
         if ("DECLINE".equalsIgnoreCase(choice.mockOutcome())) {
             return Optional.empty();
         }
-        return Optional.of("mock_hold_" + UUID.randomUUID());
+        return Optional.of(new Hold("mock_hold_" + UUID.randomUUID(), choice.method()));
     }
 
     @Override

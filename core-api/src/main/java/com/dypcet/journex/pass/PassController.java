@@ -24,9 +24,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/passes")
 public class PassController {
 
-    public record BuyRequest(@NotNull Kind kind, @NotNull PaymentChoice.Method paymentMethod,
+    public record BuyRequest(@NotNull Kind kind,
+            // How to pay; may be left out when a checkout has paid, as Razorpay says how.
+            PaymentChoice.Method paymentMethod,
             // Mock provider only: "DECLINE" makes the payment fail.
-            @Size(max = 20) String mockOutcome) {
+            @Size(max = 20) String mockOutcome,
+            // What Razorpay's checkout handed back once the passenger paid (feature 46).
+            @Valid PaymentChoice.Checkout razorpay) {
     }
 
     private final PassService passes;
@@ -52,6 +56,6 @@ public class PassController {
     @PreAuthorize("hasRole('PASSENGER')")
     public Pass buy(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody BuyRequest request) {
         return passes.buy(CurrentUser.id(jwt), request.kind(),
-                new PaymentChoice(request.paymentMethod(), request.mockOutcome()));
+                PaymentChoice.of(request.paymentMethod(), request.mockOutcome(), request.razorpay()));
     }
 }

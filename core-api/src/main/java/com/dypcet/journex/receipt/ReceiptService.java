@@ -1,6 +1,7 @@
 package com.dypcet.journex.receipt;
 
 import com.dypcet.journex.payment.MockPaymentProvider;
+import com.dypcet.journex.payment.RazorpayPaymentProvider;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -136,6 +137,8 @@ public class ReceiptService {
         List<String> lines = new ArrayList<>(List.of("", "Payment provider: " + provider));
         if (MockPaymentProvider.NAME.equals(provider)) {
             lines.add("SIMULATED PAYMENT: no money was taken or paid. This is a student project.");
+        } else if (RazorpayPaymentProvider.TEST_NAME.equals(provider)) {
+            lines.add("TEST MODE: paid in Razorpay's test mode, where no real money moves. This is a student project.");
         }
         lines.add("This is not a tax invoice.");
         lines.add("JOURNEX, Kolhapur to Pune");

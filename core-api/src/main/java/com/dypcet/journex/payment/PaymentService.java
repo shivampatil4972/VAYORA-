@@ -85,16 +85,40 @@ public class PaymentService {
         if (amount.signum() == 0) {
             return; // a free ride: there is nothing to hold
         }
-        String reference = provider.hold(amount, choice).orElseThrow(
+        PaymentProvider.Hold hold = provider.hold(amount, choice).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED,
                         "The payment was declined. Nothing was booked."));
         Long intentId = jdbc.queryForObject("""
                 INSERT INTO payment_intents (booking_id, passenger_id, fare, service_fee, amount,
                                              method, provider, provider_ref, status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'HELD') RETURNING id""",
-                Long.class, bookingId, passengerId, fare, fee, amount, choice.method().name(),
-                provider.name(), reference);
+                Long.class, bookingId, passengerId, fare, fee, amount, hold.method().name(),
+                provider.name(), hold.reference());
         entry(intentId, "HOLD", amount);
+    }
+
+    /**
+     * What booking these seats would take now: the fare for the stretch and this passenger's
+     * fee, as {@link #hold} works it out. What a checkout is opened for.
+     */
+    public BigDecimal amountDue(long passengerId, long rideId, int fromSeq, int toSeq, int seats) {
+        List<Object[]> found = jdbc.query("""
+                SELECT r.driver_id, SUM(s.price) * ? AS fare, COUNT(*) AS legs
+                FROM rides r JOIN ride_segments s ON s.ride_id = r.id AND s.seq >= ? AND s.seq < ?
+                WHERE r.id = ? AND r.status = 'SCHEDULED'
+                GROUP BY r.driver_id""",
+                (rs, n) -> new Object[] {rs.getLong("driver_id"), rs.getBigDecimal("fare"), rs.getInt("legs")},
+                seats, fromSeq, toSeq, rideId);
+        if (found.isEmpty() || toSeq <= fromSeq || (int) found.get(0)[2] != toSeq - fromSeq) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No ride open for booking has those stops");
+        }
+        BigDecimal fare = (BigDecimal) found.get(0)[1];
+        return fare.add(feeFor(passengerId, (long) found.get(0)[0], fare));
+    }
+
+    /** Whether the passenger must be there to pay: then nothing can be booked in their absence. */
+    public boolean needsThePassengerToPay() {
+        return provider.needsThePassengerToPay();
     }
 
     /**

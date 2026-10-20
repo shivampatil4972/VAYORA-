@@ -58,6 +58,14 @@ journex:
       fee-rate: 0.07
       min-completed: 10
       window: P90D
+    # Razorpay (feature 46). With both keys, passengers pay in Razorpay's checkout and are
+    # refunded through it; without them, the simulated provider as before. A key starting
+    # rzp_test_ is Razorpay's test mode: no real money moves, and every record says so.
+    razorpay:
+      key-id: ${RAZORPAY_KEY_ID:}
+      key-secret: ${RAZORPAY_KEY_SECRET:}
+      base-url: https://api.razorpay.com
+      timeout: PT10S
   pass:
     # On sale to passengers. A pass waives the service fee on bookings requested while it
     # runs. Prices are the authors' assumptions, not market research.

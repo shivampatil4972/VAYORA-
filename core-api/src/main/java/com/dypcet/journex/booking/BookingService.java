@@ -254,6 +254,12 @@ public class BookingService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "toSeq must come after fromSeq");
         }
+        // A flexible booking is rebooked, and paid again, while the passenger is away: not
+        // possible when only the passenger can pay, in a checkout.
+        if (tier != FlexTier.EXACT && payments.needsThePassengerToPay()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "A booking paid at checkout is for this ride only: a flexible one would need you to pay again while you are away");
+        }
         // A pickup's cost is asked of the routing service before the ride is locked: a slow
         // routing service must not hold the lock. It depends on nothing the lock protects.
         DetourService.Pickup away = null;

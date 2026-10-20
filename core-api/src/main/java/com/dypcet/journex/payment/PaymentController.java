@@ -25,9 +25,13 @@ public class PaymentController {
     /**
      * What a passenger is charged and what cancelling returns, for the UI to state.
      *
-     * @param provider who handles payments; {@code MOCK} means no money moves
+     * @param provider          who handles payments: {@code MOCK} moves no money,
+     *                          {@code RAZORPAY_TEST} is Razorpay's test mode, which moves none either
+     * @param checkout          the passenger pays in Razorpay's checkout before booking or buying
+     * @param flexibleTiers     whether a booking may be flexible: not while only the passenger can pay
      */
-    public record Terms(String provider, BigDecimal serviceFeeRate, List<RefundTier> refundTiers) {
+    public record Terms(String provider, BigDecimal serviceFeeRate, List<RefundTier> refundTiers,
+            boolean checkout, boolean flexibleTiers) {
     }
 
     private final PaymentService payments;
@@ -38,7 +42,7 @@ public class PaymentController {
         this.payments = payments;
         this.terms = new Terms(provider.name(), serviceFee.rate(), refunds.tiers().stream()
                 .map(tier -> new RefundTier(tier.atLeastBefore().toHours(), tier.fareShare()))
-                .toList());
+                .toList(), provider.needsThePassengerToPay(), !provider.needsThePassengerToPay());
     }
 
     @GetMapping("/payment-terms")
