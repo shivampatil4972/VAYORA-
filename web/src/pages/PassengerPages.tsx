@@ -20,7 +20,20 @@ import { msg, useT, useUnits } from '../lib/i18n';
 import { matchReasonLabels } from '../lib/match';
 import { comfortLabels, luggageLabels, vehiclePhrases } from '../lib/vehicle';
 import { searchSchema, type SearchForm } from '../lib/schemas';
-import type { Booking, Candidate, Comfort, FlexTier, Luggage, MyProfile, PaymentMethod, RequestTerms, Ride, SearchSort, SeatHold } from '../lib/types';
+import type {
+  Booking,
+  Candidate,
+  Comfort,
+  FlexTier,
+  Luggage,
+  MyProfile,
+  PaymentMethod,
+  RequestTerms,
+  RickshawEstimate,
+  Ride,
+  SearchSort,
+  SeatHold,
+} from '../lib/types';
 
 interface LatLon {
   lat: number;
@@ -99,6 +112,24 @@ const townPoint = (name: string): LatLon => {
 };
 
 /** The driver's own record: rides completed out of those they went on to drive or withdrew. */
+/** An auto-rickshaw to the pickup or from the drop-off, with the meter fare where one is known. */
+function rickshawLine(estimate: RickshawEstimate, toPickup: boolean, t: ReturnType<typeof useT>): string {
+  const values = {
+    minutes: estimate.minutes,
+    fare: estimate.fare == null ? '' : formatRupees(estimate.fare),
+    town: estimate.fareTown ? t(estimate.fareTown) : '',
+  };
+  const line =
+    estimate.fare == null
+      ? toPickup
+        ? t('Or about {minutes} min by auto-rickshaw to the pickup; no meter fare is known there', values)
+        : t('Or about {minutes} min by auto-rickshaw from the drop-off; no meter fare is known there', values)
+      : toPickup
+        ? t('Or about {minutes} min by auto-rickshaw to the pickup, about {fare} by the {town} meter fare', values)
+        : t('Or about {minutes} min by auto-rickshaw from the drop-off, about {fare} by the {town} meter fare', values);
+  return estimate.byRoad ? line : `${line} · ${t('roughly: in a straight line')}`;
+}
+
 function driverRecord(candidate: Candidate, t: ReturnType<typeof useT>): string {
   const offered = candidate.driverRidesCompleted + candidate.driverRidesWithdrawn;
   if (offered === 0) return t('No completed rides yet');
@@ -568,6 +599,24 @@ export function SearchPage() {
                             : t('about {minutes} min walk to the pickup, in a straight line', { minutes: candidate.pickupWalkMinutes })
                         }`}
                     </p>
+                    {(candidate.pickupRickshaw || candidate.dropoffRickshaw) && (
+                      <div className="mt-1 text-sm text-slate-600">
+                        {candidate.pickupRickshaw && <p>{rickshawLine(candidate.pickupRickshaw, true, t)}</p>}
+                        {candidate.dropoffRickshaw && <p>{rickshawLine(candidate.dropoffRickshaw, false, t)}</p>}
+                        {[candidate.pickupRickshaw, candidate.dropoffRickshaw]
+                          .filter((e): e is RickshawEstimate => e?.fare != null)
+                          .slice(0, 1)
+                          .map((e) => (
+                            <p key="fare-source" className="text-xs text-slate-500">
+                              {/* The source is named as configured: not translated. */}
+                              {t('An estimate: the meter, traffic and hour decide. Fare published by {source}, in force from {date}.', {
+                                source: e.fareSource ?? '',
+                                date: e.fareSince ? formatDate(e.fareSince) : '',
+                              })}
+                            </p>
+                          ))}
+                      </div>
+                    )}
                     <p className="mt-1 text-sm text-slate-600">{driverRecord(candidate, t)}</p>
                     {criteria.sort === 'BEST_MATCH' && (
                       <p className="mt-1 text-sm text-teal-800">

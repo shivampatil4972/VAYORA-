@@ -167,6 +167,25 @@ journex:
       price: 20
       record: 15
       preference: 10
+  rickshaw:
+    # An auto-rickshaw to or from a stop is offered with a result when the walk is at least
+    # this far in a straight line (feature 91). The authors' choice.
+    offer-beyond-metres: 1000
+    # Published meter fares. A town is listed only where the source gives both how far the
+    # minimum fare goes and the rate after it; any other town gets a time but no fare.
+    # Kolhapur's revision of 1 March 2025 (Rs 25 minimum, Rs 23 a km after, as reported) is
+    # left out: no report found says how far its minimum goes.
+    fares:
+      - town: Pune
+        lat: 18.5204
+        lon: 73.8567
+        # Pune city and Pimpri-Chinchwad, which the decision covers.
+        radius-km: 25
+        minimum-fare: 30
+        minimum-km: 1.5
+        per-km: 20
+        since: 2026-09-01
+        source: "Pune Regional Transport Authority, as reported by Punekar News, 4 August 2026"
   pricing:
     # Per seat. Only a suggestion offered to the driver, never applied automatically.
     suggested-rupees-per-km: 2.0

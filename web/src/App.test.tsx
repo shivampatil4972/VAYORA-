@@ -2499,6 +2499,35 @@ describe('driver record and walk in search results', () => {
     expect(await screen.findByText(/about 9 min walk to the pickup, by footpath/)).toBeInTheDocument();
     expect(screen.queryByText(/in a straight line/)).not.toBeInTheDocument();
   });
+
+  it('offers an auto-rickshaw where the walk is long, with a fare only where one is published, and says whose', async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /rides/search': () =>
+        json([{ ...candidate,
+          pickupRickshaw: { minutes: 3, km: 2.0, fare: null, fareTown: null, fareSource: null, fareSince: null, byRoad: false },
+          dropoffRickshaw: { minutes: 9, km: 3.1, fare: 62, fareTown: 'Pune', fareSource: 'Pune Regional Transport Authority',
+            fareSince: '2026-09-01', byRoad: true } }]),
+    });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+    expect(await screen.findByText(
+      'Or about 3 min by auto-rickshaw to the pickup; no meter fare is known there · roughly: in a straight line')).toBeInTheDocument();
+    expect(screen.getByText(/Or about 9 min by auto-rickshaw from the drop-off, about ₹62(\.00)? by the Pune meter fare$/)).toBeInTheDocument();
+    expect(screen.getByText(/An estimate: the meter, traffic and hour decide\. Fare published by Pune Regional Transport Authority, in force from/))
+      .toBeInTheDocument();
+  });
+
+  it('offers no auto-rickshaw where none was estimated', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /rides/search': () => json([candidate]) });
+    open('/search');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+    await screen.findByText(/about 4 min walk to the pickup/);
+    expect(screen.queryByText(/auto-rickshaw/)).not.toBeInTheDocument();
+  });
 });
 
 describe('flexibility tiers', () => {

@@ -1503,6 +1503,18 @@ export const mr: Record<string, string> = {
     'सीड वर / खाली',
   '{variant} compared with {baseline} at {value}, on {seeds} seeds, simulated just now. Exploratory: no interval, and not a report figure.':
     '{value} वर {variant} ची {baseline} शी तुलना, {seeds} सीडवर, आत्ताच सिम्युलेट केलेली. फक्त शोधासाठी: मध्यांतर नाही, आणि अहवालातील आकडा नाही.',
+  'Or about {minutes} min by auto-rickshaw to the pickup; no meter fare is known there':
+    'किंवा रिक्षाने पिकअपपर्यंत सुमारे {minutes} मिनिटे; तिथले मीटर भाडे माहीत नाही',
+  'Or about {minutes} min by auto-rickshaw from the drop-off; no meter fare is known there':
+    'किंवा ड्रॉपपासून रिक्षाने सुमारे {minutes} मिनिटे; तिथले मीटर भाडे माहीत नाही',
+  'Or about {minutes} min by auto-rickshaw to the pickup, about {fare} by the {town} meter fare':
+    'किंवा रिक्षाने पिकअपपर्यंत सुमारे {minutes} मिनिटे, {town} च्या मीटर भाड्याने सुमारे {fare}',
+  'Or about {minutes} min by auto-rickshaw from the drop-off, about {fare} by the {town} meter fare':
+    'किंवा ड्रॉपपासून रिक्षाने सुमारे {minutes} मिनिटे, {town} च्या मीटर भाड्याने सुमारे {fare}',
+  'roughly: in a straight line':
+    'ढोबळमानाने: सरळ रेषेत',
+  'An estimate: the meter, traffic and hour decide. Fare published by {source}, in force from {date}.':
+    'अंदाज: खरे भाडे मीटर, वाहतूक आणि वेळ ठरवतात. भाडे {source} यांनी प्रकाशित केलेले, {date} पासून लागू.',
   'Those stops are not on this ride':
     'हे थांबे या राइडवर नाहीत',
   'Too many wrong attempts. Request a new code.':

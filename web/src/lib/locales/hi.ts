@@ -1503,6 +1503,18 @@ export const hi: Record<string, string> = {
     'सीड ऊपर / नीचे',
   '{variant} compared with {baseline} at {value}, on {seeds} seeds, simulated just now. Exploratory: no interval, and not a report figure.':
     '{value} पर {variant} की तुलना {baseline} से, {seeds} सीड पर, अभी सिम्युलेट की गई। केवल खोज के लिए: कोई अंतराल नहीं, और रिपोर्ट का आँकड़ा नहीं।',
+  'Or about {minutes} min by auto-rickshaw to the pickup; no meter fare is known there':
+    'या ऑटो-रिक्शा से पिकअप तक लगभग {minutes} मिनट; वहाँ का मीटर किराया ज्ञात नहीं है',
+  'Or about {minutes} min by auto-rickshaw from the drop-off; no meter fare is known there':
+    'या ड्रॉप से ऑटो-रिक्शा से लगभग {minutes} मिनट; वहाँ का मीटर किराया ज्ञात नहीं है',
+  'Or about {minutes} min by auto-rickshaw to the pickup, about {fare} by the {town} meter fare':
+    'या ऑटो-रिक्शा से पिकअप तक लगभग {minutes} मिनट, {town} के मीटर किराए से लगभग {fare}',
+  'Or about {minutes} min by auto-rickshaw from the drop-off, about {fare} by the {town} meter fare':
+    'या ड्रॉप से ऑटो-रिक्शा से लगभग {minutes} मिनट, {town} के मीटर किराए से लगभग {fare}',
+  'roughly: in a straight line':
+    'मोटे तौर पर: सीधी रेखा में',
+  'An estimate: the meter, traffic and hour decide. Fare published by {source}, in force from {date}.':
+    'अनुमान: असली किराया मीटर, यातायात और समय तय करते हैं। किराया {source} द्वारा प्रकाशित, {date} से लागू।',
   'Those stops are not on this ride':
     'ये स्टॉप इस सवारी पर नहीं हैं',
   'Too many wrong attempts. Request a new code.':

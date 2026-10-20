@@ -205,6 +205,23 @@ export interface Candidate {
   detourMinutes: number | null;
   /** The walks were worked out on footpaths; otherwise they are straight-line estimates. */
   walkOnFootpaths: boolean;
+  /** An auto-rickshaw where the walk is long; null where none is offered (feature 91). */
+  pickupRickshaw?: RickshawEstimate | null;
+  dropoffRickshaw?: RickshawEstimate | null;
+}
+
+/** An auto-rickshaw to or from a stop: an estimate, never a quote. */
+export interface RickshawEstimate {
+  minutes: number;
+  km: number;
+  /** Rupees by the town's published meter fare; null where no published fare is known. */
+  fare: number | null;
+  fareTown: string | null;
+  /** Who published the fare: shown with it. */
+  fareSource: string | null;
+  fareSince: string | null;
+  /** By road; false when the routing service was down and it is a straight line. */
+  byRoad: boolean;
 }
 
 /** What a passenger agrees to, when booking, should the driver withdraw the ride. */

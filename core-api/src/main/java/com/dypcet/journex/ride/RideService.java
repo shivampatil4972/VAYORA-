@@ -11,6 +11,7 @@ import com.dypcet.journex.routing.RouteService;
 import com.dypcet.journex.routing.RouteService.Leg;
 import com.dypcet.journex.routing.RouteService.Point;
 import com.dypcet.journex.routing.RouteService.Route;
+import com.dypcet.journex.routing.Rickshaws;
 import com.dypcet.journex.routing.WalkingRoutes;
 import com.dypcet.journex.stopover.StopoverService;
 import com.dypcet.journex.supply.SupplyGapService;
@@ -154,7 +155,7 @@ public class RideService {
             int driverRidesWithdrawn, int pickupWalkMinutes, int dropoffWalkMinutes, boolean suggestFlexible,
             boolean underWay, boolean keptRides, String insurer, LocalDate insuredUntil,
             int matchScore, List<MatchScore.Reason> matchReasons, Integer detourMinutes,
-            boolean walkOnFootpaths) {
+            boolean walkOnFootpaths, Rickshaws.Estimate pickupRickshaw, Rickshaws.Estimate dropoffRickshaw) {
 
         Candidate withSeatsAvailable(int seats) {
             return new Candidate(rideId, driverName, instantBooking, fromSeq, toSeq, fromStop, toStop,
@@ -163,7 +164,7 @@ public class RideService {
                     driverConfirmed, maxTwoInBack, vehicle, comfort, luggage, electric, womenOnly,
                     driverRidesCompleted, driverRidesWithdrawn, pickupWalkMinutes, dropoffWalkMinutes, suggestFlexible,
                     underWay, keptRides, insurer, insuredUntil, matchScore, matchReasons, detourMinutes,
-                    walkOnFootpaths);
+                    walkOnFootpaths, pickupRickshaw, dropoffRickshaw);
         }
 
         Candidate withMatch(MatchScore.Match match) {
@@ -173,7 +174,7 @@ public class RideService {
                     driverConfirmed, maxTwoInBack, vehicle, comfort, luggage, electric, womenOnly,
                     driverRidesCompleted, driverRidesWithdrawn, pickupWalkMinutes, dropoffWalkMinutes, suggestFlexible,
                     underWay, keptRides, insurer, insuredUntil, match.score(), match.reasons(), detourMinutes,
-                    walkOnFootpaths);
+                    walkOnFootpaths, pickupRickshaw, dropoffRickshaw);
         }
 
         /** Picked up at the passenger's own point: no walk, later than the stop, and a detour for the driver. */
@@ -184,7 +185,7 @@ public class RideService {
                     dropoffDistanceM, driverConfirmed, maxTwoInBack, vehicle, comfort, luggage, electric, womenOnly,
                     driverRidesCompleted, driverRidesWithdrawn, 0, dropoffWalkMinutes, suggestFlexible,
                     underWay, keptRides, insurer, insuredUntil, matchScore, matchReasons, pickup.detourMinutes(),
-                    walkOnFootpaths);
+                    walkOnFootpaths, null, dropoffRickshaw);
         }
 
         /** Walking times worked out on footpaths, in place of the straight-line estimates. */
@@ -194,7 +195,19 @@ public class RideService {
                     driverRating, driverRatingCount, pickupDistanceM, dropoffDistanceM,
                     driverConfirmed, maxTwoInBack, vehicle, comfort, luggage, electric, womenOnly,
                     driverRidesCompleted, driverRidesWithdrawn, pickupMinutes, dropoffMinutes, suggestFlexible,
-                    underWay, keptRides, insurer, insuredUntil, matchScore, matchReasons, detourMinutes, true);
+                    underWay, keptRides, insurer, insuredUntil, matchScore, matchReasons, detourMinutes, true,
+                    pickupRickshaw, dropoffRickshaw);
+        }
+
+        /** An auto-rickshaw estimate for either end where the walk is long; null where not offered. */
+        Candidate withRickshaws(Rickshaws.Estimate pickup, Rickshaws.Estimate dropoff) {
+            return new Candidate(rideId, driverName, instantBooking, fromSeq, toSeq, fromStop, toStop,
+                    boardingTime, arrivalTime, pricePerSeat, seatsAvailable, fare, serviceFee, total, driverId,
+                    driverRating, driverRatingCount, pickupDistanceM, dropoffDistanceM,
+                    driverConfirmed, maxTwoInBack, vehicle, comfort, luggage, electric, womenOnly,
+                    driverRidesCompleted, driverRidesWithdrawn, pickupWalkMinutes, dropoffWalkMinutes, suggestFlexible,
+                    underWay, keptRides, insurer, insuredUntil, matchScore, matchReasons, detourMinutes,
+                    walkOnFootpaths, pickup, dropoff);
         }
     }
 
@@ -327,6 +340,7 @@ public class RideService {
     private final int maxDetourMinutes;
     private final double detourReachMetres;
     private final WalkingRoutes walking;
+    private final Rickshaws rickshaws;
     private final double suggestFlexibleBelow;
     private final SeatHolds holds;
     private final PassService passes;
@@ -349,8 +363,9 @@ public class RideService {
             DetourService detours,
             @Value("${journex.detour.max-minutes}") int maxDetourMinutes,
             @Value("${journex.detour.reach-km}") double detourReachKm,
-            WalkingRoutes walking) {
+            WalkingRoutes walking, Rickshaws rickshaws) {
         this.walking = walking;
+        this.rickshaws = rickshaws;
         this.matchWeights = new MatchScore.Weights(matchDistance, matchPrice, matchRecord, matchPreference);
         this.detours = detours;
         this.maxDetourMinutes = maxDetourMinutes;
@@ -821,7 +836,7 @@ public class RideService {
                             walkMinutes(rs.getDouble("dropoff_m")),
                             weakRecord(rs.getInt("driver_completed"), rs.getInt("driver_withdrawn")),
                             rs.getBoolean("under_way"), kept, rs.getString("insurer"),
-                            rs.getObject("insured_until", LocalDate.class), 0, List.of(), null, false);
+                            rs.getObject("insured_until", LocalDate.class), 0, List.of(), null, false, null, null);
                 });
 
         List<Candidate> candidates = boardingAt.apply("ST_DWithin(o.location, want.origin, :radius)");
@@ -835,6 +850,7 @@ public class RideService {
                 .map(candidate -> lessHeld(candidate, passengerId)).filter(c -> c.seatsAvailable() >= seats)
                 .toList();
         candidates = walked(candidates, origin, destination, stopsAt);
+        candidates = rickshawed(candidates, origin, destination, stopsAt);
         candidates = matched(candidates, preferencesOf(passengerId), driverSays);
         if (sort == Sort.BEST_MATCH) {
             candidates = candidates.stream()
@@ -925,6 +941,27 @@ public class RideService {
                 return c;
             }
             return c.withWalks((int) Math.ceil(pickup.getAsDouble() / 60), (int) Math.ceil(dropoff.getAsDouble() / 60));
+        }).toList();
+    }
+
+    /**
+     * An auto-rickshaw to the boarding stop and from the alighting stop where the walk is long
+     * (feature 91), with the meter fare of the stop's town where a published one is known.
+     * None to the boarding stop when the driver picks the passenger up.
+     */
+    private List<Candidate> rickshawed(List<Candidate> candidates, Point origin, Point destination,
+            Map<Long, Point[]> stopsAt) {
+        return candidates.stream().map(c -> {
+            Point[] stops = stopsAt.get(c.rideId());
+            if (stops == null) {
+                return c;
+            }
+            LocalDate day = c.boardingTime().atZone(CORRIDOR_ZONE).toLocalDate();
+            Rickshaws.Estimate pickup = c.detourMinutes() != null ? null
+                    : rickshaws.between(origin, stops[0], stops[0], c.pickupDistanceM(), day).orElse(null);
+            Rickshaws.Estimate dropoff = rickshaws.between(stops[1], destination, stops[1], c.dropoffDistanceM(), day)
+                    .orElse(null);
+            return c.withRickshaws(pickup, dropoff);
         }).toList();
     }
 
