@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 
-import { RefundTerms, SimulatedPaymentNotice } from '../components/payment';
+import { paidLine, RefundTerms, SimulatedPaymentNotice, usePaymentTerms } from '../components/payment';
 import { RateForm, RatingSummary } from '../components/rating';
 import { RideChat } from '../components/RideChat';
 import { BoardingPassView } from '../components/boarding';
@@ -18,6 +18,7 @@ import { CORRIDOR } from '../lib/corridor';
 import { answerBy, formatDate, formatDateTime, formatRupees, formatTime, todayInCorridor } from '../lib/format';
 import { msg, useT, useUnits } from '../lib/i18n';
 import { matchReasonLabels } from '../lib/match';
+import { payAtCheckout } from '../lib/razorpay';
 import { comfortLabels, luggageLabels, vehiclePhrases } from '../lib/vehicle';
 import { searchSchema, type SearchForm } from '../lib/schemas';
 import type {
@@ -205,6 +206,9 @@ export function SearchPage() {
   const [booked, setBooked] = useState<Booking | null>(null);
   const [method, setMethod] = useState<PaymentMethod>('UPI');
   const [tier, setTier] = useState<FlexTier>('EXACT');
+  // With Razorpay the passenger pays in its checkout, and a booking is for this ride only.
+  const terms = usePaymentTerms();
+  const checkout = terms.data?.checkout === true;
   const [sort, setSort] = useState<SearchSort>('TIME');
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -241,19 +245,21 @@ export function SearchPage() {
   });
 
   const book = useMutation({
-    mutationFn: (candidate: Candidate) => {
+    mutationFn: async (candidate: Candidate) => {
       const key = candidateKey(candidate, criteria!.form.seats);
       if (!idempotencyKeys.current.has(key)) idempotencyKeys.current.set(key, crypto.randomUUID());
+      const stretch = { rideId: candidate.rideId, fromSeq: candidate.fromSeq, toSeq: candidate.toSeq, seats: criteria!.form.seats };
+      // Paid first, at the checkout, for what core-api says is due; then booked with the proof.
+      const razorpay = checkout
+        ? await payAtCheckout('/bookings/checkout', stretch, `${t(candidate.fromStop)} – ${t(candidate.toStop)}`)
+        : undefined;
       return api<Booking>('/bookings', {
         method: 'POST',
         headers: { 'Idempotency-Key': idempotencyKeys.current.get(key)! },
         body: {
-          rideId: candidate.rideId,
-          fromSeq: candidate.fromSeq,
-          toSeq: candidate.toSeq,
-          seats: criteria!.form.seats,
-          paymentMethod: method,
-          tier,
+          ...stretch,
+          ...(razorpay ? { razorpay } : { paymentMethod: method }),
+          tier: checkout ? 'EXACT' : tier,
           // Picked up where the search started, if that is what the result offered.
           ...(candidate.detourMinutes != null ? { pickupLat: criteria!.origin.lat, pickupLon: criteria!.origin.lon } : {}),
         },
@@ -471,7 +477,7 @@ export function SearchPage() {
                 time: formatDateTime(booked.boardingTime),
               })
             : t('Request sent. Your seats are held while the driver decides; see My bookings.')}
-          {booked.total !== null && ` ${t('{amount} is held (simulated payment).', { amount: formatRupees(booked.total) })}`}
+          {booked.total !== null && ` ${paidLine(terms.data?.provider, formatRupees(booked.total), t)}`}
         </Notice>
       )}
       {book.error && <Notice tone="error">{book.error.message}</Notice>}
@@ -509,26 +515,34 @@ export function SearchPage() {
                   <option value="PROXIMITY">{t('Nearest pickup')}</option>
                   <option value="BEST_MATCH">{t('Best match for both of you')}</option>
                 </SelectField>
-                <SelectField
-                  label={t('Pay with')}
-                  value={method}
-                  onChange={(event) => setMethod(event.target.value as PaymentMethod)}
-                  hint={t('The amount is held when you book and settled when the trip ends.')}
-                >
-                  <option value="UPI">{t('UPI')}</option>
-                  <option value="CARD">{t('Card')}</option>
-                  <option value="WALLET">{t('Wallet')}</option>
-                </SelectField>
-                <SelectField
-                  label={t('If the driver withdraws')}
-                  value={tier}
-                  onChange={(event) => setTier(event.target.value as FlexTier)}
-                  hint={t('Flexible and any time book you on another ride automatically, with a new payment hold. The price is the same.')}
-                >
-                  <option value="EXACT">{t('Only this ride: suggest others')}</option>
-                  <option value="FLEXIBLE">{t('Flexible: book me within 2 hours')}</option>
-                  <option value="ANY_TIME">{t('Any time that day')}</option>
-                </SelectField>
+                {checkout ? (
+                  <p className="text-sm text-slate-600">
+                    {t("You pay by card, UPI or a wallet in Razorpay's checkout when you book. A booking paid there is for this ride only: if the driver withdraws, everything comes back and other rides are suggested.")}
+                  </p>
+                ) : (
+                  <>
+                    <SelectField
+                      label={t('Pay with')}
+                      value={method}
+                      onChange={(event) => setMethod(event.target.value as PaymentMethod)}
+                      hint={t('The amount is held when you book and settled when the trip ends.')}
+                    >
+                      <option value="UPI">{t('UPI')}</option>
+                      <option value="CARD">{t('Card')}</option>
+                      <option value="WALLET">{t('Wallet')}</option>
+                    </SelectField>
+                    <SelectField
+                      label={t('If the driver withdraws')}
+                      value={tier}
+                      onChange={(event) => setTier(event.target.value as FlexTier)}
+                      hint={t('Flexible and any time book you on another ride automatically, with a new payment hold. The price is the same.')}
+                    >
+                      <option value="EXACT">{t('Only this ride: suggest others')}</option>
+                      <option value="FLEXIBLE">{t('Flexible: book me within 2 hours')}</option>
+                      <option value="ANY_TIME">{t('Any time that day')}</option>
+                    </SelectField>
+                  </>
+                )}
               </div>
               {criteria.sort === 'BEST_MATCH' && (
                 <p className="max-w-xl text-sm text-slate-600">

@@ -2873,3 +2873,126 @@ describe('the meeting point of a pickup away from the stops', () => {
     expect(screen.queryByText('Board here: Kolhapur')).not.toBeInTheDocument();
   });
 });
+describe('paying through Razorpay', () => {
+  const razorpayTerms = { ...terms, provider: 'RAZORPAY_TEST', checkout: true, flexibleTiers: false };
+  const order = { orderId: 'order_T', keyId: 'rzp_test_journex', amount: 57200, currency: 'INR', testMode: true };
+
+  /** Razorpay's checkout, replaced: it pays at once, or is closed unpaid. */
+  function stubCheckout(outcome: 'pay' | 'close') {
+    const opened: Record<string, unknown>[] = [];
+    (window as unknown as { Razorpay?: unknown }).Razorpay = class {
+      readonly options: Record<string, never>;
+      constructor(options: Record<string, never>) {
+        this.options = options;
+        opened.push(options);
+      }
+      open() {
+        const options = this.options as unknown as {
+          order_id: string;
+          handler: (paid: Record<string, string>) => void;
+          modal: { ondismiss: () => void };
+        };
+        if (outcome === 'pay') {
+          options.handler({ razorpay_order_id: options.order_id, razorpay_payment_id: 'pay_T', razorpay_signature: 'sig_T' });
+        } else {
+          options.modal.ondismiss();
+        }
+      }
+    };
+    return opened;
+  }
+
+  const bodyOf = (fetchMock: ReturnType<typeof serve>, path: string) => {
+    const call = fetchMock.mock.calls.find(([url, init]) => init?.method === 'POST' && new URL(String(url)).pathname.endsWith(path));
+    return call ? JSON.parse(String(call[1]?.body)) : undefined;
+  };
+
+  it('pays at the checkout before booking, sends the proof, and says it was test mode', async () => {
+    signIn('PASSENGER');
+    const opened = stubCheckout('pay');
+    try {
+      const fetchMock = serve({
+        'GET /payment-terms': () => json(razorpayTerms),
+        'GET /rides/search': () => json([candidate]),
+        'POST /bookings/checkout': () => json(order),
+        'POST /bookings': () => json(booking, 201),
+      });
+      open('/search');
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+      expect(await screen.findByText(/Payments go through Razorpay in test mode/)).toBeInTheDocument();
+      expect(screen.queryByLabelText('Pay with')).not.toBeInTheDocument();
+      expect(screen.queryByLabelText('If the driver withdraws')).not.toBeInTheDocument();
+      await userEvent.click(screen.getAllByRole('button', { name: /^(Book|Request)/ })[0]);
+
+      expect(await screen.findByText(/paid in Razorpay's test mode: no real money moved/)).toBeInTheDocument();
+      expect(opened[0]).toMatchObject({ key: 'rzp_test_journex', order_id: 'order_T', amount: 57200, currency: 'INR' });
+      const stretch = { rideId: candidate.rideId, fromSeq: candidate.fromSeq, toSeq: candidate.toSeq, seats: 1 };
+      expect(bodyOf(fetchMock, '/bookings/checkout')).toEqual(stretch);
+      expect(bodyOf(fetchMock, '/bookings')).toEqual({
+        ...stretch,
+        razorpay: { orderId: 'order_T', paymentId: 'pay_T', signature: 'sig_T' },
+        tier: 'EXACT',
+      });
+    } finally {
+      Reflect.deleteProperty(window, 'Razorpay');
+    }
+  });
+
+  it('books nothing when the checkout is closed unpaid, and says so', async () => {
+    signIn('PASSENGER');
+    stubCheckout('close');
+    try {
+      const fetchMock = serve({
+        'GET /payment-terms': () => json(razorpayTerms),
+        'GET /rides/search': () => json([candidate]),
+        'POST /bookings/checkout': () => json(order),
+      });
+      open('/search');
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+      await userEvent.click((await screen.findAllByRole('button', { name: /^(Book|Request)/ }))[0]);
+
+      expect(await screen.findByText('The payment was not completed. Nothing was bought.')).toBeInTheDocument();
+      expect(bodyOf(fetchMock, '/bookings')).toBeUndefined();
+    } finally {
+      Reflect.deleteProperty(window, 'Razorpay');
+    }
+  });
+
+  it('buys a pass through the checkout', async () => {
+    signIn('PASSENGER');
+    stubCheckout('pay');
+    try {
+      const bought = { id: 1, kind: 'WEEKLY', price: 99, startsAt: new Date().toISOString(),
+        endsAt: new Date(Date.now() + 7 * 864e5).toISOString(), provider: 'RAZORPAY_TEST' };
+      const fetchMock = serve({
+        'GET /payment-terms': () => json(razorpayTerms),
+        'GET /passes/offers': () => json([{ kind: 'WEEKLY', days: 7, price: 99 }]),
+        'GET /passes': () => json([]),
+        'POST /passes/checkout': () => json({ ...order, amount: 9900 }),
+        'POST /passes': () => json(bought, 201),
+      });
+      open('/passes');
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Buy Weekly pass' }));
+
+      expect(await screen.findByText('Your pass is bought.')).toBeInTheDocument();
+      expect(screen.queryByLabelText('Pay with')).not.toBeInTheDocument();
+      expect(bodyOf(fetchMock, '/passes/checkout')).toEqual({ kind: 'WEEKLY' });
+      expect(bodyOf(fetchMock, '/passes')).toEqual({ kind: 'WEEKLY', razorpay: { orderId: 'order_T', paymentId: 'pay_T', signature: 'sig_T' } });
+    } finally {
+      Reflect.deleteProperty(window, 'Razorpay');
+    }
+  });
+
+  it('tells drivers that what they are owed is recorded, not sent', async () => {
+    signIn('DRIVER');
+    serve({ 'GET /payment-terms': () => json(razorpayTerms), 'GET /settlements': () => json([]) });
+    open('/earnings');
+
+    expect(await screen.findByText(/JOURNEX does not pay drivers through it: what you are owed is recorded here, not sent/))
+      .toBeInTheDocument();
+    expect(screen.queryByText(/Payments here are simulated/)).not.toBeInTheDocument();
+  });
+});

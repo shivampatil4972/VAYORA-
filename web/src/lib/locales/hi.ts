@@ -1521,6 +1521,38 @@ export const hi: Record<string, string> = {
     'आपके {n} आपातकालीन संपर्कों को संदेश नहीं भेजा जा सका। उन्हें खुद फ़ोन करें, या 112 पर कॉल करें।',
   '{n} emergency contacts could not be messaged.':
     '{n} आपातकालीन संपर्कों को संदेश नहीं भेजा जा सका।',
+  'Choose how to pay':
+    'भुगतान का तरीका चुनें',
+  'What was paid is not what is due, or not a card, UPI or a wallet. It is being refunded in full, and nothing was bought.':
+    'जो भुगतान हुआ वह देय राशि नहीं है, या कार्ड, UPI या वॉलेट से नहीं हुआ। पूरी राशि वापस की जा रही है, और कुछ नहीं खरीदा गया।',
+  'The payment service did not answer. Nothing was bought; anything taken is refunded.':
+    'भुगतान सेवा ने जवाब नहीं दिया। कुछ नहीं खरीदा गया; जो भी राशि ली गई वह वापस की जाएगी।',
+  'The refund could not be made just now. Nothing was changed; try again.':
+    'अभी रिफ़ंड नहीं हो सका। कुछ नहीं बदला गया; फिर कोशिश करें।',
+  'Payments are simulated here: there is no checkout':
+    'यहाँ भुगतान नकली हैं: कोई चेकआउट नहीं है',
+  'There is nothing to pay':
+    'भुगतान करने को कुछ नहीं है',
+  'The payment service did not answer. Nothing was charged; try again.':
+    'भुगतान सेवा ने जवाब नहीं दिया। कोई राशि नहीं ली गई; फिर कोशिश करें।',
+  'A booking paid at checkout is for this ride only: a flexible one would need you to pay again while you are away':
+    'चेकआउट पर भुगतान की गई बुकिंग केवल इसी सवारी के लिए है: लचीली बुकिंग के लिए आपको अपनी गैरमौजूदगी में फिर से भुगतान करना पड़ता',
+  "Razorpay's checkout could not be loaded. Check your connection and try again.":
+    'Razorpay का चेकआउट लोड नहीं हो सका। अपना कनेक्शन जाँचें और फिर कोशिश करें।',
+  'The payment was not completed. Nothing was bought.':
+    'भुगतान पूरा नहीं हुआ। कुछ नहीं खरीदा गया।',
+  'Payments go through Razorpay in test mode: pay with its test card or UPI details. No real money moves.':
+    'भुगतान Razorpay के टेस्ट मोड से होते हैं: उसके टेस्ट कार्ड या UPI विवरण से भुगतान करें। कोई असली पैसा नहीं जाता।',
+  'Passengers pay through Razorpay, but JOURNEX does not pay drivers through it: what you are owed is recorded here, not sent.':
+    'यात्री Razorpay से भुगतान करते हैं, पर JOURNEX उसके ज़रिए चालकों को भुगतान नहीं करता: आपकी बकाया राशि यहाँ दर्ज होती है, भेजी नहीं जाती।',
+  "{amount} paid in Razorpay's test mode: no real money moved.":
+    '{amount} का भुगतान Razorpay के टेस्ट मोड में हुआ: कोई असली पैसा नहीं गया।',
+  '{amount} paid through Razorpay.':
+    '{amount} का भुगतान Razorpay से हुआ।',
+  "You pay by card, UPI or a wallet in Razorpay's checkout when you book. A booking paid there is for this ride only: if the driver withdraws, everything comes back and other rides are suggested.":
+    'बुक करते समय आप Razorpay के चेकआउट में कार्ड, UPI या वॉलेट से भुगतान करते हैं। वहाँ भुगतान की गई बुकिंग केवल इसी सवारी के लिए है: अगर चालक सवारी वापस ले, तो पूरी राशि लौटती है और दूसरी सवारियाँ सुझाई जाती हैं।',
+  "You pay by card, UPI or a wallet in Razorpay's checkout when you buy.":
+    'खरीदते समय आप Razorpay के चेकआउट में कार्ड, UPI या वॉलेट से भुगतान करते हैं।',
   'Those stops are not on this ride':
     'ये स्टॉप इस सवारी पर नहीं हैं',
   'Too many wrong attempts. Request a new code.':

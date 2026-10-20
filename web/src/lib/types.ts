@@ -465,6 +465,10 @@ export interface PaymentTerms {
   serviceFeeRate: number;
   /** Most generous first. Later than the last tier refunds nothing. */
   refundTiers: { atLeastHoursBefore: number; fareShare: number }[];
+  /** The passenger pays in Razorpay's checkout before booking or buying. */
+  checkout?: boolean;
+  /** Whether a booking may be flexible: not while only the passenger can pay. */
+  flexibleTiers?: boolean;
 }
 
 export type PassKind = 'WEEKLY' | 'MONTHLY' | 'ANNUAL';

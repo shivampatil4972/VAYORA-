@@ -110,6 +110,15 @@ export const SERVER_MESSAGES = [
   msg('No account uses this Google address yet. Choose passenger or driver to create one.'),
   msg('Invalid request content.'),
   msg('Cannot reach the server. Check your connection and try again.'),
+  // Razorpay's checkout and payments (feature 46).
+  msg('Choose how to pay'),
+  msg('What was paid is not what is due, or not a card, UPI or a wallet. It is being refunded in full, and nothing was bought.'),
+  msg('The payment service did not answer. Nothing was bought; anything taken is refunded.'),
+  msg('The refund could not be made just now. Nothing was changed; try again.'),
+  msg('Payments are simulated here: there is no checkout'),
+  msg('There is nothing to pay'),
+  msg('The payment service did not answer. Nothing was charged; try again.'),
+  msg('A booking paid at checkout is for this ride only: a flexible one would need you to pay again while you are away'),
   // intel's fixed refusals of a live what-if run, which the app shows as they come.
   msg('Sign in first'),
   msg('Your session has ended. Sign in again.'),

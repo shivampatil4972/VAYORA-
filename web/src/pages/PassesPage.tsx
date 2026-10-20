@@ -1,13 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
-import { SimulatedPaymentNotice } from '../components/payment';
+import { SimulatedPaymentNotice, usePaymentTerms } from '../components/payment';
 import { ReceiptButton } from '../components/receipt';
 import { Button, Card, Notice, Page, QueryState, SelectField } from '../components/ui';
 import { api } from '../lib/api';
 import { formatDateTime, formatRupees } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { passKindLabels as kindLabels } from '../lib/passes';
+import { payAtCheckout } from '../lib/razorpay';
 import type { PassKind, PassOffer, PaymentMethod, TravelPass } from '../lib/types';
 
 /** Buying and seeing travel passes. A pass waives the service fee; the fare is the driver's. */
@@ -15,10 +16,15 @@ export function PassesPage() {
   const t = useT();
   const queryClient = useQueryClient();
   const [method, setMethod] = useState<PaymentMethod>('UPI');
+  // With Razorpay the passenger pays in its checkout first.
+  const checkout = usePaymentTerms().data?.checkout === true;
   const offers = useQuery({ queryKey: ['passes', 'offers'], queryFn: () => api<PassOffer[]>('/passes/offers'), staleTime: Infinity });
   const mine = useQuery({ queryKey: ['passes', 'mine'], queryFn: () => api<TravelPass[]>('/passes') });
   const buy = useMutation({
-    mutationFn: (kind: PassKind) => api<TravelPass>('/passes', { method: 'POST', body: { kind, paymentMethod: method } }),
+    mutationFn: async (kind: PassKind) => {
+      const razorpay = checkout ? await payAtCheckout('/passes/checkout', { kind }, t(kindLabels[kind])) : undefined;
+      return api<TravelPass>('/passes', { method: 'POST', body: { kind, ...(razorpay ? { razorpay } : { paymentMethod: method }) } });
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['passes', 'mine'] });
       // Prices in search results change while a pass runs.
@@ -71,13 +77,17 @@ export function PassesPage() {
         <p className="text-sm text-slate-600">{t('A pass bought while another runs starts when that one ends.')}</p>
         {buy.error && <Notice tone="error">{buy.error.message}</Notice>}
         {buy.isSuccess && <Notice tone="success">{t('Your pass is bought.')}</Notice>}
-        <div className="max-w-xs">
-          <SelectField label={t('Pay with')} value={method} onChange={(event) => setMethod(event.target.value as PaymentMethod)}>
-            <option value="UPI">{t('UPI')}</option>
-            <option value="CARD">{t('Card')}</option>
-            <option value="WALLET">{t('Wallet')}</option>
-          </SelectField>
-        </div>
+        {checkout ? (
+          <p className="text-sm text-slate-600">{t("You pay by card, UPI or a wallet in Razorpay's checkout when you buy.")}</p>
+        ) : (
+          <div className="max-w-xs">
+            <SelectField label={t('Pay with')} value={method} onChange={(event) => setMethod(event.target.value as PaymentMethod)}>
+              <option value="UPI">{t('UPI')}</option>
+              <option value="CARD">{t('Card')}</option>
+              <option value="WALLET">{t('Wallet')}</option>
+            </SelectField>
+          </div>
+        )}
         <QueryState isPending={offers.isPending} error={offers.error} isEmpty={false} empty="" onRetry={() => void offers.refetch()} />
         <div className="grid gap-3 sm:grid-cols-3">
           {offers.data?.map((offer) => (

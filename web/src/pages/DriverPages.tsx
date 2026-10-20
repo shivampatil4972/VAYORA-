@@ -779,7 +779,7 @@ export function EarningsPage() {
 
   return (
     <Page title={t('Earnings')}>
-      <SimulatedPaymentNotice />
+      <SimulatedPaymentNotice forDrivers />
       <QueryState
         isPending={settlements.isPending}
         error={settlements.error}
