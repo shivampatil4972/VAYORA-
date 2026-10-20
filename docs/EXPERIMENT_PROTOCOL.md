@@ -778,3 +778,48 @@ Each figure is the share of the bookings standing that day that were cancelled t
   cancellation rules. Nothing records whether a cancelled room was let again, so nothing
   here speaks to refills. The durability model cannot be tried on it, since none of its
   features exist in this data.
+
+## 19. The survival models on real cancellations
+
+Run on 2026-10-20. **Real data, but not ride-sharing**: the hotel bookings of section 18,
+made at most 7 days before arrival. `experiments/hotel/survival.py`, configured in
+`experiments/configs/hotel_survival.yaml`; report `experiments/reports/hotel-survival.json`,
+rebuilt by `scripts/reproduce.sh`.
+
+The same three kinds of model as the platform's (AI_ML_METHODOLOGY.md), fitted on the
+13,925 bookings arriving in 2015 and 2016 (1,120 cancelled) and checked on the 5,821
+arriving in 2017 (435 cancelled): the years are disjoint, as seeds are. The features are
+only what is known when a booking is made: lead time, hotel, party, nights, repeat guest,
+previous cancellations and stays, a non-refundable deposit, transient customer, online
+agent and price. Anything that can change afterwards is left out. Time is days from the
+booking; a cancellation on day k counts at k + 0.5, and a booking still standing at
+arrival is censored at the end of that day. A Cox model knowing only the lead time stands
+beside the full one.
+
+| Model | Concordance | Integrated Brier, days 1-6 | Brier at arrival |
+|---|---|---|---|
+| Kaplan-Meier (no features) | 0.500 | 0.0765 | 0.0692 |
+| Cox, lead time only | 0.544 | 0.0748 | 0.0689 |
+| Cox, all features | 0.597 | 0.0699 | 0.0652 |
+| Gradient-boosted survival | 0.653 | 0.0717 | 0.0654 |
+
+Of the validation bookings 92.5% were still booked at arrival; Cox and gradient boosting
+both predict 92.6% on average, and each tenth of the calibration table is within five
+points of what happened.
+
+### What this shows
+
+- **The method works on real cancellations.** What is known at booking ranks who will
+  cancel better than timing alone (0.597 against 0.544), a non-linear model better still
+  (0.653), and the predictions are calibrated.
+- **That is the opposite of the simulator**, where the features added nothing to timing
+  (section 14). In the simulated world the hidden passenger types drive cancelling and
+  are only weakly reflected in what the platform can see; these real bookings carry more.
+  It says the simulator's world may understate what booking features can tell, not that
+  the platform's features would do as well.
+- **Nothing here is served.** The platform's model is still the simulator's Cox model,
+  on ride features these data do not have. Hotels are not passengers.
+- The Cox fits needed more Newton-Raphson steps than lifelines' default to converge; a
+  fit that does not converge now stops the run rather than reporting numbers. A
+  refundable deposit is left out: so few bookings in the week have one that it separates
+  the outcomes.

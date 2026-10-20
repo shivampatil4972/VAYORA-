@@ -1,5 +1,19 @@
 # Progress
 
+## 2026-10-20 (afternoon) — the survival models on real cancellations
+
+- **A real-data check for the durability model (77)**, as chosen: the same three kinds of
+  model fitted on the hotel bookings made within a week of arrival, on what was known when
+  each was made, trained on 2015-16 arrivals and checked on 2017. Cox ranks who cancels at
+  0.597 and gradient boosting at 0.653, against 0.544 for lead time alone, and both are
+  calibrated (EXPERIMENT_PROTOCOL.md section 19). The opposite of the simulator, where the
+  features added nothing: the simulated world may understate what features tell.
+- Found on the way: lifelines' default Newton-Raphson steps stop before Cox converges on
+  these data, which first gave 0.521. The fit settings are now in the config, and a fit
+  that does not converge stops the run. Deterministic; reproduce.sh rebuilds it.
+- 77 stays Partial: the served model is still trained on simulated data only.
+- Tests: 292 Java, 206 Python, 222 web, 28 gateway, all passing.
+
 ## 2026-10-20 (later) — payments through Razorpay, off until keys
 
 - **Razorpay (46)**, as chosen: with its two keys set, a passenger pays in Razorpay's

@@ -197,7 +197,10 @@ scheduler does not beat chance.
 - The public hotel bookings (EXPERIMENT_PROTOCOL.md section 18) record the day of each
   cancellation, so they support a time-to-event check, but not of this model: none of
   its features exist there. Over the last week they cancel at about a half (city) and a
-  quarter (resort) of the simulator's rate, with similar timing.
+  quarter (resort) of the simulator's rate, with similar timing. The same kinds of model
+  fitted on their own features (section 19) rank real cancellations better than timing
+  alone (Cox concordance 0.597, gradient boosting 0.653, lead time alone 0.544), the
+  opposite of what the simulator showed.
 - Features are fixed at the request. Nothing that happens after it (a reconfirmation,
   a message, a changed profile) updates them; only elapsed time does.
 - Explanations describe the model, not the person. "How far ahead it was booked makes

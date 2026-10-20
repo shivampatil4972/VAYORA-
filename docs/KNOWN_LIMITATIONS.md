@@ -51,7 +51,10 @@ mistake for more. Updated 2026-10-19.
   only the time to departure does as well (section 14). The scheduler does no better than
   sending the same requests at random, and no threshold for asking helps.
 - The model discriminates weakly (concordance 0.59) and violates the
-  proportional-hazards assumption for lead time.
+  proportional-hazards assumption for lead time. On real hotel cancellations the same
+  kinds of model do gain from booking features (EXPERIMENT_PROTOCOL.md section 19), which
+  suggests the simulated world understates what features can tell; the served model is
+  still trained on simulated data only.
 
 ## Platform
 
