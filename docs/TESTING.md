@@ -154,6 +154,12 @@ and again every number came out exactly as committed.
 
 Kept here because each is a class of mistake worth remembering.
 
+- **Two, on 2026-10-20, one of them by luck.** A rickshaw fare at exactly half
+  a rupee came out a rupee short, as 2.275 - 1.5 in doubles is 0.77499...; the fare is now
+  worked out in decimal. And the first Twilio tests reached the real Twilio: the sender's
+  own request factory replaced the stand-in, so a send went out with fake credentials and
+  came back 401, which two tests took for the refusal they expected. Nothing was sent. The
+  tests now build the sender so the stand-in answers, and check it was the only thing asked.
 - An unticked stop on the publish form was still validated, so a stray value in a hidden
   field blocked publishing with no visible error.
 - An invalid query parameter returned 500 instead of 400.
@@ -162,12 +168,6 @@ Kept here because each is a class of mistake worth remembering.
 
 ## Bugs the tests did not find
 
-- **Found by the tests themselves, one by luck** (2026-10-20): a rickshaw fare at exactly half
-  a rupee came out a rupee short, as 2.275 - 1.5 in doubles is 0.77499...; the fare is now
-  worked out in decimal. And the first Twilio tests reached the real Twilio: the sender's
-  own request factory replaced the stand-in, so a send went out with fake credentials and
-  came back 401, which two tests took for the refusal they expected. Nothing was sent. The
-  tests now build the sender so the stand-in answers, and check it was the only thing asked.
 - **Found by reading the detour work back** (2026-10-19), three faults. Every test with a
   pickup away from the stops stopped at the booking; none went on to the meeting point, a
   withdrawal or a slow routing service:
