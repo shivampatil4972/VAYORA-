@@ -51,6 +51,13 @@ was decided while building within them.
 
 | Decision | Why | Cost |
 |---|---|---|
+| With Razorpay a payment is captured when the booking or pass is made, and a release is a refund | The ledger's hold, capture and release map onto it without keeping authorisations past the few days Razorpay allows | A refund takes days to reach a card |
+| A Razorpay payment is refunded in full if the booking or pass it paid for rolls back, whatever the reason | Whatever undoes the purchase must undo the payment | A refund that then fails is logged for a person to settle |
+| The amount of a checkout is the server's, and the booking checks it was paid in full | The browser must not set its own price | One more request before paying |
+| One payment pays for one booking or one pass, checked under a lock and by a unique index | A signed payment could otherwise be presented twice | |
+| With Razorpay a booking is for this ride only | A flexible rebooking needs a payment the passenger is not there to make | Flexible tiers are off while Razorpay is |
+| Drivers are not paid through Razorpay | Paying out needs its separate payouts product and drivers' bank details | A payout is recorded, not sent, and the earnings page says so |
+| A test key is recorded as RAZORPAY_TEST | Every intent, receipt and screen then says that no real money moved | |
 | The only payment provider is a mock, and every screen and receipt says so | The project must not claim money moves | Nothing is tested against a real gateway |
 | The service fee is kept once a driver has accepted; returned in full if the driver declines, never answers or cancels | The platform did its part once the driver accepted | |
 | The fare a late-cancelling passenger forfeits goes to the driver | The seat was held for them | |

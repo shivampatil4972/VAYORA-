@@ -45,6 +45,7 @@ Access is through `JdbcTemplate` with hand-written SQL. There is no ORM.
 | V31 | On rides: `max_detour_minutes` (0 to 60, default 0); on bookings: `pickup_location`, `pickup_offset_minutes` and `detour_minutes`, all three or none |
 | V32 | On users: `id_document`, the kind of identity document a driver says they hold (one of five). Never a number or a copy, and never checked |
 | V33 | On sos_alerts: `contacts_missed`, the emergency texts a real provider could not send (0 with the simulated sender) |
+| V34 | Unique indexes on payment_intents and passes by (provider, provider_ref): one real payment pays for one booking or one pass |
 
 ### Tables
 

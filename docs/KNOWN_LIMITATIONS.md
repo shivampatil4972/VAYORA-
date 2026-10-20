@@ -74,7 +74,7 @@ mistake for more. Updated 2026-10-19.
   SMTP server inside the tests. Messages are plain text, in English.
 - A flexible rebooking is a new booking with its own payment hold, made without the
   passenger present. On a ride the driver approves it is a request the driver may decline.
-- Walking times are straight-line distances at 4.5 km/h, so a real walk is longer.
+  With Razorpay no booking can be flexible: only the passenger can pay, at the checkout.
 - **Google sign-in has never been tried with Google.** It is tested against a stand-in
   that signs tokens the way Google does. A Google-only account has no password; it cannot
   sign in any other way, and there is no "set a password" yet.
@@ -82,11 +82,14 @@ mistake for more. Updated 2026-10-19.
   nudge cannot be dismissed, and a search's ends are named by the nearest ride stop within
   5 km, so a stretch nobody has ever driven is never a gap.
 
-- **Payments are simulated.** The only provider is a mock that approves every hold
-  unless told to decline. No money moves and nothing is verified with any bank, card
-  network or UPI. The ledger records what a real provider would have been asked to do.
-- The mock is synchronous. A real provider confirms by callback; there is no callback
-  endpoint, so duplicate-callback handling is unbuilt and untested.
+- **Payments are simulated by default.** The mock approves every hold unless told to
+  decline. No money moves and nothing is verified with any bank, card network or UPI.
+- **Razorpay has never been tried with Razorpay.** With its keys set, passengers pay in
+  its checkout and are refunded through it; this is tested against a stand-in only. There
+  is no webhook: a payment is checked when the booking presents it, so one completed in
+  the checkout but never presented (the browser closed at the wrong moment) is captured
+  by nobody and left for Razorpay to return. Drivers are never paid through Razorpay,
+  which would need its separate payouts product: a payout is recorded, not sent.
 - Receipts are PDFs in English only and are not tax invoices: there is no GST.
 - A payout is recorded the moment a trip completes. There is no settlement delay,
   dispute window or bank detail.

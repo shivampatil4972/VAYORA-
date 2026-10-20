@@ -87,7 +87,7 @@ woman, filter or no filter.
 | `POST /api/v1/holds` | P | Hold seats for 5 minutes. Not a booking |
 | `GET /api/v1/holds/mine` | P | Own hold, or 204 |
 | `DELETE /api/v1/holds/mine` | P | Give the hold up |
-| `POST /api/v1/bookings` | P | Request seats on a stretch of a ride; the payment hold is placed in the same step. Optional `tier`: `EXACT` (default), `FLEXIBLE` or `ANY_TIME`, what happens if the driver withdraws. Optional `pickupLat` and `pickupLon`: be picked up there, on the leg after `fromSeq`, if the ride offers detours; its cost is worked out again here |
+| `POST /api/v1/bookings` | P | Request seats on a stretch of a ride; the payment hold is placed in the same step. With Razorpay, `razorpay: {orderId, paymentId, signature}` from its checkout in place of `paymentMethod`: checked, and refunded in full if the booking fails. Optional `tier`: `EXACT` (default), `FLEXIBLE` or `ANY_TIME`, what happens if the driver withdraws. Optional `pickupLat` and `pickupLon`: be picked up there, on the leg after `fromSeq`, if the ride offers detours; its cost is worked out again here |
 | `GET /api/v1/bookings` | P | Own bookings |
 | `POST /api/v1/bookings/{id}/cancel` | P | Cancel; the refund follows the published tiers |
 | `GET /api/v1/rides/{rideId}/bookings` | D | Bookings on own ride |
@@ -114,12 +114,14 @@ returns the booking the first request made instead of making another.
 
 | Method and path | Who | What |
 |---|---|---|
-| `GET /api/v1/payment-terms` | any | The provider (`MOCK`), the service fee rate, and the refund tiers |
+| `GET /api/v1/payment-terms` | any | The provider (`MOCK`, `RAZORPAY_TEST` or `RAZORPAY`), the service fee rate, the refund tiers, `checkout` (the passenger pays in Razorpay's checkout first) and `flexibleTiers` (false with Razorpay) |
+| `POST /api/v1/bookings/checkout` | P | `{rideId, fromSeq, toSeq, seats}`: opens a Razorpay order for what booking them would take now, worked out by the server. Answers `{orderId, keyId, amount (paise), currency, testMode}`; 409 when payments are simulated |
+| `POST /api/v1/passes/checkout` | P | `{kind}`: the same for a pass |
 | `GET /api/v1/payments` | P | Own payments |
 | `GET /api/v1/settlements` | D | Own payouts |
 | `GET /api/v1/passes/offers` | any | Passes on sale |
 | `GET /api/v1/passes` | P | Own passes; `reward` marks one given free for an invitation |
-| `POST /api/v1/passes` | P | Buy a pass; one bought while another runs starts when it ends |
+| `POST /api/v1/passes` | P | Buy a pass; one bought while another runs starts when it ends. With Razorpay, `razorpay: {orderId, paymentId, signature}` from its checkout in place of `paymentMethod` |
 | `GET /api/v1/bookings/{id}/receipt` | P | PDF receipt for the payment on own booking |
 | `GET /api/v1/passes/{id}/receipt` | P | PDF receipt for own pass |
 

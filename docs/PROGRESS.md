@@ -1,5 +1,21 @@
 # Progress
 
+## 2026-10-20 (later) — payments through Razorpay, off until keys
+
+- **Razorpay (46)**, as chosen: with its two keys set, a passenger pays in Razorpay's
+  checkout for an order core-api opens for the amount it works out, and the booking or pass
+  checks the signature, the order, the amount and that the payment paid for nothing else,
+  records the method Razorpay reports and takes the money. A cancellation refunds through
+  Razorpay; a booking that fails after paying is refunded in full when it rolls back. A test
+  key is recorded as RAZORPAY_TEST, so every screen and receipt says no real money moved.
+  Drivers are not paid through it, and flexible bookings are off while it is on: both said
+  on screen. Without keys nothing changes. Tested against a stand-in; never tried with
+  Razorpay. 46 stays Partial.
+- Two stale limitations corrected: walking is on footpaths, and the payments line now says
+  what the mock and Razorpay each do.
+- Tests: 292 Java, 204 Python, 222 web, 28 gateway, all passing.
+- Feature count unchanged: 81 Verified, 13 Partial, 1 Not started of 95.
+
 ## 2026-10-20 — rickshaws to and from stops; texts through Twilio
 
 - **Rickshaw access (91)**, as chosen: where a walk to or from a stop is a kilometre or more,

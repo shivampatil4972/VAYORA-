@@ -91,11 +91,11 @@ Last updated: 2026-10-19. Test suites and how to run them are in [TESTING.md](TE
 | 43 | Escrow-style payment hold | TBD | TBD | Verified (API tests), mock provider, no money moves: hold, then capture or release once when the booking ends; append-only ledger |
 | 44 | Service fee calculation | TBD | TBD | Verified (API and UI tests): 10% of the fare, configurable, shown before booking |
 | 45 | Driver payout after trip | TBD | TBD | Verified (API and UI tests), mock provider, no money moves: fare paid to the driver on completion, no-show or late cancellation |
-| 46 | Card, UPI, and wallet selection | TBD | TBD | Partial: method is chosen and recorded, API and UI tested; mock provider, no money moves, so the choice changes nothing |
+| 46 | Card, UPI, and wallet selection | TBD | TBD | Partial: by default the method is chosen and recorded and the mock provider moves no money. With Razorpay keys set, the passenger pays in Razorpay's checkout (card, UPI or a wallet) for an order core-api opens for the amount it works out; the booking or pass then checks the signature, the order, the amount and that the payment paid for nothing else, records the method Razorpay reports, and takes the money; a cancellation refunds through Razorpay, and a booking that fails after paying is refunded in full. A test key is Razorpay's test mode, and every screen and receipt says no real money moved. Tested against a stand-in for Razorpay (API and UI); **never tried with Razorpay itself**. Drivers are not paid through it, and a flexible booking cannot be paid at checkout |
 | 47 | Tiered refunds by cancellation timing | TBD | TBD | Verified (API and UI tests): refund share by time before boarding, tiers in config and shown before cancelling |
 | 48 | Full refund for qualifying driver cancellations | TBD | TBD | Verified (API tests): everything returned, fee included, when the driver cancels, declines or never answers |
 | 49 | Transaction history | TBD | TBD | Verified (API and UI tests), mock provider, no money moves: a passenger's payments with what came back and why; a driver's payouts |
-| 50 | PDF invoice and receipt | TBD | TBD | Partial: PDF receipts for booking payments and passes, API and UI tested, one opened and read. In English only, says the payment is simulated, and is **not a tax invoice**: no GST |
+| 50 | PDF invoice and receipt | TBD | TBD | Partial: PDF receipts for booking payments and passes, API and UI tested, one opened and read. In English only, says the payment is simulated (or Razorpay's test mode), and is **not a tax invoice**: no GST |
 
 ## Trust and safety
 
