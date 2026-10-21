@@ -95,7 +95,7 @@ Last updated: 2026-10-21. Test suites and how to run them are in [TESTING.md](TE
 | 47 | Tiered refunds by cancellation timing | TBD | TBD | Verified (API and UI tests): refund share by time before boarding, tiers in config and shown before cancelling |
 | 48 | Full refund for qualifying driver cancellations | TBD | TBD | Verified (API tests): everything returned, fee included, when the driver cancels, declines or never answers |
 | 49 | Transaction history | TBD | TBD | Verified (API and UI tests), mock provider, no money moves: a passenger's payments with what came back and why; a driver's payouts |
-| 50 | PDF invoice and receipt | TBD | TBD | Partial: PDF receipts for booking payments and passes, API and UI tested, one opened and read. In English only, says the payment is simulated (or Razorpay's test mode), and is **not a tax invoice**: no GST |
+| 50 | PDF invoice and receipt | TBD | TBD | Partial: receipts for booking payments and passes, API and UI tested: a PDF in English (one opened and read), and from 2026-10-21 a receipt page in the reader's language, English, Hindi or Marathi, with names and stops as written in any script, which the browser prints or saves as PDF. Both from one query. Each says the payment is simulated (or Razorpay's test mode), and is **not a tax invoice**: no GST. The page has never been printed from a real browser |
 
 ## Trust and safety
 

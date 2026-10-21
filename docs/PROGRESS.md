@@ -1,5 +1,17 @@
 # Progress
 
+## 2026-10-21 (later) — receipts in Hindi and Marathi
+
+- **Receipts in the reader's language (50)**, as chosen: besides the English PDF, each
+  booking payment and pass has a receipt page in English, Hindi or Marathi, with names and
+  stops as written in any script. "Print or save as PDF" hands it to the browser, whose
+  fonts draw Devanagari, which the server's PDF cannot. Both forms come from one query, so
+  they state the same facts, including that the payment was simulated (or Razorpay's test
+  mode) and that neither is a tax invoice. The page has not been printed from a real
+  browser, and its translations have had no native review. 50 stays Partial: no GST.
+- Tests: 302 Java, 206 Python, 227 web, 28 gateway, all passing.
+- Feature count unchanged: 83 Verified, 11 Partial, 1 Not started of 95.
+
 ## 2026-10-21 — targeted reminders on the platform; masked calls through Twilio
 
 - **Targeted seat-release reminders (79, 80)**, as chosen on 2026-10-20, replacing the

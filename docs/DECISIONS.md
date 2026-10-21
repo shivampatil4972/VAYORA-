@@ -125,7 +125,8 @@ was decided while building within them.
 | Money and times use the same digits in every language | Passenger and driver read the same fare | |
 | A chat message is shown when the gateway relays it, not when it is typed | What a sender sees is what everyone received | |
 | Irreversible actions need a second, explicit press | Cancelling, completing and marking a no-show cannot be undone | One more click |
-| Receipts are in English | The PDF's built-in fonts cover Latin script only | Devanagari names print as "?" |
+| The PDF receipt is in English | The PDF's built-in fonts cover Latin script only | Devanagari names print as "?" in it |
+| A receipt in Hindi or Marathi is a page in the app that the browser prints or saves as PDF (from 2026-10-21) | The browser already has fonts that shape Devanagari; PDFBox does not shape it, and embedding fonts would add files and licences | Two forms of one receipt. Both come from one query, so they cannot disagree on the facts |
 | Flexibility tiers are a time window, chosen by the passenger | The team's choice: the passenger agrees in advance to be moved, and the price never changes, so nothing is priced or decided on a prediction about them. "Hazard-informed" means only that Flexible is suggested on a driver whose own record shows withdrawals | A rebooked passenger may land on a ride the driver approves, so they hold a request, not a seat |
 | A rebooking runs after the withdrawal commits, in its own transaction | So a rebooking that fails cannot undo the withdrawal or anyone's refund. Found in testing: a notification sent from an after-commit step must have its own transaction too, or it waits for a commit that has already happened and is never written | |
 | Email goes through any SMTP server, chosen by configuration | No particular provider is assumed; text messages stay simulated. Each channel reports separately whether it really sends, so the SOS record stays honest when email is real and SMS is not | |

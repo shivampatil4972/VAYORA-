@@ -124,6 +124,8 @@ returns the booking the first request made instead of making another.
 | `POST /api/v1/passes` | P | Buy a pass; one bought while another runs starts when it ends. With Razorpay, `razorpay: {orderId, paymentId, signature}` from its checkout in place of `paymentMethod` |
 | `GET /api/v1/bookings/{id}/receipt` | P | PDF receipt for the payment on own booking |
 | `GET /api/v1/passes/{id}/receipt` | P | PDF receipt for own pass |
+| `GET /api/v1/bookings/{id}/receipt-data` | P | The same receipt as JSON, names and stops as written, for the app to show in the reader's language: `{bookingId, passenger, driver, fromStop, toStop, seats, boarding, status, paidAt, method, fare, serviceFee, total, refunded, refundReason, provider}` |
+| `GET /api/v1/passes/{id}/receipt-data` | P | The same for own pass: `{passId, passenger, kind, price, startsAt, endsAt, paidAt, method, provider, reward}`; `method` is null for a reward |
 
 ### After the trip, and safety
 
