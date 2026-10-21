@@ -9,6 +9,11 @@
   they state the same facts, including that the payment was simulated (or Razorpay's test
   mode) and that neither is a tax invoice. The page has not been printed from a real
   browser, and its translations have had no native review. 50 stays Partial: no GST.
+- Then seen in a browser against the rebuilt stack: a passenger named आशा पाटील booked
+  two seats and cancelled, opened the receipt in Marathi from Payments, and pressed "Print
+  or save as PDF", which asked the browser to print once. Headless Microsoft Edge printed
+  the page to PDF: the Devanagari drawn and joined correctly, the navigation left off, the
+  same amounts and times as the server's PDF, which prints the name as "??? ?????".
 - Tests: 302 Java, 206 Python, 227 web, 28 gateway, all passing.
 - Feature count unchanged: 83 Verified, 11 Partial, 1 Not started of 95.
 

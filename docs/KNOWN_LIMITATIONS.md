@@ -204,9 +204,10 @@ mistake for more. Updated 2026-10-21.
 - **The PDF receipt is in English and Latin script only.** Its built-in fonts cannot draw
   Devanagari, so such a character in a name or stop prints as "?". The receipt page shows
   the same receipt in the reader's language with names as written, and the browser prints
-  it or saves it as PDF; that has been tested in the app's tests, never printed from a
-  real browser, and its Hindi and Marathi have had no native review. Neither is a tax
-  invoice: the platform handles no GST. Drivers get no payout statement.
+  it or saves it as PDF. That was printed to PDF by headless Microsoft Edge, never on
+  paper or through a person's own print dialog, and its Hindi and Marathi have had no
+  native review. Neither is a tax invoice: the platform handles no GST. Drivers get no
+  payout statement.
 - **Women-only rides rest on what members say about themselves.** Anyone can choose
   "Woman" on their profile, and nothing checks it. Changing the profile later changes
   what they can see and book, but does not touch a booking already made.
