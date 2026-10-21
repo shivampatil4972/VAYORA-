@@ -1,5 +1,27 @@
 # Progress
 
+## 2026-10-21 — targeted reminders on the platform; masked calls through Twilio
+
+- **Targeted seat-release reminders (79, 80)**, as chosen on 2026-10-20, replacing the
+  everyone-alike decision of 2026-10-17: the reminder now asks only bookings the durability
+  model last rated below 0.8, and when more are due than the budget allows, intel's contact
+  scheduler chooses which, with the simulator's B5 limits (in `application.yml`). One not
+  chosen is due again next run; an unscored booking is never asked, and nobody is while the
+  scheduler cannot be reached. Nothing is cancelled or priced, and the message never
+  mentions the model. `targeting.enabled: false` asks everyone alike. Both are Verified; no
+  gain is claimed, since in the simulator targeting adds no rides.
+- **Masked calls through Twilio (61)**, as chosen: with the same three settings as texts, a
+  call is a bridge. Twilio rings the caller from the platform's number, then dials the other
+  side from it, so neither sees the other's number; a refusal is a 503 that says so. Without
+  the settings calls stay simulated and say so. Tested against a stand-in, never tried with
+  Twilio; 61 stays Partial. The settings moved from `journex.sms.twilio` to
+  `journex.twilio`; the environment variables are unchanged.
+- Found on the way: the new tests' extra Spring contexts ran the test database out of
+  connections ("too many clients"), failing Razorpay's and walking search's tests. The test
+  PostgreSQL now allows 400, above what Spring's context cache can hold.
+- Tests: 300 Java, 206 Python, 223 web, 28 gateway, all passing.
+- Feature count: 83 Verified, 11 Partial, 1 Not started of 95.
+
 ## 2026-10-20 (afternoon) — the survival models on real cancellations
 
 - **A real-data check for the durability model (77)**, as chosen: the same three kinds of
