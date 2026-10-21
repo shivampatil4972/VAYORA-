@@ -140,14 +140,14 @@ export const SERVER_TEMPLATES = [
 ];
 
 // A booking status inside such a message, as a word in the sentence.
-const STATUS_WORDS: Record<string, string> = {
-  PENDING: msg('pending'),
-  CONFIRMED: msg('confirmed'),
-  REJECTED: msg('declined'),
-  CANCELLED: msg('cancelled'),
-  COMPLETED: msg('completed'),
-  NO_SHOW: msg('no-show'),
-};
+const STATUS_WORDS = new Map([
+  ['PENDING', msg('pending')],
+  ['CONFIRMED', msg('confirmed')],
+  ['REJECTED', msg('declined')],
+  ['CANCELLED', msg('cancelled')],
+  ['COMPLETED', msg('completed')],
+  ['NO_SHOW', msg('no-show')],
+]);
 
 const escape = (text: string) => text.replace(/[.*+?^$()|[\]\\]/g, '\\$&');
 
@@ -166,7 +166,10 @@ export function translateServerMessage(text: string, t: Translate): string {
     const found = pattern.exec(text);
     if (found) {
       const values = Object.fromEntries(
-        names.map((name, i) => [name, found[i + 1] in STATUS_WORDS ? t(STATUS_WORDS[found[i + 1]]) : found[i + 1]]),
+        names.map((name, i) => {
+          const word = STATUS_WORDS.get(found[i + 1]);
+          return [name, word ? t(word) : found[i + 1]];
+        }),
       );
       return t(template, values);
     }
