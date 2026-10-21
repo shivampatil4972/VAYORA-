@@ -1,5 +1,23 @@
 # Progress
 
+## 2026-10-21 (late night) — four features seen in a browser; two faults fixed
+
+- **Seen in headless Edge against the running stack** for the first time: an identity
+  document declared and shown as not checked (7); an electric car's 230 km stretch warned
+  about and refused at 200 km (15); walks by footpath and rickshaws with Pune's meter fare
+  on search results (91); and supply gaps end to end (93), with the detection job set to
+  run every minute for the check and then put back: three empty searches made a gap the
+  administrator saw, a driver who had driven the stretch was nudged, and their ride that
+  day was logged as converted.
+- **Two faults found and fixed.** The profile said "Says they hold a Driving licence", and
+  would have said "a Aadhaar"; it now says "Declared: Aadhaar, not checked". And dates in
+  notifications were the server's: the nudge showed "2026-10-27", and the seat-release
+  reminder an English weekday and month in a Hindi or Marathi sentence. Both are now
+  written as ISO-8601 and shown in the reader's language; the server's English, which email
+  and text copies carry, is unchanged.
+- Tests: 304 Java, 206 Python, 232 web, 28 gateway, all passing.
+- Feature count unchanged: 83 Verified, 11 Partial, 1 Not started of 95.
+
 ## 2026-10-21 (night) — limitations corrected; two things left as they are
 
 - **KNOWN_LIMITATIONS.md said ten things that later work had made untrue**: no detour
