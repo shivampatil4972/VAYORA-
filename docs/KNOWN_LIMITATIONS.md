@@ -105,20 +105,21 @@ mistake for more. Updated 2026-10-21.
   every five minutes, so a request can outlive its deadline by up to five minutes. Most
   tests turn the 2-hour rule off so that rides leaving within the hour can be booked and
   started; one test class runs with it on.
-- **Search measures access in a straight line**, not by road or on foot, and uses one
-  fixed limit of 5 km for everyone.
-- **Passengers board only at a ride's stops.** There is no door pickup, so no detour is
-  ever computed and the detour-tolerance feature does not exist.
+- **Search matches stops in a straight line**: a stop must be within 5 km of each end, one
+  fixed limit for everyone. The walking time shown is then worked out on footpaths.
 - A ride's stored route is OSRM's simplified line (19 points for the whole corridor). It
   is right for distance and for an overview map, and too coarse to follow turn by turn.
 - If OSRM is down when a ride is published, the ride keeps a straight-line route for
   good; nothing recomputes it later.
 - **One role per account.** A person cannot be both passenger and driver.
 - **The 7-day booking horizon is not enforced** when publishing or booking.
-- **Completion is the driver's word alone.** No boarding code, no passenger
-  confirmation.
-- **A driver withdrawing a ride only suggests alternatives.** Passengers are told and
-  shown up to three other rides; nothing is rebooked for them.
+- **Completion is the driver's word.** A boarding code lets the driver check that a
+  passenger is the one booked, but nothing requires it, and the driver completes the ride
+  alone. Only afterwards can a passenger confirm the trip or say it did not happen, which
+  reaches the administrators.
+- **A driver withdrawing a ride rebooks only those who chose it.** A passenger who chose a
+  flexible booking is booked on the closest ride that fits; everyone else is told and shown
+  up to three other rides, and nothing is booked for them.
 - Reviews cannot be edited or removed, and a report is about a member, not a review.
 - A suspended member's future rides and bookings are left as they are; nobody is told.
 - A reporter is never told what was decided.
@@ -129,9 +130,11 @@ mistake for more. Updated 2026-10-21.
   means only that someone read a code out of the administrator outbox; it proves nothing
   about the address. Texts to Indian numbers through a real Twilio account would need the
   sender registered under TRAI's DLT rules, which has not been done.
-- **The SOS button contacts nobody.** It records an alert for administrators, who are
-  not an emergency service and are told only by an in-app notification and a queue
-  that refreshes every 15 seconds. Emergency contacts are stored but not messaged.
+- **By default the SOS button contacts nobody outside the platform.** It records an alert
+  for administrators, who are not an emergency service and are told only by an in-app
+  notification and a queue that refreshes every 15 seconds. A text for each emergency
+  contact goes to the simulated outbox, and the member is told nobody was messaged; with a
+  Twilio account the texts are sent, which has never been tried.
 - The simulated outbox is in memory: it is lost on restart and would not be shared
   between two core-api instances.
 - **A pickup's time is an estimate.** It is the stop's time plus the drive to the point,
@@ -200,7 +203,6 @@ mistake for more. Updated 2026-10-21.
   the platform owns. Pass prices are assumptions. A pass cannot be cancelled or
   refunded, and a pass purchase is not in the money ledger, which records booking
   payments only.
-- No referral scheme.
 - **The PDF receipt is in English and Latin script only.** Its built-in fonts cannot draw
   Devanagari, so such a character in a name or stop prints as "?". The receipt page shows
   the same receipt in the reader's language with names as written, and the browser prints
@@ -217,24 +219,22 @@ mistake for more. Updated 2026-10-21.
   that the time allowed at a stop is enough to charge. A vehicle cannot be edited or
   removed.
 - **A repeated ride is a batch, not a schedule.** Up to 8 further weeks are published at
-  once as separate rides. There is no open-ended repeat, a series cannot be edited or
-  withdrawn as a whole, and nothing checks that a vehicle is not on two rides at once.
+  once as separate rides. There is no open-ended repeat, a series can be withdrawn as a
+  whole but not edited, and nothing checks that a vehicle is not on two rides at once.
 - Rides can be published weeks ahead although the booking horizon is 7 days; the
   horizon is still not enforced.
 - "At most two in the back" is the driver's word. Seats offered are not checked
   against it.
-- No email verification, phone OTP, Google sign-in, profile, photo upload or identity
-  verification.
 
 ## Model in the platform
 
 - **Train and serve differ on one feature.** The simulator has a preferred departure
   time, so `desired_gap_hours` varies in training. A platform search names a day only,
   so the platform always sends 0.
-- Scores are appended to the event log and shown to an administrator. Nothing acts on
-  them: the platform sends no reconfirmation request.
+- Scores are appended to the event log and shown to an administrator. One thing acts on
+  them: whom the seat-release reminder asks (above). Nothing is cancelled, priced or
+  refused on a score.
 - Scores are deliberately not shown to drivers or passengers.
-- No explanation of a score is produced yet.
 
 ## Security
 
@@ -262,7 +262,7 @@ mistake for more. Updated 2026-10-21.
 ## Interface
 
 - **Screens were viewed in a browser only by a script, its screenshots checked by eye**
-  (headless Edge, 2026-10-15 to 17), not by a person using the app, and not on a phone. The map draws its tiles and pins there; the component tests still use
+  (headless Edge, 2026-10-15 to 17, and single features since, last on 2026-10-21), not by a person using the app, and not on a phone. The map draws its tiles and pins there; the component tests still use
   a stand-in for it.
 - Map tiles come from OpenStreetMap's public servers, which is acceptable for a
   demonstration and not for sustained use.
