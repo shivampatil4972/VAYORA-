@@ -23,11 +23,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.TestPropertySource;
 
 /**
  * Feature 79: one reminder per confirmed seat, 48 hours before boarding, to release it if
- * plans changed. Everyone alike; nothing is cancelled.
+ * plans changed; nothing is cancelled. With targeting off, everyone alike: the window and the
+ * message are the same whoever is asked. Targeting is TargetedReminderIntegrationTest.
  */
+@TestPropertySource(properties = "journex.reminders.targeting.enabled=false")
 class ReleaseReminderIntegrationTest extends PostgresIntegrationTest {
 
     private static final List<StopInput> STOPS = List.of(
@@ -112,7 +115,7 @@ class ReleaseReminderIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
-    void everyPassengerIsAskedAlikeWhateverTheModelSays() {
+    void withTargetingOffEveryPassengerIsAskedAlikeWhateverTheModelSays() {
         Booking scoredRisky = bookedDaysAgo(user(UserRole.PASSENGER), Duration.ofHours(40), true);
         bookedDaysAgo(user(UserRole.PASSENGER), Duration.ofHours(40), true);
         // A low score is on record for one booking only: the reminder must not depend on it.

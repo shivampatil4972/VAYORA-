@@ -209,10 +209,23 @@ journex:
     suggested-rupees-per-km: 2.0
   reminders:
     # A passenger with a confirmed seat is asked, once, this long before boarding, to release
-    # it if their plans have changed (feature 79): everyone alike, never chosen by predicted
-    # risk, and nothing is cancelled for them. "-" in the cron turns it off.
+    # it if their plans have changed (feature 79). Nothing is cancelled or priced for them,
+    # and the message says nothing about any model. "-" in the cron turns it off.
     release-before: PT48H
     release-cron: ${RELEASE_REMINDER_CRON:0 */10 * * * *}
+    # Whom it asks (features 79 and 80), as chosen on 2026-10-20: only bookings the
+    # durability model last rated below the threshold, and when more than the budget allows,
+    # those intel's contact scheduler chooses, as the simulator's B5 (whose values these are).
+    # Not chosen: due again next run. Unscored, or the scheduler unreachable: not asked.
+    # enabled: false asks everyone alike. Every value is the authors' assumption.
+    targeting:
+      enabled: true
+      survival-threshold: 0.8
+      contacts-per-round: 2
+      contacts-per-ride: 1
+      seats-per-departure-day: 4
+      refill-horizon-hours: 168
+      solver-time-limit-seconds: 5
   referral:
     # What each side of a referral who is a passenger gets once the invited member completes a
     # first trip (feature 72): a free pass of this kind (WEEKLY, MONTHLY or ANNUAL), or NONE.
