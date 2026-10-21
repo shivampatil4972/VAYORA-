@@ -1515,7 +1515,7 @@ export const mr: Record<string, string> = {
     'जाहीर करा',
   'You have declared: {document}.':
     'तुम्ही जाहीर केले आहे: {document}.',
-  'Says they hold a {document}, not checked':
+  'Declared: {document}, not checked':
     'त्यांच्याकडे {document} असल्याचे ते सांगतात, तपासलेले नाही',
   'You can say which identity document you hold. JOURNEX does not ask for its number or a copy and checks nothing: your profile will say it was declared, not checked.':
     'तुमच्याकडे कोणते ओळखपत्र आहे ते तुम्ही सांगू शकता. JOURNEX त्याचा क्रमांक किंवा प्रत मागत नाही आणि काहीही तपासत नाही: तुमच्या प्रोफाइलवर ते जाहीर केले आहे, तपासलेले नाही, असे लिहिलेले असेल.',

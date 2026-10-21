@@ -1515,7 +1515,7 @@ export const hi: Record<string, string> = {
     'घोषित करें',
   'You have declared: {document}.':
     'आपने घोषित किया है: {document}।',
-  'Says they hold a {document}, not checked':
+  'Declared: {document}, not checked':
     'कहते हैं कि उनके पास {document} है, जाँचा नहीं गया',
   'You can say which identity document you hold. JOURNEX does not ask for its number or a copy and checks nothing: your profile will say it was declared, not checked.':
     'आप बता सकते हैं कि आपके पास कौन-सा पहचान पत्र है। JOURNEX उसका नंबर या प्रति नहीं माँगता और कुछ नहीं जाँचता: आपकी प्रोफ़ाइल पर लिखा होगा कि यह घोषित किया गया है, जाँचा नहीं गया।',

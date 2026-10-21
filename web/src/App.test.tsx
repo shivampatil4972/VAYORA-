@@ -823,7 +823,7 @@ describe('ratings', () => {
     open('/users/7');
 
     const about = within(await screen.findByRole('list', { name: 'About this member' }));
-    expect(about.getByText('Says they hold a Driving licence, not checked')).toBeInTheDocument();
+    expect(about.getByText('Declared: Driving licence, not checked')).toBeInTheDocument();
     expect(about.queryByText(/confirmed/)).not.toBeInTheDocument();
     expect(screen.getByText('JOURNEX has not checked any identity documents.')).toBeInTheDocument();
   });
