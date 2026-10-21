@@ -78,7 +78,8 @@ was decided while building within them.
 | Texts go through Twilio when its three settings are set, to the simulated outbox otherwise | Its API is plain HTTP, and its test credentials allow a try that sends nothing and costs nothing | Real texts to Indian numbers need DLT registration, not done |
 | The emergency button texts each contact on its own and records those it missed | A real text can fail; an alert must never fail because of one, and the member must know whom to call | A missed text is reported, not retried |
 | Insurance is the driver's declaration, shown as such, with no policy number kept | No insurer is connected, so nothing can be checked; a policy number would be personal data for no purpose | A passenger has only the driver's word |
-| A masked call is simulated, only between confirmed numbers, from 24 hours before boarding while the booking is confirmed, and the other side is told | No telephony provider; a real relay must never ring a number nobody proved | Nobody can actually call; the chat is the working channel |
+| A masked call is allowed only between confirmed numbers, from 24 hours before boarding while the booking is confirmed, and the other side is told | A real relay must never ring a number nobody proved | |
+| With Twilio, a masked call is a bridge: the caller is rung from the platform's number, then the other side is dialled from it | Neither ever sees the other's number, and Twilio's ordinary call API does it with no number pool | Two paid legs per call; untried. Without Twilio the call is simulated and says so |
 | One role per account: passenger, driver or administrator | Simpler permissions | A person cannot be both passenger and driver |
 | Administrators cannot sign up; they are created from configuration | So nobody can make themselves one | |
 | Another member's booking, ride or contact answers 404, not 403 | Ids cannot be probed | Debugging is a little harder |

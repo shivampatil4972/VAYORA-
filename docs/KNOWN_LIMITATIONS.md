@@ -186,10 +186,12 @@ mistake for more. Updated 2026-10-21.
 - **A referral earns a driver nothing.** The reward is a pass, which only waives a
   passenger's fee; nothing has been decided for drivers. The weekly pass itself is an
   assumption.
-- **Insurance and calling are labelled mocks.** A driver's insurance is their own
-  declaration, never checked with an insurer. A call is never placed: no telephony
-  provider is connected, and the other side only gets a notification saying someone
-  tried. Both say so wherever they appear.
+- **Insurance and calling are labelled mocks by default.** A driver's insurance is their
+  own declaration, never checked with an insurer. Without a Twilio account a call is never
+  placed and the other side only gets a notification saying someone tried; both say so
+  wherever they appear. With an account, calls are bridged through Twilio, which has never
+  been tried: each call is two paid legs, and calls to Indian numbers from a Twilio number
+  are international and may need registration.
 - **The lower fee for drivers who keep their rides is an untested incentive.** Its
   thresholds (10 completed rides, 90 days) and rate (7%) are assumptions, and nothing
   measures whether drivers withdraw less because of it. A driver with fewer than 10

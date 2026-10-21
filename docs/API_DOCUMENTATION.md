@@ -104,7 +104,7 @@ returns the booking the first request made instead of making another.
 | Method and path | Who | What |
 |---|---|---|
 | `POST /api/v1/rides/{id}/start` | D | Start the ride, up to an hour early |
-| `POST /api/v1/bookings/{id}/call` | P, D | Simulated masked call to the other side of a confirmed booking, from 24 hours before boarding, between confirmed phone numbers. Returns `{provider: "mock", calleeName}` and never a number; the other side is notified |
+| `POST /api/v1/bookings/{id}/call` | P, D | A masked call to the other side of a confirmed booking, from 24 hours before boarding, between confirmed phone numbers: bridged through Twilio when an account is configured (`provider: "twilio"`; 503 if Twilio refuses), simulated otherwise (`provider: "mock"`). Returns `{provider, calleeName}` and never a number; the other side is notified |
 | `POST /api/v1/bookings/{id}/no-show` | D | Mark a passenger who did not board; their seat goes back on sale for later stops |
 | `POST /api/v1/rides/{id}/complete` | D | Complete the ride and pay out |
 | `POST /api/v1/rides/{id}/cancel` | D | Withdraw the ride; passengers are refunded in full and told of other rides |
