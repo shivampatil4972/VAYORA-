@@ -1,7 +1,7 @@
 # Known limitations
 
 What the project does not do, does only in part, or does in a way a reader could
-mistake for more. Updated 2026-10-19.
+mistake for more. Updated 2026-10-21.
 
 ## Nothing here is evidence about real people
 
@@ -174,6 +174,10 @@ mistake for more. Updated 2026-10-19.
   it there arrives, and nothing warns either of them; the 30-minute margin only makes it
   less likely. Displayed times stay the timetable's, with a note that it may be early. Like everyone on a ride under way, such a
   passenger cannot cancel.
+- **Whom the seat-release reminder asks rests on a model that has never seen a real
+  passenger.** It ranks weakly (concordance 0.59 on simulated data); someone it rates
+  safe is never reminded, and neither is anyone it has not scored. Nothing else rests on
+  it. `journex.reminders.targeting.enabled: false` asks everyone alike.
 - **The seat-release reminder is untested as an incentive.** Nothing measures whether
   anyone releases a seat because of it, and the simulator suggests releases come earlier
   but add no rides. Sent at 48 hours, it lands where the whole-fare refund ends, so most

@@ -19,7 +19,7 @@ below is the authors' recommendation, with reasons.
 
 ## Where things stand
 
-As of 2026-10-20: of 95 features, **81 verified, 13 partial, 1 not started**, about 92%
+As of 2026-10-21: of 95 features, **83 verified, 11 partial, 1 not started**, about 93%
 counting a partial feature as half. Everything left needs a decision, an outside service
 or data that does not exist; nothing remains that is only a matter of building.
 

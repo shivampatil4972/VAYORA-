@@ -50,8 +50,10 @@ section 16). Runs made before then lack it, and the query reports their split as
 The platform's own rows do not carry it.
 
 On the platform, `intervention_issued` is also written for each seat-release reminder
-(feature 79), with `action` `release_reminder` and no `survival_probability`: the reminder
-goes to everyone alike and uses no model. It is a platform row, outside every run.
+(feature 79), with `action` `release_reminder` and `chosen_by`. Targeted (from 2026-10-20),
+`chosen_by` is `scheduler` and `survival_probability` is the booking's latest score; with
+targeting off, `chosen_by` is `everyone` and there is no `survival_probability`. It is a
+platform row, outside every run.
 
 When a driver withdraws and a passenger is rebooked at once (feature 88, simulated from
 2026-10-19 when `demand.flexible_booking.share` is above 0), the new `booking_requested`

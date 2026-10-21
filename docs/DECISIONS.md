@@ -39,7 +39,7 @@ was decided while building within them.
 
 | Decision | Why | Cost |
 |---|---|---|
-| The seat-release reminder goes to every confirmed passenger alike, once, 48 hours before boarding | Choosing whom to ask by predicted risk would act on a guess about a real person; the simulator found targeting adds no rides anyway | People who were always going to travel get a message they did not need |
+| The seat-release reminder asks only bookings the model rates below 0.8, within a budget the contact scheduler fills (from 2026-10-20; from 2026-10-17, everyone alike) | Chosen by the team, so the research's targeted intervention runs on the platform as the simulator's B5 | The reason it was first untargeted still stands: it acts on a guess about a real person, from a model trained on simulated data that ranks weakly. Only a neutral message rests on it, and the simulator found targeting adds no rides |
 | The reminder states the refund the passenger would get at that moment | At 48 hours the whole-fare tier is ending; promising it would mislead | The figure is 50% for most who read it later |
 | JdbcTemplate with hand-written SQL, no ORM | The existing code used it, and taking seats is one conditional `UPDATE` that reads more plainly without an ORM | More SQL to maintain |
 | Seats are counted per leg of a ride | A passenger on one stretch must not take a seat from another stretch | Every booking touches several rows |

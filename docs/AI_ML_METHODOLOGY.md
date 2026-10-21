@@ -138,6 +138,14 @@ caller supplies the features.
 The exported model holds the baseline cumulative hazard as a step function. lifelines
 interpolates between event times; the difference is about 0.001 in probability.
 
+**What the platform does with a score.** As the team chose on 2026-10-20, one thing:
+the seat-release reminder asks only bookings whose latest score is below 0.8 to release
+their seat if plans changed, and when more are due than the budget allows, the contact
+scheduler (section 7) chooses which, as the simulator's B5. Nothing is cancelled, priced or
+refused on a score, and the message says nothing about it. Someone the model rates safe is
+never reminded; an unscored booking is not either. Turning targeting off asks everyone
+alike, as before.
+
 ## 6a. Explaining a score
 
 Every score intel returns carries each feature's share of the log relative risk,
