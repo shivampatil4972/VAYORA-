@@ -1529,6 +1529,28 @@ export const mr: Record<string, string> = {
     'या सर्व्हरवर आत्ताचे रन सेट केलेले नाहीत',
   'No such sweep can be run live':
     'असा कोणताही स्वीप आत्ता चालवता येत नाही',
+  'You can have at most {n} emergency contacts':
+    'तुम्ही जास्तीत जास्त {n} आपत्कालीन संपर्क ठेवू शकता',
+  'This vehicle can offer at most {n} seats':
+    'हे वाहन जास्तीत जास्त {n} जागा देऊ शकते',
+  'A ride can repeat for at most {n} further weeks':
+    'एखादी राइड जास्तीत जास्त आणखी {n} आठवडे पुन्हा होऊ शकते',
+  'A {status} booking cannot become {next}':
+    '{status} बुकिंग {next} होऊ शकत नाही',
+  'Idempotency-Key must be 1 to {n} characters':
+    'Idempotency-Key 1 ते {n} अक्षरांचा असावा',
+  'pending':
+    'प्रलंबित',
+  'confirmed':
+    'निश्चित',
+  'declined':
+    'नाकारलेली',
+  'cancelled':
+    'रद्द',
+  'completed':
+    'पूर्ण',
+  'no-show':
+    'गैरहजर',
   'Simulator runs on synthetic data, not real passengers. Changing a setting shows another saved run, and only the settings a sweep was run at can be chosen there. Any other value can be simulated below, as an exploration.':
     'कृत्रिम डेटावर सिम्युलेटरचे रन, खऱ्या प्रवाशांवर नाही. सेटिंग बदलल्यावर दुसरा जतन केलेला रन दिसतो, आणि तिथे ज्या सेटिंगवर स्वीप चालवला होता त्याच निवडता येतात. इतर कोणतेही मूल्य खाली शोध म्हणून सिम्युलेट करता येते.',
   'Simulate another value now':

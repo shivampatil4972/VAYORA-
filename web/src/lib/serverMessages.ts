@@ -1,9 +1,9 @@
-import { msg } from './i18n';
+import { msg, type Translate } from './i18n';
 
 // Every fixed message core-api can answer an error with, and the client's own "cannot
 // reach the server". Listed so the translation tables must cover them; the error notice
 // translates whatever it shows. A core-api test (ServerMessagesTest) fails if the server
-// gains a fixed message that is not here. Messages built from numbers stay in English.
+// gains a fixed message that is not here.
 export const SERVER_MESSAGES = [
   msg('A bus must go somewhere else'),
   msg('A code was sent a moment ago. Wait before asking for another.'),
@@ -127,3 +127,49 @@ export const SERVER_MESSAGES = [
   msg('Live runs are not set up on this server'),
   msg('No such sweep can be run live'),
 ];
+
+// The messages core-api builds from values, as templates: a message that fits one is shown
+// translated with its values kept. ServerMessagesTest fails if the server builds one that
+// is not here.
+export const SERVER_TEMPLATES = [
+  msg('You can have at most {n} emergency contacts'),
+  msg('This vehicle can offer at most {n} seats'),
+  msg('A ride can repeat for at most {n} further weeks'),
+  msg('A {status} booking cannot become {next}'),
+  msg('Idempotency-Key must be 1 to {n} characters'),
+];
+
+// A booking status inside such a message, as a word in the sentence.
+const STATUS_WORDS: Record<string, string> = {
+  PENDING: msg('pending'),
+  CONFIRMED: msg('confirmed'),
+  REJECTED: msg('declined'),
+  CANCELLED: msg('cancelled'),
+  COMPLETED: msg('completed'),
+  NO_SHOW: msg('no-show'),
+};
+
+const escape = (text: string) => text.replace(/[.*+?^$()|[\]\\]/g, '\\$&');
+
+const PATTERNS = SERVER_TEMPLATES.map((template) => {
+  const names = [...template.matchAll(/\{(\w+)\}/g)].map((match) => match[1]);
+  const pattern = new RegExp(`^${escape(template).replace(/\{\w+\}/g, '(.+?)')}$`);
+  return { template, names, pattern };
+});
+
+/**
+ * An error as the reader should see it: a fixed message or one built from values,
+ * translated when the tables know it, and anything else as it came.
+ */
+export function translateServerMessage(text: string, t: Translate): string {
+  for (const { template, names, pattern } of PATTERNS) {
+    const found = pattern.exec(text);
+    if (found) {
+      const values = Object.fromEntries(
+        names.map((name, i) => [name, found[i + 1] in STATUS_WORDS ? t(STATUS_WORDS[found[i + 1]]) : found[i + 1]]),
+      );
+      return t(template, values);
+    }
+  }
+  return t(text);
+}

@@ -1,6 +1,7 @@
 import { forwardRef, useId, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
 
 import { msg, useT } from '../lib/i18n';
+import { translateServerMessage } from '../lib/serverMessages';
 import type { BookingStatus, RideStatus } from '../lib/types';
 
 const control =
@@ -127,8 +128,8 @@ export function ConfirmButton({ label, confirmLabel, onConfirm, disabled, tone =
 export function Notice({ tone, children }: { tone: 'error' | 'success' | 'info'; children: ReactNode }) {
   const t = useT();
   // An error is often the server's own words: shown translated when the tables know them,
-  // and as they came when not.
-  const content = tone === 'error' && typeof children === 'string' ? t(children) : children;
+  // with any numbers kept, and as they came when not.
+  const content = tone === 'error' && typeof children === 'string' ? translateServerMessage(children, t) : children;
   const style = {
     error: 'border-red-200 bg-red-50 text-red-800',
     success: 'border-emerald-200 bg-emerald-50 text-emerald-800',

@@ -13,6 +13,7 @@ import { formatRupees, setFormatLanguage } from './format';
 import { Notice } from '../components/ui';
 import { LanguageProvider, TABLES, translate, type Language } from './i18n';
 import { translatedNotification } from './notificationText';
+import { translateServerMessage } from './serverMessages';
 
 const SRC = join(process.cwd(), 'src');
 
@@ -180,6 +181,13 @@ describe('the app in another language', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('सवारी के उस हिस्से पर पर्याप्त सीटें नहीं बचीं');
   });
 
+  it('translates a message the server builds from a number, keeping the number', () => {
+    render(<Notice tone="error">You can have at most 3 emergency contacts</Notice>, {
+      wrapper: ({ children }) => <LanguageProvider initial="mr">{children}</LanguageProvider>,
+    });
+    expect(screen.getByRole('alert')).toHaveTextContent('तुम्ही जास्तीत जास्त 3 आपत्कालीन संपर्क ठेवू शकता');
+  });
+
   it("shows a server explanation it does not know as it came, in English", async () => {
     open('/search', 'hi');
 
@@ -247,5 +255,25 @@ describe('notifications', () => {
   it('are left to the English when any part is unknown', () => {
     expect(translatedNotification(hindi, { template: '{x}', values: { x: 'y' } })).toBeNull();
     expect(translatedNotification(hindi, null)).toBeNull();
+  });
+});
+
+describe('server messages built from values', () => {
+  const inLanguage = (language: Language) => (text: string, values?: Record<string, string | number>) => translate(language, text, values);
+
+  it('name a booking status as a word, in English too', () => {
+    expect(translateServerMessage('A CANCELLED booking cannot become CONFIRMED', inLanguage('en'))).toBe('A cancelled booking cannot become confirmed');
+    expect(translateServerMessage('A CANCELLED booking cannot become CONFIRMED', inLanguage('hi'))).toBe('रद्द बुकिंग पक्की नहीं हो सकती');
+  });
+
+  it('keep the number as it came', () => {
+    expect(translateServerMessage('This vehicle can offer at most 6 seats', inLanguage('hi'))).toBe('यह वाहन अधिकतम 6 सीटें दे सकता है');
+  });
+
+  it('leave fixed messages to the table and anything unknown as it came', () => {
+    expect(translateServerMessage('Booking not found', inLanguage('hi'))).toBe(translate('hi', 'Booking not found'));
+    expect(translateServerMessage('You can have at most 3 emergency contacts and a dog', inLanguage('hi'))).toBe(
+      'You can have at most 3 emergency contacts and a dog',
+    );
   });
 });
