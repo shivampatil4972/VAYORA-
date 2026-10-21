@@ -1,5 +1,16 @@
 # Progress
 
+## 2026-10-21 (last) — today's code reviewed
+
+- Read back the day's code (reminder targeting, the scheduler client, the Twilio call
+  bridge, receipts, server-message templates, dates in notifications). The reminder job
+  cannot remind a seat twice, a failing scheduler asks nobody, receipts reach their owner
+  only, and the TwiML is escaped. One small fault fixed: a status lookup that would also
+  have answered for inherited names such as "constructor".
+- Raised and decided: repeated masked calls are not limited. With Twilio on, each call
+  rings the other side and costs two paid legs; recorded in DECISIONS.md and
+  KNOWN_LIMITATIONS.md rather than limited.
+
 ## 2026-10-21 (later still) — the newer screens in Marathi on a phone-sized screen
 
 - **21 pages driven in headless Edge at 390 px, in Marathi**: a passenger's search results

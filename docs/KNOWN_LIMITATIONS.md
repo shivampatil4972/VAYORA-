@@ -194,7 +194,8 @@ mistake for more. Updated 2026-10-21.
   placed and the other side only gets a notification saying someone tried; both say so
   wherever they appear. With an account, calls are bridged through Twilio, which has never
   been tried: each call is two paid legs, and calls to Indian numbers from a Twilio number
-  are international and may need registration.
+  are international and may need registration. **Nothing limits how often someone calls**:
+  with Twilio on, each press rings the other person's phone again and costs two more legs.
 - **The lower fee for drivers who keep their rides is an untested incentive.** Its
   thresholds (10 completed rides, 90 days) and rate (7%) are assumptions, and nothing
   measures whether drivers withdraw less because of it. A driver with fewer than 10
