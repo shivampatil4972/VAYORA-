@@ -31,7 +31,7 @@ Ordered by value to the research question first, then by size.
 
 | # | Feature | What is missing | Size |
 |---|---|---|---|
-| 89 | Corridor demand calibration | Needs real demand figures to calibrate against, which do not exist | Blocked on data |
+| 89 | Corridor demand calibration | Needs real demand figures to calibrate against, which do not exist; left not started by decision on 2026-10-21, a timetable proxy declined | Blocked on data |
 | ~~84~~ | ~~Mid-route seat allocation~~ | Done on the platform, 2026-10-17 | |
 | ~~76~~ | ~~Two-sided match scoring~~ | Done on the platform, 2026-10-19; the simulator still has no geography for it (B1, B2) | |
 | ~~87~~ | ~~Live what-if simulator~~ | Done, 2026-10-19: intel simulates a sweep's cell at any value within its bounds, for an administrator; exploratory, no interval | |

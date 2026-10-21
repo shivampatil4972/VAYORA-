@@ -1,5 +1,18 @@
 # Progress
 
+## 2026-10-21 (night) — limitations corrected; two things left as they are
+
+- **KNOWN_LIMITATIONS.md said ten things that later work had made untrue**: no detour
+  pickups, no boarding code or passenger confirmation, no flexible rebooking, no
+  withdrawing a series, no referral scheme, no codes, Google sign-in, profiles or photos,
+  no explanation of a score, an emergency button that messages nobody in any setup, and
+  nothing acting on scores. Each was checked against the code and corrected or removed;
+  what stays true was kept.
+- **Decided, as asked**: web pushes stay in English, and corridor demand calibration (89)
+  stays not started, since no real demand figures exist and a timetable proxy would not
+  be calibration. Both are recorded in DECISIONS.md.
+- Feature count unchanged: 83 Verified, 11 Partial, 1 Not started of 95.
+
 ## 2026-10-21 (evening) — server errors built from numbers, translated
 
 - **The last gap in 71 that was only building**: the five error messages core-api builds
