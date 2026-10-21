@@ -20,9 +20,8 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -55,8 +54,6 @@ public class ReleaseReminders {
 
     private static final Logger log = LoggerFactory.getLogger(ReleaseReminders.class);
     private static final ZoneId CORRIDOR_ZONE = ZoneId.of("Asia/Kolkata");
-    private static final DateTimeFormatter WHEN =
-            DateTimeFormatter.ofPattern("EEE d MMM, HH:mm", Locale.ENGLISH).withZone(CORRIDOR_ZONE);
 
     /**
      * Logged as the simulator logs a request.
@@ -187,7 +184,7 @@ public class ReleaseReminders {
                 "Your seat from {from} to {to} leaves {when}. If your plans have changed, cancelling now lets "
                         + "someone else take it, and Rs {refund} of your Rs {fare} fare comes back. "
                         + "If you are still travelling, there is nothing to do.",
-                "from", booking.fromStop(), "to", booking.toStop(), "when", WHEN.format(booking.boarding()),
+                "from", booking.fromStop(), "to", booking.toStop(), "when", booking.boarding().truncatedTo(ChronoUnit.SECONDS).toString(),
                 "refund", back.toPlainString(), "fare", booking.fare().toPlainString()),
                 booking.bookingId());
         events.write(EventType.INTERVENTION_ISSUED, new Issued(booking.bookingId(), booking.passengerId(),

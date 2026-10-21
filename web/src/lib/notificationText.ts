@@ -1,3 +1,4 @@
+import { formatDate, formatDateTime } from './format';
 import { msg, type Translate } from './i18n';
 import type { NotificationText, TextValue } from './types';
 
@@ -58,9 +59,16 @@ function render(t: Translate, text: NotificationText): string {
 // Only town names among the plain values are translated. A person's name, an operator, a
 // time or an administrator's note is shown as written, even if it happens to match a word.
 const TOWNS = new Set(['from', 'to', 'stop']);
+// A moment or a day the server wrote in ISO-8601, shown in the reader's language.
+const INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
 function show(t: Translate, name: string, value: TextValue): string {
-  if (typeof value === 'string') return TOWNS.has(name) ? t(value) : value;
+  if (typeof value === 'string') {
+    if (TOWNS.has(name)) return t(value);
+    if (INSTANT.test(value)) return formatDateTime(value);
+    return DAY.test(value) ? formatDate(value) : value;
+  }
   if (Array.isArray(value)) return value.map((item) => render(t, item)).join('; ');
   return render(t, value);
 }

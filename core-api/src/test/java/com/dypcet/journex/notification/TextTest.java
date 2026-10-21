@@ -36,6 +36,17 @@ class TextTest {
     }
 
     @Test
+    void aMomentIsEnglishInTheCorridorsTimeAndStaysAnInstantForTheApp() {
+        Text reminder = Text.of("Your seat leaves {when}.", "when", "2026-10-23T02:00:00Z");
+
+        assertThat(reminder.render()).isEqualTo("Your seat leaves Fri 23 Oct, 07:30.");
+        assertThat(Text.fromDocument(reminder.toDocument()).values()).containsEntry("when", "2026-10-23T02:00:00Z");
+        // A date, or anything else that is not an instant, is taken as it is.
+        assertThat(Text.of("On {date}: {note}", "date", "2026-10-27", "note", "2026-10-23T02:00").render())
+                .isEqualTo("On 2026-10-27: 2026-10-23T02:00");
+    }
+
+    @Test
     void refusesAMissingValueRatherThanSendingABrokenSentence() {
         assertThatThrownBy(() -> Text.of("{name} cancelled.").render()).isInstanceOf(IllegalStateException.class);
     }

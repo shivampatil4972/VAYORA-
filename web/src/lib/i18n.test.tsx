@@ -256,6 +256,25 @@ describe('notifications', () => {
     expect(translatedNotification(hindi, { template: '{x}', values: { x: 'y' } })).toBeNull();
     expect(translatedNotification(hindi, null)).toBeNull();
   });
+
+  it('give a moment and a day in the reader language, not the server English or ISO', () => {
+    setFormatLanguage('mr');
+    const marathi = (text: string, values?: Record<string, string | number>) => translate('mr', text, values);
+    const reminder = translatedNotification(marathi, {
+      template: 'Your seat from {from} to {to} leaves {when}. If your plans have changed, cancelling now lets someone else take it, and Rs {refund} of your Rs {fare} fare comes back. If you are still travelling, there is nothing to do.',
+      values: { from: 'Kolhapur', to: 'Pune', when: '2026-10-23T02:00:00Z', refund: '200.00', fare: '400.00' },
+    });
+    const nudge = translatedNotification(marathi, {
+      template: 'Passengers looked for a ride from {from} to {to} on {date} and found none. If you are driving then, you could offer seats.',
+      values: { from: 'Kolhapur', to: 'Pune', date: '2026-10-27' },
+    });
+
+    expect(reminder).toContain('23 ऑक्टो');
+    expect(reminder).toContain('7:30');
+    expect(reminder).not.toMatch(/Fri|2026-10-23T/);
+    expect(nudge).toContain('27 ऑक्टो');
+    expect(nudge).not.toContain('2026-10-27');
+  });
 });
 
 describe('server messages built from values', () => {
