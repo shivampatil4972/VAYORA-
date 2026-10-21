@@ -40,7 +40,7 @@ export function DurabilityPage() {
     <Page title={t('Booking durability')}>
       <Notice tone="info">
         {t(
-          "Each figure is a model's estimate that the passenger will not cancel before departure. The model was trained on simulated data only and separates risky from safe bookings weakly. It is not a fact about any person and must not be used to decline, penalise or price anyone.",
+          "Each figure is a model's estimate that the passenger will not cancel before departure. The model was trained on simulated data only and separates risky from safe bookings weakly. It is not a fact about any person and must not be used to decline, penalise or price anyone. It is used for one thing: choosing whom the seat-release reminder asks.",
         )}
       </Notice>
 

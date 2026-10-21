@@ -122,8 +122,8 @@ export const mr: Record<string, string> = {
   'Must be later than the stop before': 'आधीच्या थांब्यानंतरचे असायला हवे',
 
   // Booking durability (administrator)
-  "Each figure is a model's estimate that the passenger will not cancel before departure. The model was trained on simulated data only and separates risky from safe bookings weakly. It is not a fact about any person and must not be used to decline, penalise or price anyone.":
-    'प्रत्येक आकडा म्हणजे प्रवासी निघण्यापूर्वी बुकिंग रद्द करणार नाही याचा मॉडेलने केलेला अंदाज आहे. मॉडेल केवळ कृत्रिम (सिम्युलेटेड) डेटावर प्रशिक्षित केले आहे आणि ते जोखमीच्या व सुरक्षित बुकिंगमध्ये फारसा फरक करू शकत नाही. हे कोणत्याही व्यक्तीबद्दलचे तथ्य नाही आणि कोणालाही नाकारण्यासाठी, दंड करण्यासाठी किंवा किंमत ठरवण्यासाठी याचा वापर करू नये.',
+  "Each figure is a model's estimate that the passenger will not cancel before departure. The model was trained on simulated data only and separates risky from safe bookings weakly. It is not a fact about any person and must not be used to decline, penalise or price anyone. It is used for one thing: choosing whom the seat-release reminder asks.":
+    'प्रत्येक आकडा म्हणजे प्रवासी निघण्यापूर्वी बुकिंग रद्द करणार नाही याचा मॉडेलने केलेला अंदाज आहे. मॉडेल केवळ कृत्रिम (सिम्युलेटेड) डेटावर प्रशिक्षित केले आहे आणि ते जोखमीच्या व सुरक्षित बुकिंगमध्ये फारसा फरक करू शकत नाही. हे कोणत्याही व्यक्तीबद्दलचे तथ्य नाही आणि कोणालाही नाकारण्यासाठी, दंड करण्यासाठी किंवा किंमत ठरवण्यासाठी याचा वापर करू नये. त्याचा वापर फक्त एका गोष्टीसाठी होतो: जागा सोडण्याची आठवण कोणाला पाठवायची ते निवडणे.',
   'Scoring…': 'अंदाज काढत आहे…',
   'Score bookings now': 'आत्ता बुकिंगचा अंदाज काढा',
   'Another scoring run is in progress.': 'अंदाज काढण्याची दुसरी प्रक्रिया आधीच सुरू आहे.',
