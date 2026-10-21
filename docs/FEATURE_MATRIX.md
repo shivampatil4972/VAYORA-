@@ -18,7 +18,11 @@ a vehicle, electric included; publishing over the real road route; search and bo
 trip started, completed, confirmed and rated; payments and a receipt; passes; a public
 profile; the emergency panel; notifications; Hindi and Marathi; phone width; every
 administrator page; and live position between a driver's and a passenger's browser.
-Screens were checked by eye from screenshots, not by a person using the app.
+Screens were checked by eye from screenshots, not by a person using the app. On 2026-10-21
+the screens added since were driven again in Marathi at phone width (390 px), 21 pages for
+a passenger, a driver and an administrator: none scrolled sideways, and the only English
+left was names, stop names as drivers typed them, a fare's published source and the
+browser's own AM and PM.
 
 Last updated: 2026-10-21. Test suites and how to run them are in [TESTING.md](TESTING.md).
 

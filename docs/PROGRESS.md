@@ -1,5 +1,18 @@
 # Progress
 
+## 2026-10-21 (later still) — the newer screens in Marathi on a phone-sized screen
+
+- **21 pages driven in headless Edge at 390 px, in Marathi**: a passenger's search results
+  (walks, rickshaws, a driver's record), bookings, payments, receipt, passes, notifications
+  and account; a nudged driver's notifications, rides, publish form, earnings, record,
+  vehicles and account; and the administrator's overview, what-if, unmet demand,
+  durability, rides, buses and stopovers. No page scrolled sideways. The only English left
+  was what is meant to stay: people's names, stop names as drivers typed them, the
+  rickshaw fare's published source, and AM and PM, which the browser's Marathi date format
+  writes in Latin letters. No fault found; checked by eye from the screenshots too.
+- Not a phone: an emulated screen in a desktop browser. Using the app by hand on a phone
+  is still the team's to do.
+
 ## 2026-10-21 (late night) — four features seen in a browser; two faults fixed
 
 - **Seen in headless Edge against the running stack** for the first time: an identity
