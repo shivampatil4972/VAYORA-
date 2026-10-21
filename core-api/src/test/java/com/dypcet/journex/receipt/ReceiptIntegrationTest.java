@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.dypcet.journex.PostgresIntegrationTest;
@@ -14,6 +15,8 @@ import com.dypcet.journex.identity.UserRole;
 import com.dypcet.journex.pass.PassProperties.Kind;
 import com.dypcet.journex.pass.PassService;
 import com.dypcet.journex.payment.PaymentChoice;
+import com.dypcet.journex.receipt.ReceiptService.PassReceipt;
+import com.dypcet.journex.referral.ReferralService;
 import com.dypcet.journex.ride.RideService;
 import com.dypcet.journex.ride.RideService.PublishRide;
 import com.dypcet.journex.ride.RideService.StopInput;
@@ -55,6 +58,9 @@ class ReceiptIntegrationTest extends PostgresIntegrationTest {
 
     @Autowired
     private ReceiptService receipts;
+
+    @Autowired
+    private ReferralService referrals;
 
     @Autowired
     private TokenService tokens;
@@ -148,6 +154,60 @@ class ReceiptIntegrationTest extends PostgresIntegrationTest {
                         .header("Authorization", "Bearer " + tokens.issue(driver, UserRole.DRIVER)))
                 .andExpect(status().isForbidden());
         mvc.perform(get("/api/v1/bookings/" + bookingId + "/receipt")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void theAppsReceiptIsTheSameFactsInTheirOwnScriptForItsOwnerOnly() throws Exception {
+        long devanagari = user(UserRole.PASSENGER, "आशा पाटील");
+        long bookingId = bookings.request(devanagari, rideId, 0, 1, 2, PaymentChoice.card(), null).id();
+        bookings.cancel(devanagari, bookingId);
+
+        mvc.perform(get("/api/v1/bookings/" + bookingId + "/receipt-data")
+                        .header("Authorization", "Bearer " + tokens.issue(devanagari, UserRole.PASSENGER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bookingId").value(bookingId))
+                // Kept as written: the PDF can only print it as "??? ?????".
+                .andExpect(jsonPath("$.passenger").value("आशा पाटील"))
+                .andExpect(jsonPath("$.driver").value("Ravi Jadhav"))
+                .andExpect(jsonPath("$.fromStop").value("Kolhapur")).andExpect(jsonPath("$.toStop").value("Pune"))
+                .andExpect(jsonPath("$.seats").value(2)).andExpect(jsonPath("$.status").value("CANCELLED"))
+                .andExpect(jsonPath("$.method").value("CARD")).andExpect(jsonPath("$.provider").value("MOCK"))
+                .andExpect(jsonPath("$.fare").value(900.0)).andExpect(jsonPath("$.serviceFee").value(90.0))
+                .andExpect(jsonPath("$.total").value(990.0))
+                .andExpect(jsonPath("$.refunded").value(900.0))
+                .andExpect(jsonPath("$.refundReason").value("PASSENGER_CANCELLED"));
+        assertThat(text(receipts.forBooking(devanagari, bookingId))).contains("Passenger: ??? ?????");
+
+        mvc.perform(get("/api/v1/bookings/" + bookingId + "/receipt-data")
+                        .header("Authorization", "Bearer " + tokens.issue(passenger, UserRole.PASSENGER)))
+                .andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/bookings/" + bookingId + "/receipt-data")
+                        .header("Authorization", "Bearer " + tokens.issue(driver, UserRole.DRIVER)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void aPassReceiptSaysWhatWasPaidOrThatItWasAReward() throws Exception {
+        long bought = passes.buy(passenger, Kind.MONTHLY, PaymentChoice.card()).id();
+        long invited = user(UserRole.PASSENGER, "Invited");
+        referrals.recordSignUp(passenger, invited);
+        passes.reward(passenger, Kind.WEEKLY, invited);
+        long reward = passes.of(passenger).stream().filter(p -> p.reward()).findFirst().orElseThrow().id();
+
+        mvc.perform(get("/api/v1/passes/" + bought + "/receipt-data")
+                        .header("Authorization", "Bearer " + tokens.issue(passenger, UserRole.PASSENGER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.passId").value(bought)).andExpect(jsonPath("$.passenger").value("Asha Patil"))
+                .andExpect(jsonPath("$.kind").value("MONTHLY")).andExpect(jsonPath("$.price").value(299.0))
+                .andExpect(jsonPath("$.method").value("CARD")).andExpect(jsonPath("$.provider").value("MOCK"))
+                .andExpect(jsonPath("$.reward").value(false));
+
+        PassReceipt free = receipts.pass(passenger, reward);
+        assertThat(free.reward()).isTrue();
+        assertThat(free.method()).isNull();
+        assertThat(free.price()).isEqualByComparingTo("0");
+        // It starts when the bought one ends.
+        assertThat(free.startsAt()).isEqualTo(receipts.pass(passenger, bought).endsAt());
     }
 
     private static String text(byte[] pdf) throws IOException {

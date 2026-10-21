@@ -1,6 +1,8 @@
 package com.dypcet.journex.receipt;
 
 import com.dypcet.journex.identity.CurrentUser;
+import com.dypcet.journex.receipt.ReceiptService.BookingReceipt;
+import com.dypcet.journex.receipt.ReceiptService.PassReceipt;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -32,6 +34,17 @@ public class ReceiptController {
     @GetMapping("/passes/{id}/receipt")
     public ResponseEntity<byte[]> pass(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
         return pdf(receipts.forPass(CurrentUser.id(jwt), id), "journex-pass-" + id + ".pdf");
+    }
+
+    /** The same receipt as facts, for the app to show in the member's language and script. */
+    @GetMapping("/bookings/{id}/receipt-data")
+    public BookingReceipt bookingData(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
+        return receipts.booking(CurrentUser.id(jwt), id);
+    }
+
+    @GetMapping("/passes/{id}/receipt-data")
+    public PassReceipt passData(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
+        return receipts.pass(CurrentUser.id(jwt), id);
     }
 
     private static ResponseEntity<byte[]> pdf(byte[] body, String filename) {
