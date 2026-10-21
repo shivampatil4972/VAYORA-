@@ -38,6 +38,12 @@ export const formatDateTime = (iso: string): string =>
     new Date(iso),
   );
 
+/** With the year, for a record such as a receipt. */
+export const formatFullDateTime = (iso: string): string =>
+  dateFormat('fullDateTime', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }).format(
+    new Date(iso),
+  );
+
 export const formatTime = (iso: string): string => dateFormat('time', { hour: 'numeric', minute: '2-digit' }).format(new Date(iso));
 
 export const formatDate = (iso: string): string =>
@@ -50,6 +56,16 @@ export const formatRupees = (amount: number): string =>
     style: 'currency',
     currency: 'INR',
     maximumFractionDigits: 0,
+    numberingSystem: 'latn',
+  }).format(amount);
+
+/** To the paisa, as a receipt states it. */
+export const formatExactRupees = (amount: number): string =>
+  new Intl.NumberFormat(LOCALES[language], {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
     numberingSystem: 'latn',
   }).format(amount);
 

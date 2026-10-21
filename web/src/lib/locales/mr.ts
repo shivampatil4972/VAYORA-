@@ -765,6 +765,58 @@ export const mr: Record<string, string> = {
     'पावती डाउनलोड होऊ शकली नाही. पुन्हा प्रयत्न करा.',
   'Receipt':
     'पावती',
+  'View or print receipt':
+    'पावती पाहा किंवा छापा',
+  'Receipt for booking {id}':
+    'बुकिंग {id} ची पावती',
+  'Receipt for travel pass {id}':
+    'प्रवास पास {id} ची पावती',
+  '{from} to {to}, {n} seat':
+    '{from} ते {to}, {n} जागा',
+  '{from} to {to}, {n} seats':
+    '{from} ते {to}, {n} जागा',
+  'Boarding':
+    'बसण्याची वेळ',
+  'Booking status':
+    'बुकिंगची स्थिती',
+  '{when}, by {method}':
+    '{when}, {method} ने',
+  'Fare':
+    'भाडे',
+  'Service fee':
+    'सेवा शुल्क',
+  'Total':
+    'एकूण',
+  'Refunded':
+    'परत केलेले',
+  'Pass':
+    'पास',
+  'Period':
+    'कालावधी',
+  '{start} until {end}':
+    '{start} पासून {end} पर्यंत',
+  'No service fee is charged on bookings requested while it runs.':
+    'तो चालू असताना केलेल्या बुकिंग विनंत्यांवर सेवा शुल्क आकारले जात नाही.',
+  'Given free on {date} as a reward for an invitation. Nothing was paid.':
+    '{date} रोजी निमंत्रणाचे बक्षीस म्हणून मोफत दिला. काहीही पैसे भरले नाहीत.',
+  'Simulated payment: no money was taken or paid. This is a student project.':
+    'नमुना (सिम्युलेशन) पेमेंट: कोणतेही पैसे घेतले किंवा दिले गेले नाहीत. हा एक विद्यार्थी प्रकल्प आहे.',
+  "Paid in Razorpay's test mode, where no real money moves. This is a student project.":
+    'Razorpay च्या टेस्ट मोडमध्ये पैसे भरले, जिथे खरे पैसे हलत नाहीत. हा एक विद्यार्थी प्रकल्प आहे.',
+  'Paid through Razorpay.':
+    'Razorpay मधून पैसे भरले.',
+  'Payment provider: {provider}':
+    'पेमेंट प्रदाता: {provider}',
+  'This is not a tax invoice.':
+    'हे कर बीजक (टॅक्स इनव्हॉइस) नाही.',
+  'Times are India Standard Time.':
+    'वेळा भारतीय प्रमाण वेळेनुसार (IST) आहेत.',
+  'JOURNEX, Kolhapur to Pune':
+    'JOURNEX, कोल्हापूर ते पुणे',
+  'Print or save as PDF':
+    'छापा किंवा PDF म्हणून जतन करा',
+  'To keep a copy, choose to save as PDF instead of a printer.':
+    'प्रत ठेवण्यासाठी, प्रिंटरऐवजी PDF म्हणून जतन करणे निवडा.',
   // Durability explanations
   'How far ahead it was booked':
     'किती आधी बुक केले',

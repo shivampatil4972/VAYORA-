@@ -6,6 +6,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { AppRoutes } from './App';
 import { AuthProvider } from './lib/auth';
+import { setFormatLanguage } from './lib/format';
+import { LanguageProvider, type Language } from './lib/i18n';
 import type { Booking, Candidate, Role, Session } from './lib/types';
 
 function signIn(role: Role) {
@@ -1875,6 +1877,99 @@ describe('receipts', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: 'Download receipt (PDF, in English)' }));
     expect(await screen.findByText('The receipt could not be downloaded. Try again.')).toBeInTheDocument();
+  });
+
+  /** As `open`, in a language other than English. */
+  function openIn(path: string, language: Language) {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <LanguageProvider initial={language}>
+        <QueryClientProvider client={client}>
+          <AuthProvider>
+            <MemoryRouter initialEntries={[path]}>
+              <AppRoutes />
+            </MemoryRouter>
+          </AuthProvider>
+        </QueryClientProvider>
+      </LanguageProvider>,
+    );
+  }
+
+  const receipt = {
+    bookingId: 90, passenger: 'आशा पाटील', driver: 'Ravi Jadhav', fromStop: 'Kolhapur', toStop: 'Pune', seats: 2,
+    boarding: '2026-10-30T04:30:00Z', status: 'CANCELLED', paidAt: '2026-10-27T10:00:00Z', method: 'UPI',
+    fare: 900, serviceFee: 90, total: 990, refunded: 900, refundReason: 'PASSENGER_CANCELLED', provider: 'MOCK',
+  };
+
+  it('opens a receipt from the payments page, saying the payment was simulated and is no tax invoice', async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /payments': () => json([{ bookingId: 90, fromStop: 'Kolhapur', toStop: 'Pune', fare: 900, serviceFee: 90, amount: 990,
+        method: 'UPI', provider: 'MOCK', status: 'SETTLED', refunded: 900, refundReason: 'PASSENGER_CANCELLED', createdAt: '2026-10-27T10:00:00Z' }]),
+      'GET /bookings/90/receipt-data': () => json(receipt),
+    });
+    open('/payments');
+
+    await userEvent.click(await screen.findByRole('link', { name: 'View or print receipt' }));
+
+    expect(await screen.findByRole('heading', { name: 'Receipt for booking 90' })).toBeInTheDocument();
+    expect(await screen.findByText('Kolhapur to Pune, 2 seats')).toBeInTheDocument();
+    expect(screen.getByText('27 Oct 2026, 3:30 pm, by UPI')).toBeInTheDocument();
+    expect(screen.getByText('₹990.00')).toBeInTheDocument();
+    expect(screen.getByText('₹900.00: You cancelled')).toBeInTheDocument();
+    expect(screen.getByText('Simulated payment: no money was taken or paid. This is a student project.')).toBeInTheDocument();
+    expect(screen.getByText('This is not a tax invoice.')).toBeInTheDocument();
+  });
+
+  it('shows a receipt in the reader language with names as written, and prints it from the browser', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /bookings/90/receipt-data': () => json(receipt) });
+    const print = vi.spyOn(window, 'print').mockImplementation(() => {});
+    try {
+      openIn('/receipts/booking/90', 'mr');
+
+      expect(await screen.findByRole('heading', { name: 'बुकिंग 90 ची पावती' })).toBeInTheDocument();
+      // The PDF's fonts would print this name as "??? ?????".
+      expect(await screen.findByText('आशा पाटील')).toBeInTheDocument();
+      expect(screen.getByText('कोल्हापूर ते पुणे, 2 जागा')).toBeInTheDocument();
+      expect(screen.getByText('रद्द')).toBeInTheDocument();
+      expect(screen.getByText('₹900.00: तुम्ही रद्द केले')).toBeInTheDocument();
+      expect(screen.getByText(/^नमुना \(सिम्युलेशन\) पेमेंट/)).toBeInTheDocument();
+      expect(screen.getByText('हे कर बीजक (टॅक्स इनव्हॉइस) नाही.')).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole('button', { name: 'छापा किंवा PDF म्हणून जतन करा' }));
+      expect(print).toHaveBeenCalledOnce();
+    } finally {
+      print.mockRestore();
+      setFormatLanguage('en');
+      document.documentElement.lang = '';
+    }
+  });
+
+  it('says a pass given as a reward was not paid for, and names no provider', async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /passes/4/receipt-data': () => json({ passId: 4, passenger: 'Asha Patil', kind: 'WEEKLY', price: 0,
+        startsAt: '2026-11-01T00:00:00Z', endsAt: '2026-11-08T00:00:00Z', paidAt: '2026-10-20T08:00:00Z',
+        method: null, provider: 'REFERRAL', reward: true }),
+    });
+    open('/receipts/pass/4');
+
+    expect(await screen.findByRole('heading', { name: 'Receipt for travel pass 4' })).toBeInTheDocument();
+    expect(await screen.findByText('Weekly pass')).toBeInTheDocument();
+    expect(screen.getByText('Given free on 20 Oct 2026, 1:30 pm as a reward for an invitation. Nothing was paid.')).toBeInTheDocument();
+    expect(screen.getByText('₹0.00')).toBeInTheDocument();
+    expect(screen.queryByText(/Simulated payment|Payment provider|REFERRAL/)).not.toBeInTheDocument();
+    expect(screen.getByText('This is not a tax invoice.')).toBeInTheDocument();
+  });
+
+  it('says why a receipt cannot be shown', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /bookings/91/receipt-data': () => json({ detail: 'No receipt for that booking' }, 404) });
+    open('/receipts/booking/91');
+
+    expect(await screen.findByText('No receipt for that booking')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Print or save as PDF' })).not.toBeInTheDocument();
   });
 });
 

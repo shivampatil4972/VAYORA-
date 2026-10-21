@@ -508,8 +508,48 @@ export interface PassengerPayment {
   status: 'HELD' | 'SETTLED';
   /** 0 when nothing came back. */
   refunded: number;
-  refundReason: 'NOT_ACCEPTED' | 'DRIVER_CANCELLED' | 'PASSENGER_CANCELLED' | null;
+  refundReason: RefundReason | null;
   createdAt: string;
+}
+
+export type RefundReason = 'NOT_ACCEPTED' | 'DRIVER_CANCELLED' | 'PASSENGER_CANCELLED';
+
+/** What a booking's receipt says: the same facts as its PDF, names as written. */
+export interface BookingReceipt {
+  bookingId: number;
+  passenger: string;
+  driver: string;
+  fromStop: string;
+  toStop: string;
+  seats: number;
+  boarding: string;
+  status: BookingStatus;
+  paidAt: string;
+  method: PaymentMethod;
+  fare: number;
+  serviceFee: number;
+  total: number;
+  /** 0 when nothing came back. */
+  refunded: number;
+  refundReason: RefundReason | null;
+  /** `MOCK` means no money moved. */
+  provider: string;
+}
+
+/** What a pass's receipt says. */
+export interface PassReceipt {
+  passId: number;
+  passenger: string;
+  kind: PassKind;
+  price: number;
+  startsAt: string;
+  endsAt: string;
+  /** When it was bought, or given if a reward. */
+  paidAt: string;
+  /** None for a reward: nothing was paid. */
+  method: PaymentMethod | null;
+  provider: string;
+  reward: boolean;
 }
 
 /** A payout to a driver. */

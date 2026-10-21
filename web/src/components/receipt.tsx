@@ -1,25 +1,33 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import { download } from '../lib/api';
 import { useT } from '../lib/i18n';
 
-/** Saves a receipt PDF. The receipt itself is in English: its fonts cover Latin script only. */
-export function ReceiptButton({ path, filename }: { path: string; filename: string }) {
+/**
+ * A booking's or a pass's receipt: to view in the reader's language and print or save from
+ * the browser, or as a PDF in English, whose fonts cover Latin script only.
+ */
+export function ReceiptLinks({ of, id }: { of: 'booking' | 'pass'; id: number }) {
   const t = useT();
   const [state, setState] = useState<'idle' | 'busy' | 'failed'>('idle');
+  const link = 'text-left text-sm font-medium text-teal-800 underline underline-offset-2';
   return (
-    <span className="inline-flex flex-col">
+    <span className="inline-flex flex-col gap-1">
+      <Link to={`/receipts/${of}/${id}`} className={link}>
+        {t('View or print receipt')}
+      </Link>
       <button
         type="button"
         disabled={state === 'busy'}
         onClick={() => {
           setState('busy');
-          download(path, filename).then(
+          download(`/${of === 'booking' ? 'bookings' : 'passes'}/${id}/receipt`, `journex-${of}-${id}.pdf`).then(
             () => setState('idle'),
             () => setState('failed'),
           );
         }}
-        className="text-left text-sm font-medium text-teal-800 underline underline-offset-2 disabled:opacity-50"
+        className={`${link} disabled:opacity-50`}
       >
         {t('Download receipt (PDF, in English)')}
       </button>

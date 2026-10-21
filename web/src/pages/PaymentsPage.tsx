@@ -1,24 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { SimulatedPaymentNotice } from '../components/payment';
-import { ReceiptButton } from '../components/receipt';
+import { ReceiptLinks } from '../components/receipt';
 import { Card, Page, QueryState } from '../components/ui';
 import { api } from '../lib/api';
 import { formatDateTime, formatRupees } from '../lib/format';
-import { msg, useT } from '../lib/i18n';
+import { useT } from '../lib/i18n';
+import { methodLabels, refundReasons } from '../lib/payments';
 import type { PassengerPayment } from '../lib/types';
-
-const methodLabels: Record<PassengerPayment['method'], string> = {
-  CARD: msg('Card'),
-  UPI: msg('UPI'),
-  WALLET: msg('Wallet'),
-};
-
-const refundReasons: Record<NonNullable<PassengerPayment['refundReason']>, string> = {
-  NOT_ACCEPTED: msg('The driver did not accept'),
-  DRIVER_CANCELLED: msg('The driver cancelled'),
-  PASSENGER_CANCELLED: msg('You cancelled'),
-};
 
 /** What a passenger has paid, and what came back, newest first. */
 export function PaymentsPage() {
@@ -77,7 +66,7 @@ export function PaymentsPage() {
                           : t('Nothing')}
                     </td>
                     <td className="py-2">
-                      <ReceiptButton path={`/bookings/${payment.bookingId}/receipt`} filename={`journex-booking-${payment.bookingId}.pdf`} />
+                      <ReceiptLinks of="booking" id={payment.bookingId} />
                     </td>
                   </tr>
                 ))}

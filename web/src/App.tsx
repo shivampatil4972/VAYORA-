@@ -16,6 +16,7 @@ import { NotificationsPage } from './pages/NotificationsPage';
 import { PassesPage } from './pages/PassesPage';
 import { PaymentsPage } from './pages/PaymentsPage';
 import { BookingsPage, SearchPage } from './pages/PassengerPages';
+import { BookingReceiptPage, PassReceiptPage } from './pages/ReceiptPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { ReliabilityPage } from './pages/ReliabilityPage';
 import { EmergenciesPage } from './pages/SafetyAdminPages';
@@ -46,6 +47,8 @@ export function AppRoutes() {
           <Route path="bookings" element={<BookingsPage />} />
           <Route path="payments" element={<PaymentsPage />} />
           <Route path="passes" element={<PassesPage />} />
+          <Route path="receipts/booking/:id" element={<BookingReceiptPage />} />
+          <Route path="receipts/pass/:id" element={<PassReceiptPage />} />
         </Route>
         <Route element={<RequireRole role="DRIVER" />}>
           <Route path="rides" element={<RidesPage />} />

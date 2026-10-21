@@ -177,6 +177,9 @@ const statusLabel: Record<BookingStatus | RideStatus, [string, string]> = {
   IN_PROGRESS: [msg('On the road'), 'bg-amber-100 text-amber-900'],
 };
 
+/** What a status is called, to pass through `t`. */
+export const statusText = (status: BookingStatus | RideStatus): string => statusLabel[status][0];
+
 export function StatusBadge({ status }: { status: BookingStatus | RideStatus }) {
   const t = useT();
   const [label, style] = statusLabel[status];

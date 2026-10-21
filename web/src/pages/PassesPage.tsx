@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
 import { SimulatedPaymentNotice, usePaymentTerms } from '../components/payment';
-import { ReceiptButton } from '../components/receipt';
+import { ReceiptLinks } from '../components/receipt';
 import { Button, Card, Notice, Page, QueryState, SelectField } from '../components/ui';
 import { api } from '../lib/api';
 import { formatDateTime, formatRupees } from '../lib/format';
@@ -65,7 +65,7 @@ export function PassesPage() {
                 {pass.reward ? t('Free: a reward for an invitation') : formatRupees(pass.price)}
               </p>
               <p className="mt-2">
-                <ReceiptButton path={`/passes/${pass.id}/receipt`} filename={`journex-pass-${pass.id}.pdf`} />
+                <ReceiptLinks of="pass" id={pass.id} />
               </p>
             </Card>
           );

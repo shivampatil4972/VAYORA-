@@ -765,6 +765,58 @@ export const hi: Record<string, string> = {
     'रसीद डाउनलोड नहीं हो सकी। फिर से कोशिश करें।',
   'Receipt':
     'रसीद',
+  'View or print receipt':
+    'रसीद देखें या प्रिंट करें',
+  'Receipt for booking {id}':
+    'बुकिंग {id} की रसीद',
+  'Receipt for travel pass {id}':
+    'यात्रा पास {id} की रसीद',
+  '{from} to {to}, {n} seat':
+    '{from} से {to}, {n} सीट',
+  '{from} to {to}, {n} seats':
+    '{from} से {to}, {n} सीटें',
+  'Boarding':
+    'सवार होने का समय',
+  'Booking status':
+    'बुकिंग की स्थिति',
+  '{when}, by {method}':
+    '{when}, {method} से',
+  'Fare':
+    'किराया',
+  'Service fee':
+    'सेवा शुल्क',
+  'Total':
+    'कुल',
+  'Refunded':
+    'वापस किया गया',
+  'Pass':
+    'पास',
+  'Period':
+    'अवधि',
+  '{start} until {end}':
+    '{start} से {end} तक',
+  'No service fee is charged on bookings requested while it runs.':
+    'इसके चालू रहते किए गए बुकिंग अनुरोधों पर कोई सेवा शुल्क नहीं लिया जाता।',
+  'Given free on {date} as a reward for an invitation. Nothing was paid.':
+    '{date} को एक निमंत्रण के इनाम के रूप में मुफ़्त दिया गया। कुछ भी भुगतान नहीं किया गया।',
+  'Simulated payment: no money was taken or paid. This is a student project.':
+    'अनुकरण (सिमुलेशन) भुगतान: न कोई पैसा लिया गया, न दिया गया। यह एक छात्र परियोजना है।',
+  "Paid in Razorpay's test mode, where no real money moves. This is a student project.":
+    'Razorpay के टेस्ट मोड में भुगतान किया गया, जिसमें कोई असली पैसा नहीं जाता। यह एक छात्र परियोजना है।',
+  'Paid through Razorpay.':
+    'Razorpay के ज़रिए भुगतान किया गया।',
+  'Payment provider: {provider}':
+    'भुगतान प्रदाता: {provider}',
+  'This is not a tax invoice.':
+    'यह कर बीजक (टैक्स इनवॉइस) नहीं है।',
+  'Times are India Standard Time.':
+    'समय भारतीय मानक समय (IST) में हैं।',
+  'JOURNEX, Kolhapur to Pune':
+    'JOURNEX, कोल्हापुर से पुणे',
+  'Print or save as PDF':
+    'प्रिंट करें या PDF के रूप में सहेजें',
+  'To keep a copy, choose to save as PDF instead of a printer.':
+    'प्रति रखने के लिए, प्रिंटर की जगह PDF के रूप में सहेजना चुनें।',
   // Durability explanations
   'How far ahead it was booked':
     'कितने पहले बुक किया गया',

@@ -100,7 +100,7 @@ export function Layout() {
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:rounded focus:bg-white focus:px-3 focus:py-2">
         {t('Skip to content')}
       </a>
-      <header className="border-b border-slate-200 bg-white">
+      <header className="border-b border-slate-200 bg-white print:hidden">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
           <span className="text-lg font-semibold tracking-tight text-teal-800" translate="no">
             {'JOURNEX'}
@@ -137,7 +137,7 @@ export function Layout() {
         </div>
       </header>
       {member && emergency && <SosPanel onClose={() => setEmergency(false)} />}
-      <main id="main" className="mx-auto max-w-4xl px-4 py-8">
+      <main id="main" className="mx-auto max-w-4xl px-4 py-8 print:p-0">
         <Outlet />
       </main>
     </div>
