@@ -269,8 +269,8 @@ mistake for more. Updated 2026-10-21.
 - **The Hindi and Marathi translations have had no native review.** I wrote them. The
   wording on refunds, payments and the emergency notice matters most and should be
   checked first.
-- Some text written by the server stays in English in every language: error messages
-  built from numbers, web pushes, and audit entries (shown as recorded).
+- Some text written by the server stays in English in every language: web pushes, and
+  audit entries (shown as recorded).
 - Plurals use one form for one and another for the rest, which is right for these three
   languages and would not be for others.
 - No end-to-end browser test.

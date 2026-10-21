@@ -1,5 +1,18 @@
 # Progress
 
+## 2026-10-21 (evening) — server errors built from numbers, translated
+
+- **The last gap in 71 that was only building**: the five error messages core-api builds
+  from values, such as "You can have at most 3 emergency contacts", are now shown in Hindi
+  and Marathi with their values kept. The app matches each against a template; a booking
+  status inside one becomes a word ("A cancelled booking cannot become confirmed", in
+  English too). The API's messages are unchanged. A core-api test now finds every message
+  the server builds from values and fails if the app has no template for it; removing one
+  template made it fail, as it should.
+- 71 stays Partial: the translations have had no native review.
+- Tests: 303 Java, 206 Python, 231 web, 28 gateway, all passing.
+- Feature count unchanged: 83 Verified, 11 Partial, 1 Not started of 95.
+
 ## 2026-10-21 (later) — receipts in Hindi and Marathi
 
 - **Receipts in the reader's language (50)**, as chosen: besides the English PDF, each
