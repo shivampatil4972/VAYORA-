@@ -11,8 +11,8 @@ interface Relay {
 }
 
 /**
- * A masked call to the other side of a booking (feature 61). Simulated: nothing is dialled,
- * and the answer says so in full every time.
+ * A masked call to the other side of a booking (feature 61): through Twilio when the server
+ * has an account, simulated otherwise. Either way the answer says which, and carries no number.
  */
 export function CallButton({ bookingId, label }: { bookingId: number; label: string }) {
   const t = useT();
@@ -25,7 +25,9 @@ export function CallButton({ bookingId, label }: { bookingId: number; label: str
       </Button>
       {call.data && (
         <Notice tone="info">
-          {t(
+          {call.data.provider === 'twilio'
+            ? t("Your phone will ring now from JOURNEX's number. Answer it to be connected to {name}: neither of you sees the other's number.", { name: call.data.calleeName })
+            : t(
             "Calling is simulated. With a real phone service you would now be connected to {name} through a masked number, so neither of you sees the other's number. No call was placed, and {name} has been told you tried.",
             { name: call.data.calleeName },
           )}

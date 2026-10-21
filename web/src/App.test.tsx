@@ -2724,6 +2724,22 @@ describe('calling the other side: simulated', () => {
     expect(said).not.toHaveTextContent(/\d{5}/);
   });
 
+  it('with a real phone service, says the phone will ring from the platform number, and shows none', async () => {
+    signIn('PASSENGER');
+    serve({
+      'GET /bookings': () => json([{ ...booking, status: 'CONFIRMED' }]),
+      'POST /bookings/90/call': () => json({ provider: 'twilio', calleeName: 'Ravi Jadhav' }),
+    });
+    open('/bookings');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Call the driver' }));
+
+    const said = await screen.findByText(/^Your phone will ring now from JOURNEX's number\./);
+    expect(said).toHaveTextContent("connected to Ravi Jadhav: neither of you sees the other's number.");
+    expect(screen.queryByText(/Calling is simulated/)).not.toBeInTheDocument();
+    expect(said).not.toHaveTextContent(/\d{5}/);
+  });
+
   it('shows why a call cannot be made', async () => {
     signIn('PASSENGER');
     serve({

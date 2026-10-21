@@ -1553,6 +1553,12 @@ export const mr: Record<string, string> = {
     'बुक करताना तुम्ही Razorpay च्या चेकआउटमध्ये कार्ड, UPI किंवा वॉलेटने पैसे भरता. तिथे पैसे भरलेले बुकिंग फक्त याच राइडसाठी आहे: चालकाने राइड मागे घेतल्यास सर्व रक्कम परत मिळते आणि इतर राइड सुचवल्या जातात.',
   "You pay by card, UPI or a wallet in Razorpay's checkout when you buy.":
     'खरेदी करताना तुम्ही Razorpay च्या चेकआउटमध्ये कार्ड, UPI किंवा वॉलेटने पैसे भरता.',
+  "{name} is calling you through JOURNEX, from the platform's number. Neither of you sees the other's number.":
+    '{name} JOURNEX मधून, प्लॅटफॉर्मच्या नंबरवरून तुम्हाला कॉल करत आहेत. तुमच्यापैकी कोणीही दुसऱ्याचा नंबर पाहत नाही.',
+  "The call could not be placed. Try again, or use the ride's chat.":
+    'कॉल लागू शकला नाही. पुन्हा प्रयत्न करा, किंवा राइडची चॅट वापरा.',
+  "Your phone will ring now from JOURNEX's number. Answer it to be connected to {name}: neither of you sees the other's number.":
+    'आता तुमचा फोन JOURNEX च्या नंबरवरून वाजेल. {name} यांच्याशी जोडले जाण्यासाठी उचला: तुमच्यापैकी कोणीही दुसऱ्याचा नंबर पाहत नाही.',
   'Those stops are not on this ride':
     'हे थांबे या राइडवर नाहीत',
   'Too many wrong attempts. Request a new code.':

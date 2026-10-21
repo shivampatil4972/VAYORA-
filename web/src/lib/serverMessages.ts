@@ -110,6 +110,7 @@ export const SERVER_MESSAGES = [
   msg('No account uses this Google address yet. Choose passenger or driver to create one.'),
   msg('Invalid request content.'),
   msg('Cannot reach the server. Check your connection and try again.'),
+  msg("The call could not be placed. Try again, or use the ride's chat."),
   // Razorpay's checkout and payments (feature 46).
   msg('Choose how to pay'),
   msg('What was paid is not what is due, or not a card, UPI or a wallet. It is being refunded in full, and nothing was bought.'),

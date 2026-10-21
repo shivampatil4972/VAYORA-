@@ -31,11 +31,11 @@ public class TwilioSms {
 
     @Autowired
     public TwilioSms(RestClient.Builder builder,
-            @Value("${journex.sms.twilio.base-url}") String baseUrl,
-            @Value("${journex.sms.twilio.account-sid}") String accountSid,
-            @Value("${journex.sms.twilio.auth-token}") String authToken,
-            @Value("${journex.sms.twilio.from}") String from,
-            @Value("${journex.sms.twilio.timeout}") Duration timeout) {
+            @Value("${journex.twilio.base-url}") String baseUrl,
+            @Value("${journex.twilio.account-sid}") String accountSid,
+            @Value("${journex.twilio.auth-token}") String authToken,
+            @Value("${journex.twilio.from}") String from,
+            @Value("${journex.twilio.timeout}") Duration timeout) {
         this(builder.requestFactory(timeouts(timeout)), baseUrl, accountSid, authToken, from);
     }
 
