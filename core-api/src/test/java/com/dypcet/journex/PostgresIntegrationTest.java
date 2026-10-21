@@ -17,8 +17,13 @@ import org.testcontainers.utility.DockerImageName;
 @SpringBootTest
 public abstract class PostgresIntegrationTest {
 
+    /**
+     * Spring keeps up to 32 test contexts cached, each holding its own pool of 10
+     * connections; Postgres's default of 100 runs out once more than a few exist.
+     */
     private static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>(
-            DockerImageName.parse("postgis/postgis:16-3.4").asCompatibleSubstituteFor("postgres"));
+            DockerImageName.parse("postgis/postgis:16-3.4").asCompatibleSubstituteFor("postgres"))
+            .withCommand("postgres", "-c", "fsync=off", "-c", "max_connections=400");
 
     private static final MongoDBContainer MONGO = new MongoDBContainer(DockerImageName.parse("mongo:7"));
 
