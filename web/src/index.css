@@ -1,3 +1,282 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * The JOURNEX theme: iOS's grouped greys and system colours, with JOURNEX teal as the tint.
+ * Every colour class in the app reads one of these variables (tailwind.config.js), so the
+ * dark values below restyle every screen at once. Values are "r g b" for Tailwind's opacity
+ * modifiers. Print always uses the light set.
+ */
+@layer base {
+  :root {
+    color-scheme: light;
+    --canvas: 242 242 247;
+    --surface: 255 255 255;
+
+    --slate-50: 247 247 250;
+    --slate-100: 238 238 242;
+    --slate-200: 226 226 231;
+    --slate-300: 204 204 210;
+    --slate-400: 170 170 177;
+    --slate-500: 110 110 116;
+    --slate-600: 84 84 90;
+    --slate-700: 58 58 63;
+    --slate-800: 40 40 44;
+    --slate-900: 20 20 22;
+    --slate-950: 8 8 10;
+
+    --teal-50: 238 251 248;
+    --teal-100: 206 244 237;
+    --teal-200: 160 230 219;
+    --teal-600: 13 148 136;
+    --teal-700: 15 118 110;
+    --teal-800: 15 98 91;
+    --teal-900: 17 78 73;
+
+    --red-50: 255 242 241;
+    --red-100: 255 228 226;
+    --red-200: 254 205 202;
+    --red-300: 252 165 160;
+    --red-600: 215 0 21;
+    --red-700: 190 18 32;
+    --red-800: 155 22 30;
+    --red-900: 125 24 30;
+
+    --emerald-50: 236 252 242;
+    --emerald-100: 211 247 224;
+    --emerald-200: 168 237 196;
+    --emerald-800: 4 110 64;
+    --emerald-900: 6 82 52;
+
+    --amber-50: 255 248 230;
+    --amber-100: 255 238 196;
+    --amber-200: 253 220 150;
+    --amber-800: 150 72 0;
+    --amber-900: 120 56 6;
+
+    --sky-100: 222 240 255;
+    --sky-900: 10 72 120;
+
+    --accent: 15 118 110;
+    --accent-strong: 13 99 92;
+    --danger: 215 0 21;
+    --danger-strong: 185 0 18;
+  }
+
+  @media screen and (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --canvas: 0 0 0;
+      --surface: 28 28 30;
+
+      --slate-50: 22 22 24;
+      --slate-100: 38 38 41;
+      --slate-200: 52 52 56;
+      --slate-300: 72 72 76;
+      --slate-400: 99 99 104;
+      --slate-500: 152 152 159;
+      --slate-600: 174 174 180;
+      --slate-700: 205 205 210;
+      --slate-800: 229 229 234;
+      --slate-900: 245 245 247;
+      --slate-950: 255 255 255;
+
+      --teal-50: 6 34 31;
+      --teal-100: 10 52 47;
+      --teal-200: 16 84 76;
+      --teal-600: 48 209 186;
+      --teal-700: 64 220 199;
+      --teal-800: 110 231 213;
+      --teal-900: 160 241 229;
+
+      --red-50: 52 14 14;
+      --red-100: 70 18 18;
+      --red-200: 98 26 26;
+      --red-300: 140 36 36;
+      --red-600: 255 69 58;
+      --red-700: 255 105 97;
+      --red-800: 255 150 143;
+      --red-900: 255 185 180;
+
+      --emerald-50: 10 40 26;
+      --emerald-100: 13 56 35;
+      --emerald-200: 20 86 54;
+      --emerald-800: 110 225 160;
+      --emerald-900: 150 238 188;
+
+      --amber-50: 48 32 6;
+      --amber-100: 66 44 8;
+      --amber-200: 96 64 12;
+      --amber-800: 255 196 90;
+      --amber-900: 255 214 130;
+
+      --sky-100: 10 44 70;
+      --sky-900: 150 210 255;
+
+      --accent: 15 128 118;
+      --accent-strong: 20 148 136;
+      --danger: 215 0 21;
+      --danger-strong: 235 20 40;
+    }
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-slate-900;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ::selection {
+    background: rgb(var(--teal-600) / 0.25);
+  }
+
+  a,
+  button,
+  select,
+  input,
+  textarea {
+    transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+    transition-duration: 180ms;
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Checkboxes are iOS switches. The attribute selector outranks size utilities on the input. */
+  input[type='checkbox'] {
+    appearance: none;
+    -webkit-appearance: none;
+    position: relative;
+    flex: none;
+    width: 2.75rem;
+    height: 1.625rem;
+    margin: 0;
+    border: 0;
+    border-radius: 9999px;
+    background: rgb(var(--slate-300));
+    cursor: pointer;
+    vertical-align: middle;
+    transition: background-color 250ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  input[type='checkbox']::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: calc(1.625rem - 4px);
+    height: calc(1.625rem - 4px);
+    border-radius: 9999px;
+    background: #fff;
+    box-shadow: 0 3px 8px rgb(0 0 0 / 0.15), 0 1px 1px rgb(0 0 0 / 0.16), 0 0 0 0.5px rgb(0 0 0 / 0.04);
+    transition: transform 320ms cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+  input[type='checkbox']:checked {
+    background: rgb(var(--teal-600));
+  }
+  input[type='checkbox']:checked::before {
+    transform: translateX(1.125rem);
+  }
+  input[type='checkbox']:active::before {
+    width: calc(1.625rem + 2px);
+  }
+  input[type='checkbox']:checked:active::before {
+    transform: translateX(calc(1.125rem - 6px));
+  }
+  input[type='checkbox']:focus-visible,
+  input[type='radio']:focus-visible {
+    outline: 3px solid rgb(var(--teal-600) / 0.45);
+    outline-offset: 2px;
+  }
+  input[type='checkbox']:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  input[type='radio'] {
+    width: 1.125rem;
+    height: 1.125rem;
+    accent-color: rgb(var(--teal-600));
+    cursor: pointer;
+  }
+
+  /* Maps dim with the rest of the screen at night; the attribution stays readable. */
+  @media screen and (prefers-color-scheme: dark) {
+    .leaflet-tile-pane {
+      filter: brightness(0.75) contrast(1.08) saturate(0.85);
+    }
+    .leaflet-container {
+      background: rgb(var(--slate-100));
+    }
+  }
+}
+
+@layer components {
+  /* The frosted bar iOS puts under navigation. */
+  .glass {
+    background: rgb(var(--surface) / 0.72);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+
+  /* A select with iOS's chevron in place of the system arrow. */
+  .select-ios {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%238e8e93' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.85rem center;
+    background-size: 0.7rem;
+    padding-right: 2.25rem;
+  }
+
+  /* Placeholder blocks while content loads. */
+  .skeleton {
+    border-radius: 1rem;
+    background: linear-gradient(
+      100deg,
+      rgb(var(--slate-100)) 20%,
+      rgb(var(--slate-200) / 0.9) 40%,
+      rgb(var(--slate-100)) 60%
+    );
+    background-size: 200% 100%;
+    @apply animate-shimmer;
+  }
+
+  /* Children arrive one after another, a page's sections or a list's rows. */
+  .stagger > * {
+    @apply animate-pop-in;
+  }
+  .stagger > *:nth-child(2) { animation-delay: 45ms; }
+  .stagger > *:nth-child(3) { animation-delay: 90ms; }
+  .stagger > *:nth-child(4) { animation-delay: 135ms; }
+  .stagger > *:nth-child(5) { animation-delay: 180ms; }
+  .stagger > *:nth-child(6) { animation-delay: 225ms; }
+  .stagger > *:nth-child(7) { animation-delay: 270ms; }
+  .stagger > *:nth-child(8) { animation-delay: 315ms; }
+  .stagger > *:nth-child(n + 9) { animation-delay: 360ms; }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Motion is decoration: none of it for those who ask their device for less. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
