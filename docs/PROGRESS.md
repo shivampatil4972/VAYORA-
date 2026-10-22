@@ -1,5 +1,30 @@
 # Progress
 
+## 2026-10-22 (later) — a production-style interface
+
+- **As chosen, all four bundles**, built on the iOS look of the morning:
+  - *Colour and brand*: each role in its own tint (teal, indigo, violet), icons on every
+    section and action, coloured chips, an illustration on every empty list, and a light,
+    dark or match-device switch in the header, applied before the first paint.
+  - *Real-world patterns*: search results as timeline cards with the driver's avatar and
+    rating; an iOS tab bar on phones with a More sheet; toasts; irreversible actions asked
+    in a sheet that can be swiped down; a seat stepper; a success card whose tick draws
+    itself after booking; a weekly payouts chart and counting figures on Earnings and the
+    admin overview.
+  - *React*: every screen in its own chunk, fetched ahead on hover or focus; an error
+    screen per page; portals for sheets and toasts; re-sorting as a transition that keeps
+    the results on screen; notifications marked read optimistically, rolled back on
+    failure; theme and toasts as context.
+  - *Motion*: panels glide open and closed; sheets and toasts leave as smoothly as they
+    arrive; figures count up. Nothing moves for reduced motion.
+- Two dependencies: `framer-motion` and `lucide-react`. The main bundle went from 730 KB to
+  65 KB of app code, with libraries and translations in their own cached files.
+- Not built: the step-by-step publish wizard and the command palette, the two large items.
+- Seen in headless Edge in light and dark, desktop and phone width, for passenger, driver
+  and administrator; one fault found and fixed there (the chart's text scaled with its
+  width). One web test changed: the confirmation now opens in a dialog.
+- Tests: 304 Java, 206 Python, 232 web, 28 gateway, all passing.
+
 ## 2026-10-22 — an iOS-style look, light and dark
 
 - **The whole interface restyled**, as asked: iOS's grouped greys and system colours with
