@@ -1,5 +1,19 @@
 # Progress
 
+## 2026-10-22 — an iOS-style look, light and dark
+
+- **The whole interface restyled**, as asked: iOS's grouped greys and system colours with
+  JOURNEX teal as the tint, a frosted header with the sections as pills, large titles,
+  capsule buttons that give under the finger, rounded fields with a soft focus glow,
+  iOS switches for every on-off setting, notices with icons, status pills, chat as
+  message bubbles, a loading shimmer, and a drawn Kolhapur to Pune route on the sign-in
+  pages. **Dark mode** follows the device. Screens arrive with a short rise, their sections
+  one after another; nothing moves for those who ask their device for reduced motion.
+- No new dependency: every colour is a CSS variable behind the existing class names, and
+  motion is CSS. Seen in headless Edge in light and dark, desktop and phone width; one
+  fault found there and fixed (the initials avatar was pale in dark mode).
+- Tests: 304 Java, 206 Python, 232 web, 28 gateway, all passing.
+
 ## 2026-10-21 (last) — today's code reviewed
 
 - Read back the day's code (reminder targeting, the scheduler client, the Twilio call

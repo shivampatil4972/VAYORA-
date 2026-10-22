@@ -265,6 +265,8 @@ mistake for more. Updated 2026-10-21.
 - **Screens were viewed in a browser only by a script, its screenshots checked by eye**
   (headless Edge, 2026-10-15 to 17, and single features since, last on 2026-10-21), not by a person using the app, and not on a phone. The map draws its tiles and pins there; the component tests still use
   a stand-in for it.
+- **Light and dark follow the device only.** There is no switch in the app, and maps in dark
+  mode are the light tiles dimmed, not a dark map.
 - Map tiles come from OpenStreetMap's public servers, which is acceptable for a
   demonstration and not for sustained use.
 - **The Hindi and Marathi translations have had no native review.** I wrote them. The

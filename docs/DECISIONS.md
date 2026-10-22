@@ -123,6 +123,8 @@ was decided while building within them.
 
 | Decision | Why | Cost |
 |---|---|---|
+| An iOS-style look, light and dark following the device, JOURNEX teal as the tint (2026-10-22, as the team chose) | Every colour class reads a CSS variable, so one set of dark values restyles every screen; the shared components carry the rest | No switch inside the app: the theme is whatever the device is set to |
+| Motion only in CSS, none of it for reduced motion | A new animation library would add a dependency for what CSS already does | Nothing springs as freely as a native iOS view |
 | English text is the translation key, and tests fail if a string lacks Hindi or Marathi | A missing translation is caught by the build, and still shows English rather than nothing | The English wording cannot change without the tables |
 | Money and times use the same digits in every language | Passenger and driver read the same fare | |
 | A chat message is shown when the gateway relays it, not when it is typed | What a sender sees is what everyone received | |
