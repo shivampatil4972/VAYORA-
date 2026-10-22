@@ -4,7 +4,12 @@ import { cleanup } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, vi } from 'vitest';
 
+import { MotionGlobalConfig } from 'framer-motion';
+
 import { setToken } from '../lib/api';
+
+// Animations finish at once in tests, so an element leaving the page is gone when asserted.
+MotionGlobalConfig.skipAnimations = true;
 
 // Leaflet needs a real browser to draw. This stand-in renders what the map was given as
 // plain elements a test can read, and a button that clicks the map at a fixed place.
