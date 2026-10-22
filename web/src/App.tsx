@@ -1,25 +1,50 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState } from 'react';
+import { MotionConfig } from 'framer-motion';
+import { lazy, useState, type ComponentType } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import { homeFor, Layout, RequireRole } from './components/Layout';
+import { ToastProvider } from './components/toast';
 import { Notice, Page } from './components/ui';
 import { AuthProvider, useAuth } from './lib/auth';
 import { LanguageProvider, useT } from './lib/i18n';
-import { DurabilityPage } from './pages/AdminPages';
-import { WhatIfPage } from './pages/WhatIfPage';
-import { AccountPage } from './pages/AccountPage';
+import { ThemeProvider } from './lib/theme';
+import { load } from './pageLoaders';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
-import { AdminBookingsPage, AdminRidesPage, AuditPage, BusServicesPage, DisputesPage, StopoversPage, SupplyGapsPage, MembersPage, OverviewPage, ReportsPage } from './pages/BackOfficePages';
-import { EarningsPage, PublishRidePage, RidesPage, VehiclesPage } from './pages/DriverPages';
-import { NotificationsPage } from './pages/NotificationsPage';
-import { PassesPage } from './pages/PassesPage';
-import { PaymentsPage } from './pages/PaymentsPage';
-import { BookingsPage, SearchPage } from './pages/PassengerPages';
-import { BookingReceiptPage, PassReceiptPage } from './pages/ReceiptPage';
-import { ProfilePage } from './pages/ProfilePage';
-import { ReliabilityPage } from './pages/ReliabilityPage';
-import { EmergenciesPage } from './pages/SafetyAdminPages';
+
+// Each screen is its own chunk, fetched when first opened, so the first page arrives sooner.
+// Signing in is the first thing anyone sees, so it stays in the main bundle.
+function page<K extends string>(load: () => Promise<Record<K, ComponentType>>, name: K) {
+  return lazy(() => load().then((module) => ({ default: module[name] })));
+}
+const { passenger, driver, backOffice, receipts } = load;
+const SearchPage = page(passenger, 'SearchPage');
+const BookingsPage = page(passenger, 'BookingsPage');
+const PaymentsPage = page(load.payments, 'PaymentsPage');
+const PassesPage = page(load.passes, 'PassesPage');
+const BookingReceiptPage = page(receipts, 'BookingReceiptPage');
+const PassReceiptPage = page(receipts, 'PassReceiptPage');
+const RidesPage = page(driver, 'RidesPage');
+const PublishRidePage = page(driver, 'PublishRidePage');
+const VehiclesPage = page(driver, 'VehiclesPage');
+const EarningsPage = page(driver, 'EarningsPage');
+const ReliabilityPage = page(load.reliability, 'ReliabilityPage');
+const ProfilePage = page(load.profile, 'ProfilePage');
+const NotificationsPage = page(load.notifications, 'NotificationsPage');
+const AccountPage = page(load.account, 'AccountPage');
+const OverviewPage = page(backOffice, 'OverviewPage');
+const ReportsPage = page(backOffice, 'ReportsPage');
+const MembersPage = page(backOffice, 'MembersPage');
+const AuditPage = page(backOffice, 'AuditPage');
+const DisputesPage = page(backOffice, 'DisputesPage');
+const AdminRidesPage = page(backOffice, 'AdminRidesPage');
+const AdminBookingsPage = page(backOffice, 'AdminBookingsPage');
+const BusServicesPage = page(backOffice, 'BusServicesPage');
+const StopoversPage = page(backOffice, 'StopoversPage');
+const SupplyGapsPage = page(backOffice, 'SupplyGapsPage');
+const EmergenciesPage = page(load.safety, 'EmergenciesPage');
+const DurabilityPage = page(load.durability, 'DurabilityPage');
+const WhatIfPage = page(load.whatIf, 'WhatIfPage');
 
 function Home() {
   const { user } = useAuth();
@@ -37,6 +62,10 @@ function NotFound() {
 
 export function AppRoutes() {
   return (
+    <ThemeProvider>
+      <ToastProvider>
+        {/* Motion follows the reader's device: none of it for those who ask for less. */}
+        <MotionConfig reducedMotion="user">
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<Home />} />
@@ -80,6 +109,9 @@ export function AppRoutes() {
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
+        </MotionConfig>
+      </ToastProvider>
+    </ThemeProvider>
   );
 }
 

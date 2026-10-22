@@ -1085,7 +1085,9 @@ describe('my account', () => {
 
     await userEvent.click(section.getByRole('button', { name: 'Remove Meera Patil' }));
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'DELETE')).toBe(false); // asks first
-    await userEvent.click(section.getByRole('button', { name: 'Yes, remove' }));
+    // The question is asked in a dialog over the page, titled with what is being done.
+    const ask = screen.getByRole('dialog', { name: 'Remove Meera Patil' });
+    await userEvent.click(within(ask).getByRole('button', { name: 'Yes, remove' }));
     expect(await section.findByLabelText('Their name')).toBeInTheDocument();
     expect(section.queryByText('Meera Patil')).not.toBeInTheDocument();
   });

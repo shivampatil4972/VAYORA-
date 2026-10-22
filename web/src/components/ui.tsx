@@ -1,8 +1,10 @@
+import { AlertCircle, CheckCircle2, Inbox, Info, type LucideIcon } from 'lucide-react';
 import { forwardRef, useId, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
 
 import { msg, useT } from '../lib/i18n';
 import { translateServerMessage } from '../lib/serverMessages';
 import type { BookingStatus, RideStatus } from '../lib/types';
+import { Sheet } from './sheet';
 
 // Fields as iOS draws them: rounded, quiet until touched, a soft glow of the tint when focused.
 const control =
@@ -93,7 +95,7 @@ export function Button({ tone = 'primary', className = '', ...button }: { tone?:
   );
 }
 
-/** A button for actions that cannot be undone: the first press asks, the second acts. */
+/** A button for actions that cannot be undone: it asks first, in a sheet, and acts only on yes. */
 export function ConfirmButton({ label, confirmLabel, onConfirm, disabled, tone = 'danger' }: {
   label: string;
   confirmLabel: string;
@@ -103,38 +105,34 @@ export function ConfirmButton({ label, confirmLabel, onConfirm, disabled, tone =
 }) {
   const t = useT();
   const [asking, setAsking] = useState(false);
-  if (!asking) {
-    return (
+  return (
+    <>
       <Button tone="secondary" disabled={disabled} onClick={() => setAsking(true)}>
         {label}
       </Button>
-    );
-  }
-  return (
-    <span className="inline-flex animate-pop-in gap-2" role="group" aria-label={label}>
-      <Button
-        tone={tone}
-        disabled={disabled}
-        onClick={() => {
-          setAsking(false);
-          onConfirm();
-        }}
-      >
-        {confirmLabel}
-      </Button>
-      <Button tone="secondary" onClick={() => setAsking(false)}>
-        {t('Keep it')}
-      </Button>
-    </span>
+      <Sheet open={asking} onClose={() => setAsking(false)} title={label}>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button tone="secondary" className="w-full py-3 sm:w-auto sm:py-2" onClick={() => setAsking(false)}>
+            {t('Keep it')}
+          </Button>
+          <Button
+            tone={tone}
+            disabled={disabled}
+            className="w-full py-3 sm:w-auto sm:py-2"
+            onClick={() => {
+              setAsking(false);
+              onConfirm();
+            }}
+          >
+            {confirmLabel}
+          </Button>
+        </div>
+      </Sheet>
+    </>
   );
 }
 
-const noticeIcons = {
-  // An exclamation in a circle, a tick in a circle, an "i" in a circle.
-  error: 'M12 8v5m0 3.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
-  success: 'm8.5 12.5 2.5 2.5 5-5.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
-  info: 'M12 11v5m0-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
-};
+const noticeIcons: Record<'error' | 'success' | 'info', LucideIcon> = { error: AlertCircle, success: CheckCircle2, info: Info };
 
 export function Notice({ tone, children }: { tone: 'error' | 'success' | 'info'; children: ReactNode }) {
   const t = useT();
@@ -146,27 +144,28 @@ export function Notice({ tone, children }: { tone: 'error' | 'success' | 'info';
     success: 'bg-emerald-50 text-emerald-800 ring-emerald-200',
     info: 'bg-slate-100/80 text-slate-700 ring-slate-900/[0.05]',
   }[tone];
+  const Icon = noticeIcons[tone];
   // Errors interrupt a screen reader; everything else waits its turn.
   return (
     <p
       role={tone === 'error' ? 'alert' : 'status'}
       className={`flex animate-pop-in items-start gap-2.5 rounded-2xl px-4 py-3 text-sm leading-relaxed ring-1 ring-inset ${style}`}
     >
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="mt-0.5 h-[18px] w-[18px] flex-none" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d={noticeIcons[tone]} />
-      </svg>
+      <Icon aria-hidden="true" className="mt-0.5 h-[18px] w-[18px] flex-none" strokeWidth={2.2} />
       <span className="min-w-0 flex-1">{content}</span>
     </p>
   );
 }
 
 /** The three states every list has before it has rows. */
-export function QueryState({ isPending, error, isEmpty, empty, onRetry }: {
+export function QueryState({ isPending, error, isEmpty, empty, onRetry, icon }: {
   isPending: boolean;
   error: Error | null;
   isEmpty: boolean;
   empty: string;
   onRetry: () => void;
+  /** What the empty list would hold, drawn on its empty state. */
+  icon?: LucideIcon;
 }) {
   const t = useT();
   if (isPending) {
@@ -190,8 +189,37 @@ export function QueryState({ isPending, error, isEmpty, empty, onRetry }: {
       </div>
     );
   }
-  if (isEmpty) return <Notice tone="info">{empty}</Notice>;
+  if (isEmpty) return <EmptyState text={empty} icon={icon} />;
   return null;
+}
+
+/** The shape of a screen while its code arrives: a title and two blocks, shimmering. */
+export function PageSkeleton() {
+  const t = useT();
+  return (
+    <div aria-busy="true" className="space-y-5">
+      <span className="sr-only">{t('Loading…')}</span>
+      <div aria-hidden="true" className="skeleton h-9 w-56" />
+      <div aria-hidden="true" className="skeleton h-36" />
+      <div aria-hidden="true" className="skeleton h-24 opacity-70" />
+    </div>
+  );
+}
+
+/** Nothing here yet, said with a small coloured illustration instead of a bare line of text. */
+export function EmptyState({ text, icon: Icon = Inbox }: { text: string; icon?: LucideIcon }) {
+  return (
+    <div role="status" className="flex flex-col items-center gap-4 rounded-3xl bg-surface px-6 py-10 text-center shadow-card ring-1 ring-slate-900/[0.04]">
+      <div aria-hidden="true" className="relative h-20 w-20">
+        <div className="absolute inset-0 rotate-6 rounded-[26px] bg-gradient-to-br from-teal-200 via-sky-100 to-amber-100" />
+        <div className="absolute inset-0 -rotate-3 rounded-[26px] bg-gradient-to-tr from-amber-100/70 to-teal-100/70" />
+        <div className="absolute inset-0 flex items-center justify-center rounded-[26px] bg-surface/80 shadow-sm ring-1 ring-slate-900/5">
+          <Icon className="h-9 w-9 text-teal-700" strokeWidth={1.8} />
+        </div>
+      </div>
+      <p className="max-w-sm text-[15px] leading-relaxed text-slate-600">{text}</p>
+    </div>
+  );
 }
 
 const statusLabel: Record<BookingStatus | RideStatus, [string, string]> = {

@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import { SimulatedPaymentNotice, usePaymentTerms } from '../components/payment';
 import { ReceiptLinks } from '../components/receipt';
+import { useToast } from '../components/toast';
 import { Button, Card, Notice, Page, QueryState, SelectField } from '../components/ui';
 import { api } from '../lib/api';
 import { formatDateTime, formatRupees } from '../lib/format';
@@ -16,6 +17,7 @@ export function PassesPage() {
   const t = useT();
   const queryClient = useQueryClient();
   const [method, setMethod] = useState<PaymentMethod>('UPI');
+  const toast = useToast();
   // With Razorpay the passenger pays in its checkout first.
   const checkout = usePaymentTerms().data?.checkout === true;
   const offers = useQuery({ queryKey: ['passes', 'offers'], queryFn: () => api<PassOffer[]>('/passes/offers'), staleTime: Infinity });
@@ -29,6 +31,7 @@ export function PassesPage() {
       void queryClient.invalidateQueries({ queryKey: ['passes', 'mine'] });
       // Prices in search results change while a pass runs.
       void queryClient.invalidateQueries({ queryKey: ['search'] });
+      toast(t('Your pass is bought.'));
     },
   });
   const now = Date.now();
@@ -76,7 +79,6 @@ export function PassesPage() {
         <h2 className="text-lg font-semibold">{t('Buy a pass')}</h2>
         <p className="text-sm text-slate-600">{t('A pass bought while another runs starts when that one ends.')}</p>
         {buy.error && <Notice tone="error">{buy.error.message}</Notice>}
-        {buy.isSuccess && <Notice tone="success">{t('Your pass is bought.')}</Notice>}
         {checkout ? (
           <p className="text-sm text-slate-600">{t("You pay by card, UPI or a wallet in Razorpay's checkout when you buy.")}</p>
         ) : (

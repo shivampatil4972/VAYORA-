@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRef, useState } from 'react';
+import { useRef, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 
@@ -140,6 +140,11 @@ function driverRecord(candidate: Candidate, t: ReturnType<typeof useT>): string 
   });
 }
 
+/** The same search apart from its order. */
+function sameSearch(a: Criteria | null, b: Criteria | null): boolean {
+  return a !== null && b !== null && JSON.stringify({ ...a, sort: null }) === JSON.stringify({ ...b, sort: null });
+}
+
 const candidateKey = (candidate: Candidate, seats: number) =>
   `${candidate.rideId}-${candidate.fromSeq}-${candidate.toSeq}-${seats}`;
 
@@ -210,6 +215,8 @@ export function SearchPage() {
   const terms = usePaymentTerms();
   const checkout = terms.data?.checkout === true;
   const [sort, setSort] = useState<SearchSort>('TIME');
+  // A new order is not urgent: the results on screen stay, dimmed, until the new order arrives.
+  const [sorting, startSorting] = useTransition();
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
   // Exact points chosen on the map. Either replaces its town's centre.
@@ -242,7 +249,11 @@ export function SearchPage() {
         })}`,
       ),
     enabled: criteria !== null,
+    // Re-sorting keeps the current results while the new order loads; a new search starts clean.
+    placeholderData: (previous, previousQuery) =>
+      previousQuery && sameSearch(previousQuery.queryKey[1] as Criteria | null, criteria) ? previous : undefined,
   });
+  const stale = sorting || results.isPlaceholderData;
 
   const book = useMutation({
     mutationFn: async (candidate: Candidate) => {
@@ -506,7 +517,7 @@ export function SearchPage() {
                   onChange={(event) => {
                     const next = event.target.value as SearchSort;
                     setSort(next);
-                    setCriteria({ ...criteria, sort: next });
+                    startSorting(() => setCriteria({ ...criteria, sort: next }));
                   }}
                 >
                   <option value="TIME">{t('Earliest departure')}</option>
@@ -553,6 +564,7 @@ export function SearchPage() {
               )}
             </>
           )}
+          <div aria-busy={stale} className={`stagger space-y-3 transition-opacity duration-200 ${stale ? 'opacity-50' : ''}`}>
           {results.data?.map((candidate) => {
             const key = candidateKey(candidate, criteria.form.seats);
             return (
@@ -701,6 +713,7 @@ export function SearchPage() {
               </Card>
             );
           })}
+          </div>
         </section>
       )}
     </Page>

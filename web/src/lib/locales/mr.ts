@@ -26,6 +26,18 @@ export const mr: Record<string, string> = {
   'Keep it': 'राहू द्या',
   'Loading…': 'लोड होत आहे…',
   'Try again': 'पुन्हा प्रयत्न करा',
+  'Light':
+    'फिकट',
+  'Dark':
+    'गडद',
+  'Match device':
+    'डिव्हाइसप्रमाणे',
+  'Theme: {name}':
+    'थीम: {name}',
+  'More':
+    'अधिक',
+  'Something went wrong on this screen.':
+    'या स्क्रीनवर काहीतरी चूक झाली.',
 
   // Payments and refunds
   'Payments here are simulated. No card, UPI or wallet is contacted and no money is taken or paid out.':

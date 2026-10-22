@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useId, useState, type FormEvent } from 'react';
 
+import { useToast } from '../components/toast';
 import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, TextField } from '../components/ui';
 import { api } from '../lib/api';
 import { initialsOf, PhotoEditor } from '../components/photo';
@@ -48,6 +49,7 @@ function ProfileForm({ profile }: { profile: MyProfile }) {
   const queryClient = useQueryClient();
   const [draft, setDraft] = useState<Draft>(() => draftOf(profile));
   const [phoneError, setPhoneError] = useState<string>();
+  const toast = useToast();
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => setDraft((current) => ({ ...current, [key]: value }));
   const save = useMutation({
     mutationFn: () =>
@@ -64,7 +66,10 @@ function ProfileForm({ profile }: { profile: MyProfile }) {
           chattiness: draft.chattiness || null,
         },
       }),
-    onSuccess: (saved) => queryClient.setQueryData(['me', 'profile'], saved),
+    onSuccess: (saved) => {
+      queryClient.setQueryData(['me', 'profile'], saved);
+      toast(t('Your profile is saved.'));
+    },
   });
 
   function submit(event: FormEvent) {
@@ -86,7 +91,6 @@ function ProfileForm({ profile }: { profile: MyProfile }) {
   return (
     <form className="space-y-4" onSubmit={submit} noValidate>
       {save.error && <Notice tone="error">{save.error.message}</Notice>}
-      {save.isSuccess && <Notice tone="success">{t('Your profile is saved.')}</Notice>}
       <TextField
         label={t('Phone number')}
         type="tel"
