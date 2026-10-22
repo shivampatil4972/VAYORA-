@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { BadgePercent } from 'lucide-react';
 import { useState } from 'react';
 
 import { SimulatedPaymentNotice, usePaymentTerms } from '../components/payment';
@@ -50,6 +51,7 @@ export function PassesPage() {
           error={mine.error}
           isEmpty={mine.data?.length === 0}
           empty={t('You have no pass.')}
+        icon={BadgePercent}
           onRetry={() => void mine.refetch()}
         />
         {mine.data?.map((pass) => {

@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Car, CarFront, IndianRupee, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
@@ -12,6 +13,9 @@ import { InsuranceEditor } from '../components/insurance';
 import { RideChat } from '../components/RideChat';
 import { initialsOf, PhotoEditor } from '../components/photo';
 import { RouteMap } from '../components/RouteMap';
+import { WeeklyPayoutChart } from '../components/charts';
+import { Collapse } from '../components/collapse';
+import { CountUp } from '../components/countup';
 import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, StatusBadge, TextField } from '../components/ui';
 import { api } from '../lib/api';
 import { CORRIDOR } from '../lib/corridor';
@@ -51,6 +55,7 @@ export function VehiclesPage() {
         error={vehicles.error}
         isEmpty={vehicles.data?.length === 0}
         empty={t('Add a vehicle before you publish a ride.')}
+        icon={CarFront}
         onRetry={() => void vehicles.refetch()}
       />
       {vehicles.data?.map((vehicle) => (
@@ -554,6 +559,7 @@ export function RidesPage() {
         error={rides.error}
         isEmpty={rides.data?.length === 0}
         empty={t('You have not published a ride yet.')}
+        icon={Car}
         onRetry={() => void rides.refetch()}
       />
       {rides.data?.map((ride) => (
@@ -669,7 +675,7 @@ function RideBookings({ ride }: { ride: Ride }) {
         )}
       </div>
       {live && chatOpen && <RideChat rideId={ride.id} rideStatus={ride.status} />}
-      {open && (
+      <Collapse open={open}>
         <div className="mt-3 space-y-2">
           {decide.error && <Notice tone="error">{decide.error.message}</Notice>}
           <QueryState
@@ -677,6 +683,7 @@ function RideBookings({ ride }: { ride: Ride }) {
             error={bookings.error}
             isEmpty={bookings.data?.length === 0}
             empty={t('Nobody has booked this ride yet.')}
+        icon={Users}
             onRetry={() => void bookings.refetch()}
           />
           {bookings.data?.map((booking) => {
@@ -761,7 +768,7 @@ function RideBookings({ ride }: { ride: Ride }) {
             );
           })}
         </div>
-      )}
+      </Collapse>
     </div>
   );
 }
@@ -785,13 +792,19 @@ export function EarningsPage() {
         error={settlements.error}
         isEmpty={settlements.data?.length === 0}
         empty={t('Nothing has been paid out yet. You are paid the fare when a trip completes.')}
+        icon={IndianRupee}
         onRetry={() => void settlements.refetch()}
       />
       {settlements.data && settlements.data.length > 0 && (
         <Card>
-          <p className="text-sm text-slate-600">{t('Total paid out')}</p>
-          <p className="text-2xl font-semibold">{formatRupees(total)}</p>
-          <div className="mt-4 overflow-x-auto">
+          <p className="text-sm font-medium text-slate-600">{t('Total paid out')}</p>
+          <p className="mt-1 text-5xl font-bold tracking-tight tabular-nums text-slate-900">
+            <CountUp value={total} format={formatRupees} />
+          </p>
+          <div className="mt-6">
+            <WeeklyPayoutChart payouts={settlements.data} />
+          </div>
+          <div className="mt-6 overflow-x-auto">
             <table className="w-full text-left text-sm">
               <caption className="sr-only">{t('Payouts, newest first')}</caption>
               <thead className="border-b border-slate-200 text-slate-600">

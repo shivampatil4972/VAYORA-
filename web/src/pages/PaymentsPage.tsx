@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { Wallet } from 'lucide-react';
 
 import { SimulatedPaymentNotice } from '../components/payment';
 import { ReceiptLinks } from '../components/receipt';
@@ -23,6 +24,7 @@ export function PaymentsPage() {
         error={payments.error}
         isEmpty={payments.data?.length === 0}
         empty={t('You have not paid for anything yet.')}
+        icon={Wallet}
         onRetry={() => void payments.refetch()}
       />
       {payments.data && payments.data.length > 0 && (

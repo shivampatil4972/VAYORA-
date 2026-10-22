@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { BellOff } from 'lucide-react';
 
 import { Button, Card, Notice, Page, QueryState } from '../components/ui';
 import { api } from '../lib/api';
@@ -49,6 +50,7 @@ export function NotificationsPage() {
         error={notifications.error}
         isEmpty={notifications.data?.length === 0}
         empty={t('You have no notifications.')}
+        icon={BellOff}
         onRetry={() => void notifications.refetch()}
       />
       <ul className="space-y-3">

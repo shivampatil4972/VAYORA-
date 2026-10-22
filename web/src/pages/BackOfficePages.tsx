@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Bus, Flag, Fuel, type LucideIcon, Route as RouteIcon, Scale, Ticket, TrendingUp, Users } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { reportReasons } from '../components/report';
+import { CountUp } from '../components/countup';
 import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, StatusBadge, TextField } from '../components/ui';
 import { api } from '../lib/api';
 import { msg, useT } from '../lib/i18n';
@@ -29,6 +31,23 @@ const roleLabels: Record<Role, string> = {
   DRIVER: msg('Driver'),
   ADMIN: msg('Administrator'),
 };
+
+const sum = (counts: Record<string, number>) => Object.values(counts).reduce((total, n) => total + n, 0);
+
+/** A headline figure with its icon, counting up when the page opens. */
+function Tile({ label, value, icon: Icon, tone }: { label: string; value: number; icon: LucideIcon; tone: string }) {
+  return (
+    <div className="rounded-2xl bg-surface p-4 shadow-card ring-1 ring-slate-900/[0.04]">
+      <span aria-hidden="true" className={`flex h-10 w-10 items-center justify-center rounded-xl ${tone}`}>
+        <Icon className="h-5 w-5" />
+      </span>
+      <p className="mt-3 text-3xl font-bold tracking-tight tabular-nums text-slate-900">
+        <CountUp value={value} format={(n) => Math.round(n).toLocaleString('en-IN')} />
+      </p>
+      <p className="text-sm font-medium text-slate-600">{label}</p>
+    </div>
+  );
+}
 
 function Counts({ title, counts }: { title: string; counts: Record<string, number> }) {
   const t = useT();
@@ -60,6 +79,12 @@ export function OverviewPage() {
       <QueryState isPending={overview.isPending} error={overview.error} isEmpty={false} empty="" onRetry={() => void overview.refetch()} />
       {overview.data && (
         <>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <Tile label={t('Members')} value={sum(overview.data.users)} icon={Users} tone="bg-teal-100 text-teal-900" />
+            <Tile label={t('Rides')} value={sum(overview.data.rides)} icon={RouteIcon} tone="bg-sky-100 text-sky-900" />
+            <Tile label={t('Bookings')} value={sum(overview.data.bookings)} icon={Ticket} tone="bg-emerald-100 text-emerald-900" />
+            <Tile label={t('Reports')} value={overview.data.openReports} icon={Flag} tone="bg-amber-100 text-amber-900" />
+          </div>
           {overview.data.openReports > 0 && (
             <Notice tone="info">
               {overview.data.openReports === 1
@@ -109,6 +134,7 @@ export function ReportsPage() {
         error={reports.error}
         isEmpty={reports.data?.length === 0}
         empty={t('No reports are waiting.')}
+        icon={Flag}
         onRetry={() => void reports.refetch()}
       />
       {reports.data?.map((report) => (
@@ -294,6 +320,7 @@ export function DisputesPage() {
         error={disputes.error}
         isEmpty={disputes.data?.length === 0}
         empty={t('No trip is disputed.')}
+        icon={Scale}
         onRetry={() => void disputes.refetch()}
       />
       {disputes.data?.map((dispute) => (
@@ -376,6 +403,7 @@ export function BusServicesPage() {
         error={buses.error}
         isEmpty={buses.data?.length === 0}
         empty={t('No bus services are listed.')}
+        icon={Bus}
         onRetry={() => void buses.refetch()}
       />
       {buses.data?.map((bus) => (
@@ -414,6 +442,7 @@ export function SupplyGapsPage() {
         error={gaps.error}
         isEmpty={gaps.data?.length === 0}
         empty={t('No gaps in the coming week.')}
+        icon={TrendingUp}
         onRetry={() => void gaps.refetch()}
       />
       {gaps.data && gaps.data.length > 0 && (
@@ -516,6 +545,7 @@ export function StopoversPage() {
         error={stopovers.error}
         isEmpty={stopovers.data?.length === 0}
         empty={t('No rest stops or chargers are listed.')}
+        icon={Fuel}
         onRetry={() => void stopovers.refetch()}
       />
       {stopovers.data?.map((stop) => (

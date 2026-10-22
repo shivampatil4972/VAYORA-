@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { Button, Card, Notice, Page, QueryState } from '../components/ui';
@@ -64,6 +65,7 @@ export function EmergenciesPage() {
         error={alerts.error}
         isEmpty={alerts.data?.length === 0}
         empty={t('No emergency is waiting.')}
+        icon={ShieldCheck}
         onRetry={() => void alerts.refetch()}
       />
       {alerts.data?.map((alert) => (

@@ -49,6 +49,9 @@ export const formatTime = (iso: string): string => dateFormat('time', { hour: 'n
 export const formatDate = (iso: string): string =>
   dateFormat('date', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso));
 
+/** A day and a short month, for a chart's axis. */
+export const formatDayMonth = (iso: string): string => dateFormat('dayMonth', { day: 'numeric', month: 'short' }).format(new Date(iso));
+
 export const formatMonthYear = (iso: string): string => dateFormat('monthYear', { month: 'long', year: 'numeric' }).format(new Date(iso));
 
 export const formatRupees = (amount: number): string =>

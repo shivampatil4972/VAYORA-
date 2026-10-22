@@ -26,6 +26,14 @@ export const mr: Record<string, string> = {
   'Keep it': 'राहू द्या',
   'Loading…': 'लोड होत आहे…',
   'Try again': 'पुन्हा प्रयत्न करा',
+  'Paid out each week (₹)':
+    'दर आठवड्याला दिलेली रक्कम (₹)',
+  'Week of {date}':
+    '{date} चा आठवडा',
+  'Fewer seats':
+    'कमी जागा',
+  'More seats':
+    'जास्त जागा',
   'Light':
     'फिकट',
   'Dark':

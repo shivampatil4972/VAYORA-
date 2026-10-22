@@ -1,4 +1,4 @@
-import { AlertCircle, CheckCircle2, Inbox, Info, type LucideIcon } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Inbox, Info, Minus, Plus, type LucideIcon } from 'lucide-react';
 import { forwardRef, useId, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
 
 import { msg, useT } from '../lib/i18n';
@@ -7,10 +7,11 @@ import type { BookingStatus, RideStatus } from '../lib/types';
 import { Sheet } from './sheet';
 
 // Fields as iOS draws them: rounded, quiet until touched, a soft glow of the tint when focused.
-const control =
-  'mt-1.5 block w-full rounded-xl border border-slate-200 bg-surface px-3.5 py-2.5 text-[15px] text-slate-900 shadow-sm ' +
+const controlBase =
+  'block w-full rounded-xl border border-slate-200 bg-surface px-3.5 py-2.5 text-[15px] text-slate-900 shadow-sm ' +
   'placeholder:text-slate-400 hover:border-slate-300 focus:border-teal-600 focus:outline-none focus:ring-4 focus:ring-teal-600/15 ' +
   'aria-[invalid=true]:border-red-600 aria-[invalid=true]:ring-red-600/15';
+const control = `mt-1.5 ${controlBase}`;
 
 interface FieldShell {
   label: string;
@@ -70,6 +71,31 @@ export const SelectField = forwardRef<HTMLSelectElement, FieldShell & SelectHTML
     );
   },
 );
+
+const stepButton =
+  'flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-slate-100 text-slate-900 ring-1 ring-inset ring-slate-900/[0.06] ' +
+  'hover:bg-slate-200 active:scale-90 focus:outline-none focus-visible:ring-4 focus-visible:ring-teal-600/30';
+
+/** A number with iOS-style minus and plus beside it; the field can still be typed in. */
+export const StepperField = forwardRef<
+  HTMLInputElement,
+  FieldShell & InputHTMLAttributes<HTMLInputElement> & { onStep: (delta: 1 | -1) => void; decreaseLabel: string; increaseLabel: string }
+>(function StepperField({ label, error, hint, onStep, decreaseLabel, increaseLabel, ...input }, ref) {
+  const { id, describedBy } = useFieldIds(error, hint);
+  return (
+    <FieldFrame id={id} label={label} error={error} hint={hint}>
+      <div className="mt-1.5 flex items-center gap-2">
+        <button type="button" aria-label={decreaseLabel} className={stepButton} onClick={() => onStep(-1)}>
+          <Minus aria-hidden="true" className="h-4 w-4" strokeWidth={2.5} />
+        </button>
+        <input ref={ref} id={id} aria-invalid={Boolean(error)} aria-describedby={describedBy} className={`${controlBase} text-center tabular-nums`} {...input} />
+        <button type="button" aria-label={increaseLabel} className={stepButton} onClick={() => onStep(1)}>
+          <Plus aria-hidden="true" className="h-4 w-4" strokeWidth={2.5} />
+        </button>
+      </div>
+    </FieldFrame>
+  );
+});
 
 type Tone = 'primary' | 'secondary' | 'danger';
 
@@ -244,6 +270,37 @@ export function StatusBadge({ status }: { status: BookingStatus | RideStatus }) 
       <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
       {t(label)}
     </span>
+  );
+}
+
+type ChipTone = 'slate' | 'teal' | 'amber' | 'emerald' | 'sky' | 'red';
+
+const chipTones: Record<ChipTone, string> = {
+  slate: 'bg-slate-100 text-slate-700',
+  teal: 'bg-teal-100 text-teal-900',
+  amber: 'bg-amber-100 text-amber-900',
+  emerald: 'bg-emerald-100 text-emerald-900',
+  sky: 'bg-sky-100 text-sky-900',
+  red: 'bg-red-100 text-red-900',
+};
+
+/** A fact at a glance: an icon and a few words in a coloured pill. */
+export function Chip({ icon: Icon, tone = 'slate', children }: { icon: LucideIcon; tone?: ChipTone; children: ReactNode }) {
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${chipTones[tone]}`}>
+      <Icon aria-hidden="true" className="h-3.5 w-3.5 flex-none" strokeWidth={2.2} />
+      {children}
+    </span>
+  );
+}
+
+/** One line of detail with its icon, as a list row in iOS would have. */
+export function Detail({ icon: Icon, tone = 'text-slate-600', children }: { icon: LucideIcon; tone?: string; children: ReactNode }) {
+  return (
+    <p className={`flex items-start gap-2 text-sm ${tone}`}>
+      <Icon aria-hidden="true" className="mt-0.5 h-4 w-4 flex-none opacity-70" />
+      <span className="min-w-0">{children}</span>
+    </p>
   );
 }
 

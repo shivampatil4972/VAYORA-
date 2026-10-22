@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Contact } from 'lucide-react';
 import { useEffect, useId, useState, type FormEvent } from 'react';
 
 import { useToast } from '../components/toast';
@@ -254,6 +255,7 @@ function Contacts() {
         error={contacts.error}
         isEmpty={contacts.data?.length === 0}
         empty={t('You have no emergency contacts yet.')}
+        icon={Contact}
         onRetry={() => void contacts.refetch()}
       />
       {remove.error && <Notice tone="error">{remove.error.message}</Notice>}

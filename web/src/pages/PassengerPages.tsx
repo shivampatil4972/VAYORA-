@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
+import { Armchair, Award, BadgeCheck, Car, CarTaxiFront, Clock, Footprints, Hourglass, Map as MapIcon, Route as RouteIcon, ShieldCheck, Shuffle, Sparkles, Ticket, TriangleAlert, UserRound, Users, Wallet, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { paidLine, RefundTerms, SimulatedPaymentNotice, usePaymentTerms } from '../components/payment';
@@ -12,7 +13,10 @@ import { BusAlternatives } from '../components/bus';
 import { TripConfirmation } from '../components/tripConfirmation';
 import { RouteMap, type MapPoint } from '../components/RouteMap';
 import { CallButton } from '../components/call';
-import { Button, Card, ConfirmButton, Notice, Page, QueryState, SelectField, StatusBadge, TextField } from '../components/ui';
+import { initialsOf } from '../components/photo';
+import { Collapse } from '../components/collapse';
+import { SuccessCard } from '../components/success';
+import { Button, Card, Chip, ConfirmButton, Detail, Notice, Page, QueryState, SelectField, StatusBadge, StepperField, TextField } from '../components/ui';
 import { api } from '../lib/api';
 import { CORRIDOR } from '../lib/corridor';
 import { answerBy, formatDate, formatDateTime, formatRupees, formatTime, todayInCorridor } from '../lib/format';
@@ -227,7 +231,7 @@ export function SearchPage() {
   // One key per thing the passenger is trying to book, kept until it succeeds, so that
   // pressing the button again after a lost response cannot book and charge twice.
   const idempotencyKeys = useRef(new Map<string, string>());
-  const { register, handleSubmit, formState, watch } = useForm<SearchForm>({
+  const { register, handleSubmit, formState, watch, setValue, getValues } = useForm<SearchForm>({
     resolver: zodResolver(searchSchema),
     defaultValues: { origin: 'Kolhapur', destination: 'Pune', date: todayInCorridor(), seats: 1 },
   });
@@ -356,7 +360,17 @@ export function SearchPage() {
             ))}
           </SelectField>
           <TextField label={t('Date')} type="date" min={todayInCorridor()} error={formState.errors.date?.message} {...register('date')} />
-          <TextField label={t('Seats')} type="number" min={1} max={8} error={formState.errors.seats?.message} {...register('seats')} />
+          <StepperField
+            label={t('Seats')}
+            type="number"
+            min={1}
+            max={8}
+            error={formState.errors.seats?.message}
+            decreaseLabel={t('Fewer seats')}
+            increaseLabel={t('More seats')}
+            onStep={(delta) => setValue('seats', Math.min(8, Math.max(1, Number(getValues('seats')) + delta)), { shouldValidate: true })}
+            {...register('seats')}
+          />
 
           <div className="space-y-3 sm:col-span-2">
             <p className="text-sm text-slate-600">
@@ -371,7 +385,7 @@ export function SearchPage() {
             <Button tone="secondary" aria-expanded={mapOpen} onClick={() => setMapOpen(!mapOpen)}>
               {mapOpen ? t('Hide the map') : t('Choose exact points on a map')}
             </Button>
-            {mapOpen && (
+            <Collapse open={mapOpen}>
               <div className="space-y-2">
                 <fieldset className="flex flex-wrap gap-4 text-sm">
                   <legend className="sr-only">{t('Which point a click on the map sets')}</legend>
@@ -390,14 +404,14 @@ export function SearchPage() {
                   describe={t('Map of the towns between Kolhapur and Pune. Click to choose an exact point.')}
                 />
               </div>
-            )}
+            </Collapse>
           </div>
 
           <div className="space-y-3 sm:col-span-2">
             <Button tone="secondary" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}>
               {filtersOpen ? t('Hide filters') : t('Filters')}
             </Button>
-            {filtersOpen && (
+            <Collapse open={filtersOpen}>
               <fieldset className="grid gap-4 rounded-2xl border border-slate-200 p-4 sm:grid-cols-2">
                 <legend className="px-1 text-sm font-medium text-slate-700">{t('Show only rides that')}</legend>
                 <SelectField label={t('Leave in the')} value={filters.dayPart} onChange={(event) => setFilters({ ...filters, dayPart: event.target.value as Filters['dayPart'] })}>
@@ -470,7 +484,7 @@ export function SearchPage() {
                   {t('The last two leave out drivers who have not said either way. Filters apply when you press Search.')}
                 </p>
               </fieldset>
-            )}
+            </Collapse>
           </div>
 
           <div className="sm:col-span-2">
@@ -480,7 +494,7 @@ export function SearchPage() {
       </Card>
 
       {booked && (
-        <Notice tone="success">
+        <SuccessCard key={booked.id}>
           {booked.status === 'CONFIRMED'
             ? t('Booked. {from} to {to}, leaving {time}.', {
                 from: t(booked.fromStop),
@@ -489,7 +503,7 @@ export function SearchPage() {
               })
             : t('Request sent. Your seats are held while the driver decides; see My bookings.')}
           {booked.total !== null && ` ${paidLine(terms.data?.provider, formatRupees(booked.total), t)}`}
-        </Notice>
+        </SuccessCard>
       )}
       {book.error && <Notice tone="error">{book.error.message}</Notice>}
 
@@ -569,64 +583,121 @@ export function SearchPage() {
             const key = candidateKey(candidate, criteria.form.seats);
             return (
               <Card key={key}>
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <p className="font-medium">
-                      {formatTime(candidate.boardingTime)} {candidate.detourMinutes != null ? t('Your start') : t(candidate.fromStop)} →{' '}
-                      {formatTime(candidate.arrivalTime)} {t(candidate.toStop)}
-                    </p>
-                    <p className="mt-1 text-sm text-slate-600">
-                      <Link to={`/users/${candidate.driverId}`} className="font-medium text-teal-800 underline">
-                        {candidate.driverName}
-                      </Link>{' '}
-                      · <RatingSummary average={candidate.driverRating} count={candidate.driverRatingCount} />
-                      {candidate.driverConfirmed && ` · ${t('Contact confirmed')}`}
-                      {candidate.maxTwoInBack && ` · ${t('At most two in the back')}`}
-                      {candidate.womenOnly && ` · ${t('Women only')}`}
-                    </p>
-                    <p className="mt-1 text-sm text-slate-600">
-                      {candidate.seatsAvailable === 1
-                        ? t('{n} seat left', { n: candidate.seatsAvailable })
-                        : t('{n} seats left', { n: candidate.seatsAvailable })}{' '}
-                      · {candidate.instantBooking ? t('Confirms instantly') : t('Driver approves each request')}
-                    </p>
-                    {candidate.detourMinutes != null && (
-                      <p className="mt-1 text-sm text-teal-800">
-                        {t('The driver picks you up at your start, about {time}: {n} min out of their way.', {
-                          time: formatTime(candidate.boardingTime),
-                          n: candidate.detourMinutes,
+                {/* One sentence for screen readers; the timeline below draws the same thing. */}
+                <p className="sr-only">
+                  {formatTime(candidate.boardingTime)} {candidate.detourMinutes != null ? t('Your start') : t(candidate.fromStop)} →{' '}
+                  {formatTime(candidate.arrivalTime)} {t(candidate.toStop)}
+                </p>
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div aria-hidden="true" className="flex min-w-0 gap-3">
+                    <div className="flex flex-col items-center py-2">
+                      <span className="h-3 w-3 rounded-full border-[3px] border-teal-600 bg-surface" />
+                      <span className="my-1 w-0.5 flex-1 rounded-full bg-gradient-to-b from-teal-600 to-teal-200" />
+                      <span className="h-3 w-3 rounded-full bg-teal-600" />
+                    </div>
+                    <div className="flex min-w-0 flex-col gap-3">
+                      <div>
+                        <p className="text-xl font-bold leading-tight tabular-nums text-slate-900">{formatTime(candidate.boardingTime)}</p>
+                        <p className="truncate text-sm text-slate-600">{candidate.detourMinutes != null ? t('Your start') : t(candidate.fromStop)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xl font-bold leading-tight tabular-nums text-slate-900">{formatTime(candidate.arrivalTime)}</p>
+                        <p className="truncate text-sm text-slate-600">{t(candidate.toStop)}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 text-right">
+                    <p className="text-right">
+                      <span className="block text-2xl font-bold tracking-tight text-slate-900">{formatRupees(candidate.total)}</span>
+                      <span className="block text-xs text-slate-500">
+                        {t('{fare} fare + {fee} service fee', {
+                          fare: formatRupees(candidate.fare),
+                          fee: formatRupees(candidate.serviceFee),
                         })}
-                      </p>
-                    )}
-                    {candidate.underWay && (
-                      <p className="mt-1 text-sm text-amber-800">
-                        {t('Already on the road: it may reach {stop} before the time shown, so be there early.', { stop: t(candidate.fromStop) })}
-                      </p>
-                    )}
-                    {/* `vehicle` is what the driver typed: shown as text, not translated. */}
-                    {candidate.vehicle && <p className="mt-1 text-sm text-slate-600">{[candidate.vehicle, ...vehiclePhrases(candidate, t)].join(' · ')}</p>}
-                    {candidate.insurer && candidate.insuredUntil && (
-                      <p className="mt-1 text-sm text-slate-600">
-                        {t('Insurance declared by the driver: {insurer}, until {date}. Not checked.', {
-                          insurer: candidate.insurer,
-                          date: formatDate(candidate.insuredUntil),
-                        })}
-                      </p>
-                    )}
-                    <p className="mt-1 text-sm text-slate-600">
-                      {t('Pickup {pickup} from your start · drop-off {dropoff} from your destination', {
-                        pickup: units.distance(candidate.pickupDistanceM),
-                        dropoff: units.distance(candidate.dropoffDistanceM),
+                      </span>
+                      {candidate.keptRides && Number(candidate.serviceFee) > 0 && (
+                        <span className="block text-xs font-medium text-emerald-800">{t('A lower fee: this driver keeps their rides')}</span>
+                      )}
+                    </p>
+                    <Button className="mt-1 px-6" disabled={book.isPending} onClick={() => book.mutate(candidate)}>
+                      {candidate.instantBooking ? t('Book') : t('Request')}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex items-center gap-3 border-t border-slate-900/[0.06] pt-4">
+                  <span
+                    aria-hidden="true"
+                    className="inline-flex h-10 w-10 flex-none items-center justify-center rounded-full bg-gradient-to-br from-[#14b8a6] to-[#0f766e] text-sm font-bold text-white shadow-sm"
+                  >
+                    {initialsOf(candidate.driverName)}
+                  </span>
+                  <p className="min-w-0 text-sm">
+                    <Link to={`/users/${candidate.driverId}`} className="font-semibold text-slate-900 hover:text-teal-800 hover:underline">
+                      {candidate.driverName}
+                    </Link>
+                    <span className="block text-slate-600">
+                      <RatingSummary average={candidate.driverRating} count={candidate.driverRatingCount} />
+                    </span>
+                  </p>
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  <Chip icon={Users} tone="sky">
+                    {candidate.seatsAvailable === 1
+                      ? t('{n} seat left', { n: candidate.seatsAvailable })
+                      : t('{n} seats left', { n: candidate.seatsAvailable })}
+                  </Chip>
+                  {candidate.instantBooking ? (
+                    <Chip icon={Zap} tone="emerald">{t('Confirms instantly')}</Chip>
+                  ) : (
+                    <Chip icon={Clock} tone="amber">{t('Driver approves each request')}</Chip>
+                  )}
+                  {candidate.driverConfirmed && <Chip icon={BadgeCheck} tone="teal">{t('Contact confirmed')}</Chip>}
+                  {candidate.maxTwoInBack && <Chip icon={Armchair}>{t('At most two in the back')}</Chip>}
+                  {candidate.womenOnly && <Chip icon={UserRound} tone="red">{t('Women only')}</Chip>}
+                </div>
+
+                <div className="mt-3 space-y-1.5">
+                  {candidate.detourMinutes != null && (
+                    <Detail icon={RouteIcon} tone="text-teal-800">
+                      {t('The driver picks you up at your start, about {time}: {n} min out of their way.', {
+                        time: formatTime(candidate.boardingTime),
+                        n: candidate.detourMinutes,
                       })}
-                      {candidate.pickupWalkMinutes > 0 &&
-                        ` · ${
-                          candidate.walkOnFootpaths
-                            ? t('about {minutes} min walk to the pickup, by footpath', { minutes: candidate.pickupWalkMinutes })
-                            : t('about {minutes} min walk to the pickup, in a straight line', { minutes: candidate.pickupWalkMinutes })
-                        }`}
-                    </p>
-                    {(candidate.pickupRickshaw || candidate.dropoffRickshaw) && (
-                      <div className="mt-1 text-sm text-slate-600">
+                    </Detail>
+                  )}
+                  {candidate.underWay && (
+                    <Detail icon={TriangleAlert} tone="text-amber-800">
+                      {t('Already on the road: it may reach {stop} before the time shown, so be there early.', { stop: t(candidate.fromStop) })}
+                    </Detail>
+                  )}
+                  {/* `vehicle` is what the driver typed: shown as text, not translated. */}
+                  {candidate.vehicle && <Detail icon={Car}>{[candidate.vehicle, ...vehiclePhrases(candidate, t)].join(' · ')}</Detail>}
+                  {candidate.insurer && candidate.insuredUntil && (
+                    <Detail icon={ShieldCheck}>
+                      {t('Insurance declared by the driver: {insurer}, until {date}. Not checked.', {
+                        insurer: candidate.insurer,
+                        date: formatDate(candidate.insuredUntil),
+                      })}
+                    </Detail>
+                  )}
+                  <Detail icon={Footprints}>
+                    {t('Pickup {pickup} from your start · drop-off {dropoff} from your destination', {
+                      pickup: units.distance(candidate.pickupDistanceM),
+                      dropoff: units.distance(candidate.dropoffDistanceM),
+                    })}
+                    {candidate.pickupWalkMinutes > 0 &&
+                      ` · ${
+                        candidate.walkOnFootpaths
+                          ? t('about {minutes} min walk to the pickup, by footpath', { minutes: candidate.pickupWalkMinutes })
+                          : t('about {minutes} min walk to the pickup, in a straight line', { minutes: candidate.pickupWalkMinutes })
+                      }`}
+                  </Detail>
+                  {(candidate.pickupRickshaw || candidate.dropoffRickshaw) && (
+                    <div className="flex items-start gap-2 text-sm text-slate-600">
+                      <CarTaxiFront aria-hidden="true" className="mt-0.5 h-4 w-4 flex-none opacity-70" />
+                      <div className="min-w-0 space-y-0.5">
                         {candidate.pickupRickshaw && <p>{rickshawLine(candidate.pickupRickshaw, true, t)}</p>}
                         {candidate.dropoffRickshaw && <p>{rickshawLine(candidate.dropoffRickshaw, false, t)}</p>}
                         {[candidate.pickupRickshaw, candidate.dropoffRickshaw]
@@ -642,46 +713,31 @@ export function SearchPage() {
                             </p>
                           ))}
                       </div>
-                    )}
-                    <p className="mt-1 text-sm text-slate-600">{driverRecord(candidate, t)}</p>
-                    {criteria.sort === 'BEST_MATCH' && (
-                      <p className="mt-1 text-sm text-teal-800">
-                        {[
-                          t('Match {score} of 100', { score: candidate.matchScore }),
-                          ...candidate.matchReasons.map((reason) => t(matchReasonLabels[reason])),
-                        ].join(' · ')}
-                      </p>
-                    )}
-                    {candidate.suggestFlexible && tier === 'EXACT' && (
-                      <p className="mt-1 text-sm text-amber-800">
-                        {t('This driver has withdrawn some rides. A flexible booking would move you to another ride automatically.')}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <p className="text-right">
-                      <span className="block text-lg font-semibold">{formatRupees(candidate.total)}</span>
-                      <span className="block text-xs text-slate-500">
-                        {t('{fare} fare + {fee} service fee', {
-                          fare: formatRupees(candidate.fare),
-                          fee: formatRupees(candidate.serviceFee),
-                        })}
-                      </span>
-                      {candidate.keptRides && Number(candidate.serviceFee) > 0 && (
-                        <span className="block text-xs text-emerald-800">{t('A lower fee: this driver keeps their rides')}</span>
-                      )}
-                    </p>
-                    <Button disabled={book.isPending} onClick={() => book.mutate(candidate)}>
-                      {candidate.instantBooking ? t('Book') : t('Request')}
-                    </Button>
-                  </div>
+                    </div>
+                  )}
+                  <Detail icon={Award}>{driverRecord(candidate, t)}</Detail>
+                  {criteria.sort === 'BEST_MATCH' && (
+                    <Detail icon={Sparkles} tone="text-teal-800">
+                      {[
+                        t('Match {score} of 100', { score: candidate.matchScore }),
+                        ...candidate.matchReasons.map((reason) => t(matchReasonLabels[reason])),
+                      ].join(' · ')}
+                    </Detail>
+                  )}
+                  {candidate.suggestFlexible && tier === 'EXACT' && (
+                    <Detail icon={Shuffle} tone="text-amber-800">
+                      {t('This driver has withdrawn some rides. A flexible booking would move you to another ride automatically.')}
+                    </Detail>
+                  )}
                 </div>
-                <div className="mt-3">
+                <div className="mt-4">
                   <Button tone="secondary" aria-expanded={routeShown === key} onClick={() => setRouteShown(routeShown === key ? null : key)}>
+                    <MapIcon aria-hidden="true" className="h-4 w-4" />
                     {routeShown === key ? t('Hide route') : t('Show route')}
                   </Button>
                   {held?.key !== key && (
                     <Button tone="secondary" className="ml-2" disabled={hold.isPending} onClick={() => hold.mutate(candidate)}>
+                      <Hourglass aria-hidden="true" className="h-4 w-4" />
                       {t('Hold while I decide')}
                     </Button>
                   )}
@@ -697,7 +753,7 @@ export function SearchPage() {
                       {hold.error.message}
                     </p>
                   )}
-                  {routeShown === key && (
+                  <Collapse open={routeShown === key}>
                   <RideRoute
                     rideId={candidate.rideId}
                     fromSeq={candidate.fromSeq}
@@ -708,7 +764,7 @@ export function SearchPage() {
                         : undefined
                     }
                   />
-                )}
+                </Collapse>
                 </div>
               </Card>
             );
@@ -742,6 +798,7 @@ export function BookingsPage() {
         error={bookings.error}
         isEmpty={bookings.data?.length === 0}
         empty={t('You have no bookings yet.')}
+        icon={Ticket}
         onRetry={() => void bookings.refetch()}
       />
       {bookings.data && bookings.data.length > 0 && <SimulatedPaymentNotice />}
@@ -750,28 +807,34 @@ export function BookingsPage() {
         <Card key={booking.id}>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="font-medium">
+              <p className="flex items-center gap-2 text-lg font-bold tracking-tight text-slate-900">
+                <span aria-hidden="true" className="flex h-8 w-8 flex-none items-center justify-center rounded-xl bg-teal-600/[0.12] text-teal-800">
+                  <RouteIcon className="h-4 w-4" />
+                </span>
                 {t(booking.fromStop)} → {t(booking.toStop)}
               </p>
-              <p className="mt-1 text-sm text-slate-600">
+              <div className="mt-3 space-y-1.5">
+              <Detail icon={Clock}>
                 {booking.seats === 1
                   ? t('Leaves {time} · {n} seat', { time: formatDateTime(booking.boardingTime), n: booking.seats })
                   : t('Leaves {time} · {n} seats', { time: formatDateTime(booking.boardingTime), n: booking.seats })}
-              </p>
+              </Detail>
               {booking.pickupLat != null && (
-                <p className="mt-1 text-sm text-teal-800">{t('Picked up at your own point after {stop}, not at the stop.', { stop: t(booking.fromStop) })}</p>
+                <Detail icon={Footprints} tone="text-teal-800">{t('Picked up at your own point after {stop}, not at the stop.', { stop: t(booking.fromStop) })}</Detail>
               )}
               {booking.driverName && (
-                <p className="mt-1 text-sm text-slate-600">
+                <Detail icon={UserRound}>
                   {t('Driver')}{' '}
-                  <Link to={`/users/${booking.driverId}`} className="font-medium text-teal-800 underline">
+                  <Link to={`/users/${booking.driverId}`} className="font-semibold text-teal-800 hover:underline">
                     {booking.driverName}
                   </Link>
                   {/* What the driver typed: shown as text, not translated. */}
                   {booking.vehicle && ` · ${booking.vehicle}`}
-                </p>
+                </Detail>
               )}
-              <p className="mt-1 text-sm text-slate-600">
+              </div>
+              <p className="mt-1.5 flex items-start gap-2 text-sm text-slate-600">
+                <Wallet aria-hidden="true" className="mt-0.5 h-4 w-4 flex-none opacity-70" />
                 {booking.total === null
                   ? t('Fare {amount}', { amount: formatRupees(booking.price) })
                   : t('{total} ({fare} fare + {fee} service fee)', {
@@ -832,7 +895,7 @@ export function BookingsPage() {
               <CallButton bookingId={booking.id} label={t('Call the driver')} />
             </div>
           )}
-          {meetingShown === booking.id && (
+          <Collapse open={meetingShown === booking.id}>
             <RideRoute
               rideId={booking.rideId}
               fromSeq={booking.fromSeq}
@@ -843,7 +906,7 @@ export function BookingsPage() {
                   : undefined
               }
             />
-          )}
+          </Collapse>
           {chatShown === booking.id && cancellable(booking) && <RideChat rideId={booking.rideId} />}
           {booking.status === 'COMPLETED' && booking.passengerConfirmed == null && <TripConfirmation bookingId={booking.id} />}
           {booking.status === 'COMPLETED' && !booking.passengerRated && <RateForm bookingId={booking.id} legend={t('Rate your driver')} />}
