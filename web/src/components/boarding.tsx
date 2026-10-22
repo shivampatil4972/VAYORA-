@@ -69,7 +69,7 @@ export function CheckCode({ bookingId }: { bookingId: number }) {
             setCode(event.target.value.replace(/\D/g, ''));
             check.reset();
           }}
-          className="w-20 rounded-md border border-slate-300 px-2 py-1 font-mono"
+          className="w-24 rounded-xl border border-slate-200 bg-surface px-3 py-1.5 font-mono shadow-sm focus:border-teal-600 focus:outline-none focus:ring-4 focus:ring-teal-600/15"
         />
       </label>
       <Button tone="secondary" type="submit" disabled={code.length !== 4 || check.isPending}>

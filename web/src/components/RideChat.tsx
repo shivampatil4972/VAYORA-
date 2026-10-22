@@ -118,7 +118,7 @@ export function RideChat({ rideId, rideStatus }: { rideId: number; rideStatus?: 
   };
 
   return (
-    <div className="mt-3 space-y-3 rounded-md border border-slate-200 bg-white p-3">
+    <div className="mt-3 space-y-3 rounded-2xl bg-surface p-3 shadow-card ring-1 ring-slate-900/[0.05]">
       {channel.role === 'DRIVER' && (rideStatus ?? channel.rideStatus) === 'IN_PROGRESS' && <SharePosition send={channel.sendPosition} />}
 
       {channel.position && channel.role === 'PASSENGER' && (
@@ -134,15 +134,27 @@ export function RideChat({ rideId, rideStatus }: { rideId: number; rideStatus?: 
       )}
 
       {/* Rendered as text: a message is whatever someone typed. Screen readers announce new ones. */}
-      <ol aria-live="polite" aria-label={t('Messages')} className="max-h-64 space-y-2 overflow-y-auto">
-        {channel.messages.length === 0 && <li className="text-sm text-slate-500">{t('No messages yet.')}</li>}
-        {channel.messages.map((message) => (
-          <li key={message.id} className="text-sm">
-            <span className="font-medium">{message.senderId === user?.id ? t('You') : message.senderName}</span>{' '}
-            <span className="text-slate-500">{formatTime(message.sentAt)}</span>
-            <p className="whitespace-pre-wrap text-slate-800">{message.text}</p>
-          </li>
-        ))}
+      <ol aria-live="polite" aria-label={t('Messages')} className="max-h-72 space-y-3 overflow-y-auto px-1 py-1">
+        {channel.messages.length === 0 && <li className="py-4 text-center text-sm text-slate-500">{t('No messages yet.')}</li>}
+        {channel.messages.map((message) => {
+          // Bubbles as in iMessage: one's own on the right in the tint, everyone else's on the left.
+          const mine = message.senderId === user?.id;
+          return (
+            <li key={message.id} className={`flex animate-pop-in flex-col text-sm ${mine ? 'items-end' : 'items-start'}`}>
+              <span className="px-2 text-xs text-slate-500">
+                <span className="font-semibold text-slate-700">{mine ? t('You') : message.senderName}</span>{' '}
+                <span>{formatTime(message.sentAt)}</span>
+              </span>
+              <p
+                className={`mt-1 max-w-[85%] whitespace-pre-wrap break-words rounded-[1.25rem] px-3.5 py-2 text-[15px] leading-snug ${
+                  mine ? 'rounded-br-md bg-accent text-white' : 'rounded-bl-md bg-slate-100 text-slate-900'
+                }`}
+              >
+                {message.text}
+              </p>
+            </li>
+          );
+        })}
       </ol>
 
       {problem && <Notice tone="error">{t(problem)}</Notice>}
@@ -156,7 +168,7 @@ export function RideChat({ rideId, rideStatus }: { rideId: number; rideStatus?: 
             value={text}
             maxLength={MAX_LENGTH}
             onChange={(event) => setText(event.target.value)}
-            className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/40"
+            className="mt-1 block w-full rounded-xl border border-slate-200 bg-surface px-3.5 py-2.5 text-[15px] shadow-sm focus:border-teal-600 focus:outline-none focus:ring-4 focus:ring-teal-600/15"
           />
         </div>
         <Button type="submit" disabled={sending || text.trim() === ''}>

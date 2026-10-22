@@ -31,13 +31,13 @@ export function SosPanel({ onClose }: { onClose: () => void }) {
   const raised = raise.data;
 
   return (
-    <section aria-label={t('Emergency')} className="border-b border-red-300 bg-red-50">
-      <div className="mx-auto max-w-4xl space-y-3 px-4 py-4 text-sm text-red-900">
-        <p className="text-base font-semibold">{t('If you are in danger, call 112 now.')}</p>
+    <section aria-label={t('Emergency')} className="mx-auto max-w-5xl animate-sheet-in px-4 pt-4 sm:px-6">
+      <div className="space-y-3 rounded-3xl bg-red-50 p-5 text-sm text-red-900 shadow-float ring-1 ring-inset ring-red-200">
+        <p className="text-lg font-bold">{t('If you are in danger, call 112 now.')}</p>
         <p>
           <a
             href={`tel:${EMERGENCY_NUMBER}`}
-            className="inline-flex rounded-md bg-red-700 px-4 py-2 font-medium text-white hover:bg-red-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2"
+            className="inline-flex items-center rounded-full bg-danger px-6 py-3 text-base font-bold text-white shadow-lg shadow-danger/30 transition-transform hover:bg-danger-strong active:scale-[0.96] focus:outline-none focus-visible:ring-4 focus-visible:ring-red-600/40"
           >
             {t('Call 112')}
           </a>

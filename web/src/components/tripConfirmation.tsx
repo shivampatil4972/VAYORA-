@@ -26,7 +26,7 @@ export function TripConfirmation({ bookingId }: { bookingId: number }) {
     );
   }
   return (
-    <div className="mt-3 space-y-2 rounded-md border border-slate-200 p-3">
+    <div className="mt-3 space-y-2 rounded-2xl border border-slate-200 p-3">
       <p className="text-sm font-medium">{t('The driver marked this trip completed. Did it happen?')}</p>
       {answer.error && <Notice tone="error">{answer.error.message}</Notice>}
       <div className="flex flex-wrap gap-2">

@@ -32,9 +32,9 @@ function usePhotoUrl(path: string): { url: string | null; isPending: boolean } {
 export function Photo({ path, alt, initials, size = 'h-20 w-20' }: { path: string; alt: string; initials: string; size?: string }) {
   const { url } = usePhotoUrl(path);
   return url ? (
-    <img src={url} alt={alt} className={`${size} rounded-lg object-cover`} />
+    <img src={url} alt={alt} className={`${size} rounded-2xl object-cover`} />
   ) : (
-    <div aria-hidden="true" className={`${size} flex items-center justify-center rounded-lg bg-slate-100 text-lg font-semibold text-slate-500`}>
+    <div aria-hidden="true" className={`${size} flex items-center justify-center rounded-2xl bg-slate-100 text-lg font-semibold text-slate-500`}>
       {initials}
     </div>
   );

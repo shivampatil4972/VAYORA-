@@ -43,7 +43,7 @@ export function RouteMap({ path = [], points, onPick, describe }: {
 }) {
   const all: [number, number][] = [...path, ...points.map((p): [number, number] => [p.lat, p.lon])];
   return (
-    <div role="img" aria-label={describe} className="h-72 overflow-hidden rounded-md border border-slate-200">
+    <div role="img" aria-label={describe} className="h-72 overflow-hidden rounded-2xl border border-slate-200">
       <MapContainer center={[17.6, 74.05]} zoom={8} scrollWheelZoom={false} className="h-full w-full">
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

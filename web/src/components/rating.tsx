@@ -42,7 +42,7 @@ export function RateForm({ bookingId, legend }: { bookingId: number; legend: str
 
   return (
     <form
-      className="mt-3 space-y-3 rounded-md border border-slate-200 bg-slate-50 p-3"
+      className="mt-3 space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-3"
       onSubmit={(event) => {
         event.preventDefault();
         if (stars !== null) rate.mutate();
@@ -70,7 +70,7 @@ export function RateForm({ bookingId, legend }: { bookingId: number; legend: str
           maxLength={1000}
           value={comment}
           onChange={(event) => setComment(event.target.value)}
-          className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/40"
+          className="mt-1 block w-full rounded-xl border border-slate-200 bg-surface px-3.5 py-2.5 text-[15px] shadow-sm focus:border-teal-600 focus:outline-none focus:ring-4 focus:ring-teal-600/15"
         />
       </div>
       <Button type="submit" disabled={stars === null || rate.isPending}>

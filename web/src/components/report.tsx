@@ -42,7 +42,7 @@ export function ReportMember({ userId, name }: { userId: number; name: string })
   }
   return (
     <form
-      className="space-y-3 rounded-md border border-slate-200 bg-white p-4"
+      className="space-y-3 rounded-2xl border border-slate-200 bg-surface p-4"
       onSubmit={(event) => {
         event.preventDefault();
         if (reason) file.mutate();
@@ -69,7 +69,7 @@ export function ReportMember({ userId, name }: { userId: number; name: string })
           maxLength={1000}
           value={details}
           onChange={(event) => setDetails(event.target.value)}
-          className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/40"
+          className="mt-1 block w-full rounded-xl border border-slate-200 bg-surface px-3.5 py-2.5 text-[15px] shadow-sm focus:border-teal-600 focus:outline-none focus:ring-4 focus:ring-teal-600/15"
         />
       </div>
       <p className="text-sm text-slate-600">

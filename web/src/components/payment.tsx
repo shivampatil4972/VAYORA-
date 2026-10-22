@@ -48,7 +48,7 @@ export function RefundTerms() {
   if (!terms.data) return null;
   const tiers = terms.data.refundTiers;
   return (
-    <div className="rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+    <div className="rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-slate-700">
       <p className="font-medium text-slate-900">{t('If you cancel')}</p>
       <ul className="mt-1 list-disc space-y-0.5 pl-5">
         <li>{t('Before the driver accepts: everything back, including the service fee.')}</li>

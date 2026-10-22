@@ -10,6 +10,35 @@ import { useAuth } from '../lib/auth';
 import { useT } from '../lib/i18n';
 import { loginSchema, registerSchema, type LoginForm, type RegisterForm } from '../lib/schemas';
 
+const CORRIDOR = 'M24 66 C 92 70, 104 22, 166 34 S 258 62, 296 20';
+
+/** The corridor, drawn: a road from Kolhapur to Pune with a car travelling it. Decoration only. */
+function RouteHero() {
+  const t = useT();
+  const still = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return (
+    <div
+      aria-hidden="true"
+      className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#14b8a6] via-[#0f766e] to-[#134e4a] px-5 pb-4 pt-3 text-white shadow-float"
+    >
+      <div className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+      <svg viewBox="0 0 320 86" className="relative h-24 w-full">
+        <path d={CORRIDOR} fill="none" stroke="rgb(255 255 255 / 0.22)" strokeWidth="10" strokeLinecap="round" />
+        <path d={CORRIDOR} fill="none" stroke="#fff" strokeWidth="2" strokeDasharray="6 6" strokeLinecap="round" className="animate-route-dash" />
+        <circle cx="24" cy="66" r="6" fill="#fff" />
+        <circle cx="296" cy="20" r="6" fill="#fff" />
+        <circle r="5" fill="#fef08a" cx={still ? 166 : 0} cy={still ? 34 : 0}>
+          {!still && <animateMotion dur="4.5s" repeatCount="indefinite" path={CORRIDOR} keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines="0.45 0 0.25 1" />}
+        </circle>
+      </svg>
+      <div className="relative flex justify-between text-sm font-semibold tracking-wide">
+        <span>{t('Kolhapur')}</span>
+        <span>{t('Pune')}</span>
+      </div>
+    </div>
+  );
+}
+
 export function LoginPage() {
   const t = useT();
   const { user, login } = useAuth();
@@ -32,7 +61,9 @@ export function LoginPage() {
   });
 
   return (
+    <div className="mx-auto max-w-md">
     <Page title={t('Sign in')}>
+      <RouteHero />
       <Card>
         <form onSubmit={submit} noValidate className="space-y-4">
           {failure && <Notice tone="error">{failure}</Notice>}
@@ -62,6 +93,7 @@ export function LoginPage() {
         </Link>
       </p>
     </Page>
+    </div>
   );
 }
 
@@ -89,7 +121,9 @@ export function RegisterPage() {
   });
 
   return (
+    <div className="mx-auto max-w-md">
     <Page title={t('Create an account')}>
+      <RouteHero />
       <Card>
         <form onSubmit={submit} noValidate className="space-y-4">
           {failure && <Notice tone="error">{failure}</Notice>}
@@ -155,5 +189,6 @@ export function RegisterPage() {
         </Link>
       </p>
     </Page>
+    </div>
   );
 }

@@ -387,7 +387,7 @@ export function SearchPage() {
               {filtersOpen ? t('Hide filters') : t('Filters')}
             </Button>
             {filtersOpen && (
-              <fieldset className="grid gap-4 rounded-md border border-slate-200 p-4 sm:grid-cols-2">
+              <fieldset className="grid gap-4 rounded-2xl border border-slate-200 p-4 sm:grid-cols-2">
                 <legend className="px-1 text-sm font-medium text-slate-700">{t('Show only rides that')}</legend>
                 <SelectField label={t('Leave in the')} value={filters.dayPart} onChange={(event) => setFilters({ ...filters, dayPart: event.target.value as Filters['dayPart'] })}>
                   <option value="ANY">{t('Any time of day')}</option>

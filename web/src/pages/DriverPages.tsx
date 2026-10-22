@@ -421,7 +421,7 @@ export function PublishRidePage() {
                   rows={2}
                   maxLength={500}
                   aria-invalid={Boolean(formState.errors.notes)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/40"
+                  className="mt-1 block w-full rounded-xl border border-slate-200 bg-surface px-3.5 py-2.5 text-[15px] shadow-sm focus:border-teal-600 focus:outline-none focus:ring-4 focus:ring-teal-600/15"
                   {...register('notes')}
                 />
                 <p className="mt-1 text-sm text-slate-500">{t('Luggage, where exactly you wait, anything they should know.')}</p>
@@ -460,7 +460,7 @@ export function PublishRidePage() {
               )}
               <div className="mt-3 space-y-3">
                 {CORRIDOR.map((stop, index) => (
-                  <div key={stop.name} className="grid items-end gap-3 rounded-md border border-slate-200 p-3 sm:grid-cols-3">
+                  <div key={stop.name} className="grid items-end gap-3 rounded-2xl border border-slate-200 p-3 sm:grid-cols-3">
                     <label className="flex items-center gap-2 pb-2 font-medium">
                       <input type="checkbox" className="h-4 w-4 rounded border-slate-300" {...register(`stops.${index}.included`)} />
                       {t(stop.name)}
@@ -688,7 +688,7 @@ function RideBookings({ ride }: { ride: Ride }) {
               price: formatRupees(booking.price),
             };
             return (
-              <div key={booking.id} className="rounded-md bg-slate-50 px-3 py-2">
+              <div key={booking.id} className="rounded-xl bg-slate-50 px-3 py-2">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="text-sm">
                     <p className="font-medium">
