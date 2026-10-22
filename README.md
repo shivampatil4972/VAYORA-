@@ -1,107 +1,225 @@
 # JOURNEX
 
-AI-powered intercity shared mobility for the Kolhapur to Pune corridor (~230 km).
-Final-year B.Tech project, CSE (Data Science), DYPCET Kolhapur.
+AI-powered intercity ride-sharing for the Kolhapur to Pune corridor (~230 km), built to
+test one idea about cancellations.
 
-**The idea under test:** an early cancellation is a success. A seat released three days
-before departure gets refilled; the same seat released two hours before departure is
-destroyed capacity. We model booking durability as a survival curve over the seven-day
-booking horizon and act on it while action still helps. The metric is completed rides
-per 100 searches, never bookings.
+Final-year B.Tech project, CSE (Data Science), DYPCET Kolhapur, team of four.
 
-Project rules, frozen parameters and research integrity rules are in
-[CLAUDE.md](CLAUDE.md). They are binding.
+## The idea under test
+
+**An early cancellation is a success.** A seat released three days before departure gets
+refilled and the journey completes; the same seat released two hours before departure is
+destroyed capacity. JOURNEX models how long a booking will last as a survival curve over
+the seven-day booking horizon, and acts on it while action still helps.
+
+The measure is **completed rides per 100 searches**, never bookings: a platform can take
+more bookings and still move fewer people.
+
+## At a glance
+
+| | |
+|---|---|
+| Features | 83 of 95 verified, 11 partial, 1 not started: about 93% counting a partial feature as half ([feature matrix](docs/FEATURE_MATRIX.md)) |
+| Tests | 304 Java, 232 web, 206 Python, 28 gateway, all passing ([what each covers](docs/TESTING.md)) |
+| Languages | English, Hindi and Marathi, on every screen, notification and error message |
+| Research | A SimPy simulator of the corridor: 60 simulated days, 30 seeds per variant, train and validation on disjoint seeds |
+| Data | All synthetic, plus one public dataset of real hotel cancellations used as a check |
+
+## What the research found
+
+The answer so far is **no, not in this simulated world**, and the project reports it that
+way.
+
+![Completed rides per 100 searches for each variant, against the baseline](docs/figures/fig1-ladder.png)
+
+| Variant | What it does | Completed rides per 100 searches |
+|---|---|---|
+| B0 | Shows rides closest to the passenger's preferred time | 30.77 |
+| B3 | Ranks rides by how likely each booking is to last | 31.11 (+0.34) |
+| B4 | As B3, and asks passengers whose booking looks shaky to release it early | 31.10 |
+| B5 | As B4, within a contact budget, a CP-SAT scheduler choosing whom to ask | 31.10 |
+| ORACLE | Asks exactly the bookings that will cancel late | +0.10 over B3 |
+
+- **Asking works on timing but not on rides.** B4 cuts the share of late cancellations by
+  5.6 points, but completed rides do not move (−0.01, 95% interval −0.04 to +0.03).
+- **Even perfect targeting adds little.** An oracle that knows who will cancel late gains
+  only +0.10, because late releases are already refilled 68% of the time against 94% for
+  early ones, and supply, not timing, is what runs out: over half of all searches find no
+  ride.
+- **The one gain needs no personal data.** B3's +0.34 comes from timing alone; a model that
+  knows nothing about the passenger does as well, and the scheduler does no better than
+  choosing at random.
+- **On real hotel cancellations, features do help.** The same kinds of model rank who
+  cancels better than lead time alone (concordance 0.597 for Cox and 0.653 for gradient
+  boosting, against 0.544), which suggests the simulated world understates what booking
+  features can tell.
+
+Every number above is a SQL query over the event log, reproducible with one script. The
+method is in [AI_ML_METHODOLOGY](docs/AI_ML_METHODOLOGY.md), every run and its intervals
+in [EXPERIMENT_PROTOCOL](docs/EXPERIMENT_PROTOCOL.md), and the seven report figures in
+[docs/figures](docs/figures/README.md).
+
+## What the platform does
+
+**Passengers** search by town or by exact points on a map and see, for each ride, the walk
+to the pickup on real footpaths, an auto-rickshaw estimate with the published meter fare
+where one exists, the driver's record of rides kept, and a match score for both sides.
+They can hold seats for five minutes while deciding, book or request, choose what happens
+if the driver withdraws (this ride only, or rebook automatically), be picked up off the
+stops where the driver allows a detour, chat with the driver, follow the driver's live
+position, call through a masked number, show a boarding code, confirm the trip happened,
+rate it, and keep receipts in their own language. Travel passes waive the service fee.
+
+**Drivers** add vehicles (electric ones with their range, which publishing respects),
+publish rides with intermediate stops, per-stretch prices from the road route, a return
+trip and weekly repeats, set how far they will go out of their way, accept or decline
+requests, start the ride, check boarding codes, mark no-shows, complete, and see earnings
+and their own reliability record. They are told when passengers searched a stretch they
+drive and found nothing.
+
+**Every member** has a profile with photo and preferences, confirms an email or phone by
+code, keeps emergency contacts, and has an emergency button that puts **112** first. A
+seat-release reminder 48 hours before boarding asks, without any penalty, whether plans
+have changed.
+
+**Administrators** have a back office: reports and moderation, the emergency queue,
+members, rides and bookings, disputed trips, bus alternatives, rest stops and chargers,
+unmet demand, the audit log, the durability model's scores with the reason behind each,
+and a what-if page that runs the simulator live at a setting no saved sweep covered.
+
+What is simulated, mocked or missing is listed plainly in
+[KNOWN_LIMITATIONS](docs/KNOWN_LIMITATIONS.md). The model never cancels, prices or
+refuses anyone: the only thing it decides is whom the seat-release reminder asks.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  web["web<br/>React: renders"]
+  core["core-api<br/>Spring Boot: transactions and truth"]
+  intel["intel<br/>FastAPI: model and scheduler, no state"]
+  gw["gateway<br/>Express + Socket.IO: chat and live position"]
+  pg[("PostgreSQL + PostGIS<br/>users, rides, bookings, payments, events")]
+  mongo[("MongoDB<br/>chat, GPS, notifications")]
+  redis[("Redis<br/>seat holds, route cache")]
+  osrm["OSRM<br/>roads and footpaths"]
+  sim["simulator<br/>SimPy"]
+  web --> core
+  web --> gw
+  web -->|what-if| intel
+  core -->|scores, contact plans| intel
+  gw -->|membership check| core
+  core --> pg
+  core --> mongo
+  core --> redis
+  core --> osrm
+  gw --> mongo
+  sim -->|events| pg
+```
+
+Spring Boot owns transactions and truth, FastAPI owns inference and holds no state, Express
+owns ephemeral streams only, and React renders. No entity lives in two stores. Why each
+thing lives where it does is in [ARCHITECTURE](docs/ARCHITECTURE.md).
 
 ## Quick start
 
-Requires Docker with Compose v2. Nothing else needs to be installed on the host.
+Requires Docker with Compose v2. Nothing else needs to be installed.
 
 ```sh
 docker compose up -d --build --wait
 sh infra/check-health.sh
 ```
 
-The first run downloads a ~220 MB OpenStreetMap extract and builds the routing graph;
-later runs reuse the `osrmdata` volume and start in seconds.
+Then open **http://localhost:5173** and create an account as a passenger or a driver.
 
-| Service  | Role                                   | Health endpoint                          |
-|----------|----------------------------------------|------------------------------------------|
-| core-api | Spring Boot 3 — transactions and truth | http://localhost:8080/actuator/health    |
-| intel    | FastAPI — inference, stateless         | http://localhost:8000/health             |
-| gateway  | Express + Socket.IO — ephemeral streams| http://localhost:3000/health             |
-| web      | React — renders                        | http://localhost:5173/health             |
+The first run downloads a ~220 MB OpenStreetMap extract and builds the road and footpath
+graphs; later runs reuse the volume and start in seconds.
 
-Backing services: PostgreSQL 16 + PostGIS 3.4 (`5432`), MongoDB 7 (`27017`),
-Redis 7 (`6379`), OSRM (`5000`).
+| Service | Role | Health |
+|---|---|---|
+| web | React app | http://localhost:5173/health |
+| core-api | Spring Boot 3, Java 21 | http://localhost:8080/actuator/health |
+| intel | FastAPI, Python 3.11 | http://localhost:8000/health |
+| gateway | Express 4 + Socket.IO 4 | http://localhost:3000/health |
 
-### Ports already in use?
+Backing services: PostgreSQL 16 + PostGIS 3.4 (`5432`), MongoDB 7 (`27017`), Redis 7
+(`6379`), OSRM (`5000`).
 
-Every host port is configurable. Copy `.env.example` to `.env` and change the
-`*_PORT` values; `check-health.sh` reads the same variables:
+**An administrator** cannot sign up. Copy `.env.example` to `.env`, set `ADMIN_EMAIL` and
+`ADMIN_PASSWORD` (12 characters or more), and restart core-api.
+
+**A port already in use?** Every host port is a `*_PORT` setting in `.env`;
+`check-health.sh` reads the same variables:
 
 ```sh
 cp .env.example .env
 set -a; . ./.env; set +a; sh infra/check-health.sh
 ```
 
-## Using the app
+## Real services, off until you switch them on
 
-Open http://localhost:5173 and create an account as a passenger or as a driver.
+Out of the box nothing leaves the platform: payments are simulated and no money moves,
+codes and messages go to a simulated outbox an administrator can read, and calls are
+simulated. Each real service below turns on when its settings are in `.env`. Each is
+tested against a stand-in; none has yet been tried against the real service.
 
-- **Driver:** add a vehicle, publish a ride with its stops, move each meeting point on
-  the map, take suggested prices from the road route, accept or decline requests, start
-  the ride, mark anyone who did not board, complete it, see earnings.
-- **Passenger:** search by town or by exact points on a map, sort the results, see a
-  ride's route and meeting point, book or request, chat with the driver, see where the
-  driver is once the ride is under way, cancel, rate the driver afterwards.
-- **Every member:** an account page for profile, travel preferences, confirming an
-  email or phone by code, and emergency contacts; an emergency button. No email or SMS
-  is really sent: codes appear in the administrator's simulated outbox, and the
-  emergency button alerts administrators only. In danger, call 112.
-- **Administrator:** an overview, the reports queue (dismiss, warn or suspend), the
-  emergency queue and simulated outbox, members,
-  the model's durability estimates, and the audit log. Administrators cannot sign up; set `ADMIN_EMAIL` and `ADMIN_PASSWORD` (12
-  characters or more) in `.env` and restart core-api to create one.
+| Service | What it switches on | Settings |
+|---|---|---|
+| Google | "Sign in with Google" | `GOOGLE_CLIENT_ID` |
+| Razorpay, test mode | Paying by card, UPI or wallet in Razorpay's checkout, refunds through Razorpay | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` |
+| Twilio | Codes, notification copies and emergency texts by SMS; masked calls bridged through the platform's number | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` |
+| Any SMTP server | Codes and notification copies by email | `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD`, `JOURNEX_MAIL_FROM` |
+| Web Push | Push notifications in the browser | `JOURNEX_PUSH_PUBLIC_KEY`, `JOURNEX_PUSH_PRIVATE_KEY` (`node scripts/vapid-keys.mjs` makes a pair) |
 
-The interface is in English, Hindi and Marathi; choose in the header. The Hindi and
-Marathi have not been reviewed by a native speaker.
-
-Payments are simulated: no money moves. What is missing
-is listed in [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
+`.env` is never committed. Every setting and what breaks is in
+[DEPLOYMENT](docs/DEPLOYMENT.md).
 
 ## Tests
 
 ```sh
-docker compose --profile test run --rm core-api-tests      # core-api, Java 21
-docker compose --profile research run --rm research        # simulator, model, experiments
-(cd web && npm ci && npm test)
-(cd gateway && npm ci && npm test)
+docker compose --profile test run --rm core-api-tests      # core-api: Java 21, real PostGIS, MongoDB and Redis
+docker compose --profile research run --rm research        # event log, simulator, model, scheduler, experiments, intel
+(cd web && npm ci && npm test)                             # React screens, translations, money and dates
+(cd gateway && npm ci && npm test)                         # real Socket.IO server and clients
 ```
 
-What each suite covers is in [docs/TESTING.md](docs/TESTING.md).
+The Python suite needs PostgreSQL running (`docker compose up -d --wait postgres core-api`)
+and works in a throwaway schema. Two tests keep the languages honest: one fails if the app
+shows text that is not translated, the other if the server can send a message the app
+cannot translate.
 
-## Research
+## Reproducing the research
 
 ```sh
-# Train and evaluate the booking-durability model (writes experiments/reports/hazard-h1.json)
-docker compose --profile research run --rm research python -m experiments.hazard.train
-
-# Run a variant on the 30 experiment seeds
-docker compose --profile research run --rm research     python -m sim.run --variant experiments/configs/variants/B0.yaml
+scripts/reproduce.sh               # tests, model, ladder and sweeps, about an hour
+scripts/reproduce.sh --no-sweeps   # tests, model and ladder only
 ```
 
-All data is synthetic. The method is in
-[docs/AI_ML_METHODOLOGY.md](docs/AI_ML_METHODOLOGY.md), the protocol and the first
-results in [docs/EXPERIMENT_PROTOCOL.md](docs/EXPERIMENT_PROTOCOL.md), and the status of
-each of the 95 backlog features in [docs/FEATURE_MATRIX.md](docs/FEATURE_MATRIX.md).
+It rebuilds every current result from the configuration in `experiments/configs/` and
+fails unless each one comes out exactly as committed. The first run downloads the public
+hotel bookings and checks their SHA-256.
 
-## Routing data
+Single steps:
 
-OSRM serves a **clipped bounding box**: `infra/osrm/prepare.sh` downloads the Geofabrik
-western-zone India extract, clips it with osmium to the corridor box
-(`OSRM_BBOX`, default `73.4,16.4,74.9,18.9`), and `osrm-build` runs
-extract / partition / customize (MLD) on the result. Both steps are idempotent. To
-rebuild from scratch: `docker compose down && docker volume rm journex_osrmdata`.
+```sh
+# Train and evaluate the durability model
+docker compose --profile research run --rm research python -m experiments.hazard.train
+
+# Run one variant on the 30 experiment seeds
+docker compose --profile research run --rm research python -m sim.run --variant experiments/configs/variants/B4.yaml
+```
+
+Every threshold, budget and assumed value lives in `experiments/configs/*.yaml`, none in
+code. Latent passenger types drive behaviour in the simulator and are never model features.
+
+## The event log
+
+Every number in the report is a SQL aggregate over one table, `events`, through
+[`experiments/analysis/metrics.sql`](experiments/analysis/metrics.sql). Two writers share
+it and a fixed vocabulary of 22 event types: core-api's `EventLogService`, which never
+throws into its caller, and the Python `journex_events` writer, which fails loudly. The
+platform and the simulator speak the same vocabulary; the platform's own rows sit outside
+every simulation run.
 
 ## Documents
 
@@ -112,50 +230,45 @@ rebuild from scratch: `docker compose down && docker volume rm journex_osrmdata`
 | [API_DOCUMENTATION](docs/API_DOCUMENTATION.md) | Every endpoint and who may call it |
 | [SECURITY](docs/SECURITY.md) | What is protected, how it is checked, and what is missing |
 | [DEPLOYMENT](docs/DEPLOYMENT.md) | Running it, configuring it, and what breaks |
-| [FEATURE_MATRIX](docs/FEATURE_MATRIX.md) | The state of each of the 95 features |
+| [FEATURE_MATRIX](docs/FEATURE_MATRIX.md) | The state of each of the 95 features, and the evidence for it |
 | [TESTING](docs/TESTING.md) | What is tested, and what is not |
-| [KNOWN_LIMITATIONS](docs/KNOWN_LIMITATIONS.md) | Everything that does not work or is simulated |
-| [AI_ML_METHODOLOGY](docs/AI_ML_METHODOLOGY.md) | The survival model and the contact scheduler |
-| [EXPERIMENT_PROTOCOL](docs/EXPERIMENT_PROTOCOL.md) | How variants are compared, and every result |
+| [KNOWN_LIMITATIONS](docs/KNOWN_LIMITATIONS.md) | Everything that does not work, is simulated, or could be mistaken for more |
+| [AI_ML_METHODOLOGY](docs/AI_ML_METHODOLOGY.md) | The survival models, their explanations and the contact scheduler |
+| [EXPERIMENT_PROTOCOL](docs/EXPERIMENT_PROTOCOL.md) | How variants are compared, and every result with its interval |
 | [Figures](docs/figures/README.md) | The report's seven figures, with captions |
-| [PROGRESS](docs/PROGRESS.md) | What was built when, and the decisions made |
+| [DATASET_DOCUMENTATION](docs/DATASET_DOCUMENTATION.md) | Where every dataset comes from |
 | [DECISIONS](docs/DECISIONS.md) | Every design decision, why, and what it costs |
-| [IMPLEMENTATION_ROADMAP](docs/IMPLEMENTATION_ROADMAP.md) | What is left, what it needs, and a proposed order |
-| [DATASET_DOCUMENTATION](docs/DATASET_DOCUMENTATION.md) | Where every dataset comes from; all of it synthetic |
+| [IMPLEMENTATION_ROADMAP](docs/IMPLEMENTATION_ROADMAP.md) | What is left and what it needs |
+| [PROGRESS](docs/PROGRESS.md) | What was built when |
 
-## Layout
+The binding project rules (frozen parameters, the architecture rule, research integrity)
+are in [CLAUDE.md](CLAUDE.md).
 
-| Path           | What                                                       |
-|----------------|------------------------------------------------------------|
-| `infra/`       | OSRM corridor preparation, stack health check              |
-| `core-api/`    | Spring Boot 3, Java 21, `com.dypcet.journex`, Flyway       |
-| `intel/`       | FastAPI, Python 3.11                                       |
-| `gateway/`     | Express 4 + Socket.IO 4, JWT verification                  |
-| `web/`         | Vite + React 18 + TypeScript + Tailwind                    |
-| `journex_events/` | Python event-log writer and vocabulary                  |
-| `sim/`         | Simulator                                                  |
-| `experiments/` | Experiment configs — every tunable number lives here       |
-| `docs/`        | Report material and figures                                |
+## Repository layout
 
-## Event log
+| Path | What |
+|---|---|
+| `web/` | Vite + React 18 + TypeScript + Tailwind |
+| `core-api/` | Spring Boot 3, Java 21, `com.dypcet.journex`, Flyway migrations |
+| `intel/` | FastAPI, Python 3.11: durability model, explanations, contact scheduler, live what-if |
+| `gateway/` | Express 4 + Socket.IO 4, JWT verification |
+| `sim/` | SimPy simulator of the corridor |
+| `journex_events/` | Python event-log writer and the event vocabulary |
+| `experiments/` | Configs (every tunable number), runners, analysis queries and committed reports |
+| `infra/` | OSRM corridor preparation, stack health check |
+| `scripts/` | `reproduce.sh`, push key generation |
+| `docs/` | Report material and figures |
 
-Every number in the report is a SQL aggregate over one table, `events`
-(`core-api/src/main/resources/db/migration/V2__create_events.sql`). Two writers share
-it and share a fixed 22-event vocabulary:
+OSRM serves a clipped bounding box: `infra/osrm/prepare.sh` downloads Geofabrik's western
+India extract and clips it to the corridor (`OSRM_BBOX`, default `73.4,16.4,74.9,18.9`).
+To rebuild from scratch: `docker compose down && docker volume rm journex_osrmdata`.
 
-- `core-api` — `EventLogService.write(type, payload)`. Never throws into its caller.
-- `journex_events` — Python `EventWriter`, batched with `COPY`. Fails loudly.
+## Data and credits
 
-The metric queries are in `experiments/analysis/metrics.sql`; the headline one is
-`primary_metric`, completed rides per 100 searches by seed.
-
-## Tests
-
-```sh
-docker compose run --rm research          # Python: event writer + metric queries
-docker compose run --rm core-api-tests    # Java: core-api, with Testcontainers
-cd gateway && npm ci && npm test
-```
-
-The Python tests need the `postgres` service running; they work in a throwaway schema
-and never touch real event rows.
+- Map data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors (ODbL),
+  routed with OSRM.
+- Hotel bookings: Nuno Antonio, Ana de Almeida and Luis Nunes (2019), *Hotel booking demand
+  datasets*, Data in Brief 22, 41–49, [doi:10.1016/j.dib.2018.11.126](https://doi.org/10.1016/j.dib.2018.11.126),
+  CC BY 4.0.
+- Everything else is synthetic, generated by the simulator under the assumptions in
+  `experiments/configs/world.yaml`. Nothing here is evidence about real passengers.
