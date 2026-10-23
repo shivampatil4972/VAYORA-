@@ -8,5 +8,8 @@ COPY intel/app intel/app
 COPY sim sim
 COPY journex_events journex_events
 COPY experiments/configs experiments/configs
+# An unprivileged user: intel holds no state and writes no files.
+RUN useradd --system --no-create-home intel
+USER intel
 EXPOSE 8000
 CMD ["uvicorn", "intel.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
