@@ -1,3 +1,17 @@
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["journex_events/tests", "experiments/tests", "sim/tests", "intel/tests"]
+# Deprecations raised inside third-party libraries, about their own dependencies. Filtered
+# by message so that any warning from this project's code still shows.
+filterwarnings = [
+    "ignore:'\\w+' deprecated - use '\\w+':DeprecationWarning:matplotlib",
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+# Errors, undefined and unused names, and the bug-prone patterns flake8-bugbear finds.
+select = ["E9", "F", "B"]
