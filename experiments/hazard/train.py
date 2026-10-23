@@ -91,7 +91,7 @@ def _steps(times, cumulative_hazard) -> dict[str, tuple[float, ...]]:
     """Keeps only the times at which the cumulative hazard actually rises."""
     kept_times: list[float] = []
     kept_hazard: list[float] = []
-    for time, hazard in zip(times, cumulative_hazard):
+    for time, hazard in zip(times, cumulative_hazard, strict=True):
         if not kept_hazard or hazard > kept_hazard[-1]:
             kept_times.append(float(time))
             kept_hazard.append(float(hazard))
@@ -186,7 +186,7 @@ def main() -> None:
         "validation": _describe(valid),
         "models": results,
         "cox": {
-            "coefficients": dict(zip(FEATURES, cox.coef)),
+            "coefficients": dict(zip(FEATURES, cox.coef, strict=True)),
             "proportional_hazards_test_p": {
                 name: float(ph_test.summary.loc[name, "p"]) for name in FEATURES},
         },

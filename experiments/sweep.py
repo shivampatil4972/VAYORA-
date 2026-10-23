@@ -51,7 +51,7 @@ MEASURES = [("per_100", "Completed rides per 100 searches", 2),
 
 def cells(parameters: dict[str, list[Any]]) -> list[dict[str, Any]]:
     names = list(parameters)
-    return [dict(zip(names, values)) for values in itertools.product(*(parameters[n] for n in names))]
+    return [dict(zip(names, values, strict=True)) for values in itertools.product(*(parameters[n] for n in names))]
 
 
 def cell_label(variant: str, cell: dict[str, Any]) -> str:

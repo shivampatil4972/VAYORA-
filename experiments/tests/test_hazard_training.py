@@ -88,7 +88,7 @@ def test_the_exported_cox_model_reproduces_lifelines(run):
     times = [exported.times[i] for i in (5, len(exported.times) // 2, -1)]
     expected = fitted.predict_survival_function(sample[list(FEATURES)], times=times)
 
-    for column, (_, row) in zip(expected.columns, sample.iterrows()):
+    for column, (_, row) in zip(expected.columns, sample.iterrows(), strict=True):
         ours = [exported.survival(row[list(FEATURES)].to_dict(), t) for t in times]
         assert ours == pytest.approx(expected[column].to_numpy(), abs=1e-6)
 

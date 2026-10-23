@@ -79,7 +79,7 @@ def _differences(run_id: str, name: str, title: str, order: list[str] | None = N
     rows = [report["variants"][v]["per_100"]["vs_baseline"] for v in names]
     fig, ax = plt.subplots(figsize=(6.4, 0.9 + 0.5 * len(names)))
     y = range(len(names))[::-1]
-    for yi, row in zip(y, rows):
+    for yi, row in zip(y, rows, strict=True):
         ax.plot([row["ci_low"], row["ci_high"]], [yi, yi], color=BLUE, solid_capstyle="round")
         ax.plot(row["mean_difference"], yi, "o", color=BLUE, markersize=8, markeredgecolor="white", markeredgewidth=2)
         ax.annotate(f"{row['mean_difference']:+.2f}", (row["ci_high"], yi), xytext=(6, 0),
@@ -141,12 +141,12 @@ SWEEP_TITLES = {"departure-tolerance": ("Passengers' departure window", "hours e
 def sweeps() -> Path:
     """The change in completed rides per 100 searches across each sweep's settings."""
     fig, axes = plt.subplots(1, len(SWEEPS), figsize=(9.6, 3.4), sharey=True)
-    for ax, (name, run_id) in zip(axes, SWEEPS):
+    for ax, (name, run_id) in zip(axes, SWEEPS, strict=True):
         report = _sweep(name, run_id)
         (path, values), = report["parameters"].items()
         cells = {cell["parameters"][path]: cell["measures"]["per_100"]["vs_baseline"] for cell in report["cells"]}
         xs = range(len(values))
-        for x, value in zip(xs, values):
+        for x, value in zip(xs, values, strict=True):
             row = cells[value]
             ax.plot([x, x], [row["ci_low"], row["ci_high"]], color=BLUE, solid_capstyle="round")
             ax.plot(x, row["mean_difference"], "o", color=BLUE, markersize=8, markeredgecolor="white", markeredgewidth=2)

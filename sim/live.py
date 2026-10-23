@@ -129,7 +129,7 @@ def run(sweep: LiveSweep, value: float, seeds: int, world_path: Path = CONFIGS /
 
 def _compare(baseline: list[float | None], variant: list[float | None]) -> dict[str, Any] | None:
     """Means and the mean difference over the seeds where both have a number. No interval."""
-    both = [(b, v) for b, v in zip(baseline, variant) if b is not None and v is not None]
+    both = [(b, v) for b, v in zip(baseline, variant, strict=True) if b is not None and v is not None]
     if not both:
         return None
     differences = [v - b for b, v in both]

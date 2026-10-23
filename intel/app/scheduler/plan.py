@@ -115,7 +115,7 @@ def plan(candidates: Sequence[Candidate], limits: Limits) -> Plan:
     # of worth outweighs every position added together.
     tie = len(scored) * (len(scored) + 1) // 2 + 1
     model.maximize(sum((value * tie - position) * ask
-                       for position, ((value, _), ask) in enumerate(zip(scored, asked), start=1)))
+                       for position, ((value, _), ask) in enumerate(zip(scored, asked, strict=True), start=1)))
 
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = limits.time_limit_seconds
@@ -127,7 +127,7 @@ def plan(candidates: Sequence[Candidate], limits: Limits) -> Plan:
         # Asking nobody always satisfies the limits, so this is a solver fault.
         raise RuntimeError(f"contact scheduler found no plan: {solver.status_name(status)}")
 
-    chosen = [(value, c) for (value, c), ask in zip(scored, asked) if solver.boolean_value(ask)]
+    chosen = [(value, c) for (value, c), ask in zip(scored, asked, strict=True) if solver.boolean_value(ask)]
     return Plan(
         booking_ids=tuple(c.booking_id for _, c in chosen),
         status="optimal" if status == cp_model.OPTIMAL else "feasible",

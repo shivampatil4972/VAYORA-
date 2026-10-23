@@ -95,11 +95,11 @@ class HazardModel:
         missing = [name for name in self.features if name not in x]
         if missing:
             raise KeyError(f"missing features: {missing}")
-        return {name: c * (x[name] - m) for name, c, m in zip(self.features, self.coef, self.mean)}
+        return {name: c * (x[name] - m) for name, c, m in zip(self.features, self.coef, self.mean, strict=True)}
 
     def _relative_risk(self, x: Mapping[str, float]) -> float:
         missing = [name for name in self.features if name not in x]
         if missing:
             raise KeyError(f"missing features: {missing}")
         return math.exp(sum(
-            c * (x[name] - m) for name, c, m in zip(self.features, self.coef, self.mean)))
+            c * (x[name] - m) for name, c, m in zip(self.features, self.coef, self.mean, strict=True)))
