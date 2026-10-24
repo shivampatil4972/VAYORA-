@@ -3,6 +3,9 @@
 
 import { z } from 'zod';
 
+// A coerced number is written z.coerce.number<number>() throughout: the field holds a number
+// as far as the form's types go, as it did before zod 4 typed the input as unknown.
+
 import { CORRIDOR } from './corridor';
 import { msg } from './i18n';
 
@@ -51,7 +54,7 @@ export const searchSchema = z
     origin: z.string().refine((name) => stopNames.includes(name), msg('Choose where you start')),
     destination: z.string().refine((name) => stopNames.includes(name), msg('Choose where you are going')),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, msg('Choose a date')),
-    seats: z.coerce.number().int().min(1, msg('At least 1 seat')).max(8, msg('At most 8 seats')),
+    seats: z.coerce.number<number>().int().min(1, msg('At least 1 seat')).max(8, msg('At most 8 seats')),
   })
   .refine((form) => stopNames.indexOf(form.destination) > stopNames.indexOf(form.origin), {
     path: ['destination'],
@@ -62,17 +65,17 @@ export type SearchForm = z.infer<typeof searchSchema>;
 export const vehicleSchema = z.object({
   make: z.string().trim().min(1, msg('Enter the make')).max(50),
   model: z.string().trim().min(1, msg('Enter the model')).max(50),
-  year: z.union([z.literal(''), z.coerce.number().int().min(1980, msg('Too old')).max(2100, msg('Check the year'))]),
+  year: z.union([z.literal(''), z.coerce.number<number>().int().min(1980, msg('Too old')).max(2100, msg('Check the year'))]),
   colour: z.string().trim().max(30),
-  seats: z.coerce.number().int().min(2, msg('At least 2, counting the driver')).max(9, msg('At most 9')),
+  seats: z.coerce.number<number>().int().min(2, msg('At least 2, counting the driver')).max(9, msg('At most 9')),
   // Empty means the driver has not said.
   comfort: z.enum(['', 'BASIC', 'COMFORT', 'PREMIUM']),
   luggage: z.enum(['', 'NONE', 'SMALL', 'MEDIUM', 'LARGE']),
   electric: z.boolean(),
-  batteryKwh: z.union([z.literal(''), z.coerce.number().min(1, msg('Between 1 and 300 kWh')).max(300, msg('Between 1 and 300 kWh'))]),
+  batteryKwh: z.union([z.literal(''), z.coerce.number<number>().min(1, msg('Between 1 and 300 kWh')).max(300, msg('Between 1 and 300 kWh'))]),
   consumptionKwhPer100Km: z.union([
     z.literal(''),
-    z.coerce.number().min(5, msg('Between 5 and 60 kWh per 100 km')).max(60, msg('Between 5 and 60 kWh per 100 km')),
+    z.coerce.number<number>().min(5, msg('Between 5 and 60 kWh per 100 km')).max(60, msg('Between 5 and 60 kWh per 100 km')),
   ]),
 });
 export type VehicleForm = z.infer<typeof vehicleSchema>;
@@ -105,19 +108,19 @@ export const ridesPublished = (form: Pick<RideForm, 'returnDeparture' | 'repeatW
 
 export const rideSchema = z
   .object({
-    vehicleId: z.coerce.number().int().positive(msg('Choose a vehicle')),
+    vehicleId: z.coerce.number<number>().int().positive(msg('Choose a vehicle')),
     departure: z.string().min(1, msg('Choose when you leave')),
-    seatsOffered: z.coerce.number().int().min(1, msg('Offer at least 1 seat')).max(8, msg('At most 8 seats')),
+    seatsOffered: z.coerce.number<number>().int().min(1, msg('Offer at least 1 seat')).max(8, msg('At most 8 seats')),
     instantBooking: z.boolean(),
     maxTwoInBack: z.boolean(),
     womenOnly: z.boolean(),
     notes: z.string().max(500, msg('At most 500 characters')),
     // Empty for no return ride.
     returnDeparture: z.string(),
-    repeatWeeks: z.coerce.number().int().min(0).max(MAX_REPEAT_WEEKS),
+    repeatWeeks: z.coerce.number<number>().int().min(0).max(MAX_REPEAT_WEEKS),
     // Minutes in all the driver will go out of their way for pickups; 0 for none.
     maxDetourMinutes: z.coerce
-      .number()
+      .number<number>()
       .int(msg('Enter whole minutes'))
       .min(0, msg('Enter 0 or more'))
       .max(MAX_DETOUR_MINUTES, msg('At most 30 minutes')),
@@ -128,11 +131,11 @@ export const rideSchema = z
       z.object({
         included: z.boolean(),
         // Where passengers meet the driver. Starts at the town centre; the driver can move it.
-        lat: z.coerce.number(),
-        lon: z.coerce.number(),
-        offsetMinutes: z.coerce.number(),
+        lat: z.coerce.number<number>(),
+        lon: z.coerce.number<number>(),
+        offsetMinutes: z.coerce.number<number>(),
         // Price per seat of the leg that ends at this stop.
-        priceFromPrevious: z.coerce.number(),
+        priceFromPrevious: z.coerce.number<number>(),
       }),
     ),
   })
