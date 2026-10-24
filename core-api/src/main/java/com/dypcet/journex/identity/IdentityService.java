@@ -22,10 +22,12 @@ public class IdentityService {
 
     private final JdbcTemplate jdbc;
     private final PasswordEncoder passwordEncoder;
+    private final SignInThrottle throttle;
 
-    public IdentityService(JdbcTemplate jdbc, PasswordEncoder passwordEncoder) {
+    public IdentityService(JdbcTemplate jdbc, PasswordEncoder passwordEncoder, SignInThrottle throttle) {
         this.jdbc = jdbc;
         this.passwordEncoder = passwordEncoder;
+        this.throttle = throttle;
     }
 
     public User register(String email, String password, String fullName, UserRole role) {
@@ -72,12 +74,14 @@ public class IdentityService {
 
     /** Fails with the same 401 whether the email is unknown or the password is wrong. */
     public User authenticate(String email, String password) {
-        return check(credentials("email", normalise(email)), password);
+        String normalised = normalise(email);
+        return check("email:" + normalised, credentials("email", normalised), password);
     }
 
     /** As {@link #authenticate}, for a member who signs in with their phone number. */
     public User authenticateByPhone(String phone, String password) {
-        return check(credentials("phone", Phones.normalise(phone)), password);
+        String normalised = Phones.normalise(phone);
+        return check("phone:" + normalised, credentials("phone", normalised), password);
     }
 
     /** @param column a fixed column name, never caller input */
@@ -91,10 +95,14 @@ public class IdentityService {
                 value);
     }
 
-    private User check(List<Credentials> found, String password) {
+    /** @param who what the throttle counts wrong passwords against */
+    private User check(String who, List<Credentials> found, String password) {
+        throttle.refuseIfLocked(who);
         if (found.isEmpty() || !passwordEncoder.matches(password, found.get(0).passwordHash())) {
+            throttle.failed(who);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email, phone number or password");
         }
+        throttle.succeeded(who);
         // Only said to someone who has proved they own the account.
         if ("SUSPENDED".equals(found.get(0).status())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, SUSPENDED);

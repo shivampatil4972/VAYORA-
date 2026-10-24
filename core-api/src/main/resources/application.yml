@@ -293,6 +293,11 @@ journex:
     code-ttl: PT10M
     resend-after: PT1M
     max-attempts: 5
+  sign-in:
+    # Wrong passwords for one email address or phone number before signing in with it is
+    # refused, and the window that begins with the first wrong one.
+    max-failures: 5
+    window: PT15M
   sos:
     # Pressing the emergency button again within this long repeats nothing.
     repeat-window: PT1M
