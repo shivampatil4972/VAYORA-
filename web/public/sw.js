@@ -1,5 +1,34 @@
-// JOURNEX service worker: shows push notifications and opens the app when one is clicked.
-// It does nothing else: no caching, no offline pages.
+// JOURNEX service worker: shows push notifications, opens the app when one is clicked, and
+// stands a small "you are offline" page in for a page that cannot be fetched. It caches that
+// page and nothing else: every other request goes to the network as if it were not here.
+
+const CACHE = 'journex-offline-v1';
+const OFFLINE = '/offline.html';
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches
+      .open(CACHE)
+      .then((cache) => cache.add(OFFLINE))
+      .then(() => self.skipWaiting()),
+  );
+});
+
+self.addEventListener('activate', (event) => {
+  // An earlier version's cache is dropped once this one is in charge.
+  event.waitUntil(
+    caches
+      .keys()
+      .then((names) => Promise.all(names.filter((name) => name !== CACHE).map((name) => caches.delete(name))))
+      .then(() => self.clients.claim()),
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  // Only whole pages: the API, scripts and images are never answered from here.
+  if (event.request.mode !== 'navigate') return;
+  event.respondWith(fetch(event.request).catch(() => caches.match(OFFLINE)));
+});
 
 self.addEventListener('push', (event) => {
   let message = { title: 'JOURNEX', body: '', url: '/notifications' };
