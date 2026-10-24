@@ -1717,4 +1717,97 @@ export const mr: Record<string, string> = {
     'Google ने या ईमेल पत्त्याची पुष्टी केलेली नाही',
   'No account uses this Google address yet. Choose passenger or driver to create one.':
     'या Google पत्त्याचे अजून कोणतेही खाते नाही. खाते तयार करण्यासाठी प्रवासी किंवा चालक निवडा.',
+  // Front page
+  'Share the road between Kolhapur and Pune':
+    'कोल्हापूर आणि पुणे दरम्यानचा प्रवास वाटून घ्या',
+  'Book a seat in a car already making the trip, or fill the empty seats in yours. If your plans change, JOURNEX reminds you to give the seat back while someone else can still take it.':
+    'आधीच हा प्रवास करणाऱ्या कारमध्ये सीट बुक करा, किंवा तुमच्या कारमधील रिकाम्या सीट भरा. तुमचे बेत बदलले, तर दुसरे कोणी ती सीट घेऊ शकेल तोपर्यंत JOURNEX तुम्हाला ती परत देण्याची आठवण करून देते.',
+  'Offer a ride':
+    'प्रवास द्या',
+  'Your seat is held while you pay':
+    'पैसे भरताना तुमची सीट राखून ठेवली जाते',
+  'The earlier you cancel, the more comes back':
+    'जितक्या लवकर रद्द कराल, तितके जास्त परत',
+  'An emergency button on every trip':
+    'प्रत्येक प्रवासात आपत्कालीन बटण',
+  'km of road, end to end':
+    'किमी रस्ता, एका टोकापासून दुसऱ्या टोकापर्यंत',
+  'towns on the way':
+    'वाटेतील शहरे',
+  'days ahead you can book':
+    'दिवस आधीपर्यंत बुक करता येते',
+  'languages':
+    'भाषा',
+  'How it works':
+    'हे कसे चालते',
+  'Search the corridor':
+    'मार्गावर शोधा',
+  'Choose where you start and where you are going, or a point on the map. Rides passing within reach are shown with the walk to where you board.':
+    'तुम्ही कुठून सुरू करता आणि कुठे जाता ते निवडा, किंवा नकाशावरील एखादे ठिकाण. आवाक्यातून जाणारे प्रवास, बसण्याच्या ठिकाणापर्यंतच्या चालण्यासह दाखवले जातात.',
+  'Book a seat':
+    'सीट बुक करा',
+  'Your seat is held while you pay. Many drivers confirm at once; the others answer your request.':
+    'पैसे भरताना तुमची सीट राखून ठेवली जाते. अनेक चालक लगेच पुष्टी करतात; बाकीचे तुमच्या विनंतीला उत्तर देतात.',
+  'Travel together':
+    'एकत्र प्रवास करा',
+  'Chat with your driver and follow the car on the map. The emergency button puts calling 112 first.':
+    'तुमच्या चालकाशी चॅट करा आणि नकाशावर कार पाहा. आपत्कालीन बटण 112 वर कॉल करणे सर्वात आधी ठेवते.',
+  'Why giving a seat back early matters':
+    'सीट लवकर परत देणे का महत्त्वाचे आहे',
+  'A seat given back three days before departure can still be booked by someone else. Given back two hours before, it usually travels empty. So JOURNEX asks early, gives back more of the fare the earlier you cancel, and never cancels anyone on a guess.':
+    'सुटण्याच्या तीन दिवस आधी परत दिलेली सीट दुसरे कोणी अजूनही बुक करू शकते. दोन तास आधी परत दिलेली सीट बहुतेक रिकामीच जाते. म्हणून JOURNEX लवकर विचारते, जितक्या लवकर रद्द कराल तितके जास्त भाडे परत देते, आणि अंदाजावरून कधीही कोणाचे बुकिंग रद्द करत नाही.',
+  'The project measures what counts: rides completed for every 100 searches, not bookings made.':
+    'प्रकल्प महत्त्वाचे तेच मोजतो: दर 100 शोधांमागे पूर्ण झालेले प्रवास, केलेली बुकिंग नव्हे.',
+  'Days before: someone else can book it':
+    'दिवस आधी: दुसरे कोणी ती बुक करू शकते',
+  'Hours before: the seat is usually lost':
+    'तास आधी: सीट बहुतेक रिकामीच जाते',
+  'Made for this road':
+    'याच रस्त्यासाठी बनवलेले',
+  'Pickups on the way':
+    'वाटेत पिकअप',
+  'A driver can take a few minutes out of the way to pick you up where the road passes.':
+    'रस्ता जिथून जातो तिथून तुम्हाला घेण्यासाठी चालक काही मिनिटे वाट वाकडी करू शकतो.',
+  'Women-only rides':
+    'फक्त महिलांसाठी प्रवास',
+  'A driver can offer a ride to women only; only women see it or can book it.':
+    'चालक एखादा प्रवास फक्त महिलांसाठी देऊ शकतो; तो फक्त महिलाच पाहू आणि बुक करू शकतात.',
+  'Flexible bookings':
+    'लवचिक बुकिंग',
+  'Choose a window of time. If your driver withdraws, JOURNEX looks for another ride in it, at the same price.':
+    'वेळेची एक मर्यादा निवडा. तुमच्या चालकाने प्रवास मागे घेतला, तर JOURNEX त्याच मर्यादेत, त्याच किमतीत दुसरा प्रवास शोधते.',
+  'Electric cars':
+    'इलेक्ट्रिक कार',
+  'A route an electric car cannot cover on one charge is caught before it is published, with chargers along the way.':
+    'इलेक्ट्रिक कार एका चार्जमध्ये पूर्ण करू शकत नाही असा मार्ग प्रकाशित होण्याआधीच ओळखला जातो, वाटेतील चार्जरसह.',
+  'Buses when no car goes':
+    'कार नसेल तेव्हा बस',
+  'When no ride fits, buses on the same stretch are suggested.':
+    'कोणताही प्रवास जुळत नसेल, तेव्हा त्याच टप्प्यावरच्या बस सुचवल्या जातात.',
+  'Three languages':
+    'तीन भाषा',
+  'Every screen in English, Hindi and Marathi, receipts included.':
+    'प्रत्येक स्क्रीन इंग्रजी, हिंदी आणि मराठीत, पावत्यांसह.',
+  'For passengers':
+    'प्रवाशांसाठी',
+  'Pay only for the stretch you ride':
+    'फक्त तुम्ही प्रवास करता त्या टप्प्याचे पैसे भरा',
+  "Each driver's record of rides kept, and their ratings":
+    'प्रत्येक चालकाची पाळलेल्या प्रवासांची नोंद, आणि त्यांचे रेटिंग',
+  'Passes that waive the service fee':
+    'सेवा शुल्क माफ करणारे पास',
+  'Create a passenger account':
+    'प्रवासी खाते तयार करा',
+  'For drivers':
+    'चालकांसाठी',
+  'Publish once, or repeat a ride every week':
+    'एकदा प्रकाशित करा, किंवा दर आठवड्याला प्रवास पुन्हा करा',
+  'Approve each passenger, or let them book at once':
+    'प्रत्येक प्रवाशाला मंजुरी द्या, किंवा त्यांना लगेच बुक करू द्या',
+  'A lower fee for drivers who keep their rides':
+    'आपले प्रवास पाळणाऱ्या चालकांसाठी कमी शुल्क',
+  'Create a driver account':
+    'चालक खाते तयार करा',
+  'A final-year project at DYPCET, Kolhapur. Payments, text messages and calls are simulated unless real services are connected.':
+    'DYPCET, कोल्हापूर येथील अंतिम वर्षाचा प्रकल्प. खऱ्या सेवा जोडल्या जाईपर्यंत पेमेंट, मजकूर संदेश आणि कॉल नमुना (सिम्युलेशन) आहेत.',
 };

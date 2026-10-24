@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { GoogleSignIn } from '../components/google';
 import { homeFor } from '../components/Layout';
@@ -102,9 +102,12 @@ export function RegisterPage() {
   const { user, register: signUp } = useAuth();
   const navigate = useNavigate();
   const [failure, setFailure] = useState<string | null>(null);
+  // The front page's "Offer a ride" arrives with ?as=driver, so the choice is already made.
+  const as = useSearchParams()[0].get('as');
+  const role = as === 'driver' ? 'DRIVER' : as === 'passenger' ? 'PASSENGER' : undefined;
   const { register, handleSubmit, formState, watch } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { method: 'email' },
+    defaultValues: { method: 'email', role },
   });
   const method = watch('method');
 
@@ -164,7 +167,7 @@ export function RegisterPage() {
           />
           <SelectField
             label={t('I want to')}
-            defaultValue=""
+            defaultValue={role ?? ''}
             hint={t('An account is either a passenger or a driver. This cannot be changed later.')}
             error={formState.errors.role?.message}
             {...register('role')}

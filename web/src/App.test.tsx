@@ -163,6 +163,25 @@ const booking: Booking = {
 };
 
 describe('access', () => {
+  it('shows a signed-out visitor what JOURNEX is, and takes a driver to sign up as one', async () => {
+    open('/');
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Share the road between Kolhapur and Pune' })).toBeInTheDocument();
+    expect(screen.getByText(/simulated unless real services are connected/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('link', { name: 'Offer a ride' }));
+
+    expect(await screen.findByRole('heading', { name: 'Create an account' })).toBeInTheDocument();
+    expect(screen.getByLabelText('I want to')).toHaveValue('DRIVER');
+  });
+
+  it('takes a signed-in member past the front page to their own', async () => {
+    signIn('DRIVER');
+    serve({ 'GET /rides/mine': () => json([]) });
+    open('/');
+
+    expect(await screen.findByRole('heading', { name: 'My rides' })).toBeInTheDocument();
+  });
+
   it('sends a signed-out visitor to sign in', async () => {
     open('/bookings');
 

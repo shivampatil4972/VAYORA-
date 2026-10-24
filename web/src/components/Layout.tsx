@@ -282,6 +282,11 @@ export function Layout() {
           <div className="ml-auto flex flex-wrap items-center gap-2 text-sm text-slate-600">
             <LanguageSwitcher />
             <ThemeSwitcher />
+            {!user && location.pathname !== '/login' && location.pathname !== '/register' && (
+              <NavLink to="/login" className="rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-white shadow-md shadow-accent/25 hover:bg-accent-strong focus:outline-none focus-visible:ring-4 focus-visible:ring-teal-600/30">
+                {t('Sign in')}
+              </NavLink>
+            )}
             {member && (
               <Button tone="danger" aria-expanded={emergency} onClick={() => setEmergency(true)}>
                 <Siren aria-hidden="true" className="h-4 w-4" />
