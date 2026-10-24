@@ -230,15 +230,6 @@
     cursor: pointer;
   }
 
-  /* Maps dim with the rest of the screen at night; the attribution stays readable. */
-  @media screen {
-    :root[data-theme='dark'] .leaflet-tile-pane {
-      filter: brightness(0.75) contrast(1.08) saturate(0.85);
-    }
-    :root[data-theme='dark'] .leaflet-container {
-      background: rgb(var(--slate-100));
-    }
-  }
 }
 
 @layer components {
@@ -291,6 +282,34 @@
   }
   .no-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+}
+
+/*
+ * Maps at night. Outside every @layer on purpose: Tailwind drops a layered rule whose class
+ * never appears in the source, and Leaflet adds these classes itself, so inside a layer they
+ * were silently left out of the build. The tiles are inverted and turned back to their own
+ * hues, which makes OpenStreetMap's light map a dark one with light labels; routes and pins
+ * are in other panes and keep their colours.
+ */
+@media screen {
+  :root[data-theme='dark'] .leaflet-tile-pane {
+    filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.88) saturate(0.7);
+  }
+  :root[data-theme='dark'] .leaflet-container {
+    background: rgb(var(--slate-100));
+  }
+  :root[data-theme='dark'] .leaflet-bar a {
+    background: rgb(var(--surface));
+    color: rgb(var(--slate-900));
+    border-bottom-color: rgb(var(--slate-200));
+  }
+  :root[data-theme='dark'] .leaflet-control-attribution {
+    background: rgb(var(--surface) / 0.8);
+    color: rgb(var(--slate-600));
+  }
+  :root[data-theme='dark'] .leaflet-control-attribution a {
+    color: rgb(var(--teal-800));
   }
 }
 
