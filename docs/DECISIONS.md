@@ -88,7 +88,8 @@ was decided while building within them.
 | Suspension is checked on every request | A token cannot be recalled before it expires | One extra query per request |
 | A report needs a booking shared with the member reported | Strangers cannot file against each other | |
 | "Confirmed", never "verified", for an email or phone proved by code | A code proves an address, not a person | |
-| Confirmation codes are stored as hashes, expire in 10 minutes, work once, die after 5 wrong guesses | Codes are credentials | |
+| Confirmation codes are stored as hashes, expire in 10 minutes, work once, die after 5 wrong guesses; one a minute and ten a day per channel (the daily cap from 2026-10-24) | Codes are credentials. The wait alone allowed 1,440 codes a day, each with five guesses | |
+| Wrong passwords are counted per email address or phone number, in Redis, for 15 minutes from the first; five lock that address's password sign-in until the window ends (from 2026-10-24) | A count that expires is ephemeral, like a seat hold, so it is Redis's and in no other store; counting per address stops guessing one password from any number of machines, and needs no trust in forwarded client addresses. The key is a digest, so no address is copied out of PostgreSQL. Google sign-in is not counted: nothing in it can be guessed | Anyone can lock a member's password sign-in for 15 minutes; one client can still try a few passwords on each of many addresses. Without Redis nothing is counted, so an outage stops nobody signing in |
 | Women-only rides rest on the gender a member declares, which nobody checks | It is the only information the platform has | The rule can be got round by anyone willing to lie |
 | Experience levels need a confirmed email from the second level and a confirmed phone from the fourth | Levels should reward what can be checked, however weakly | The thresholds are assumptions |
 | Gender is used but never shown | It decides women-only access; it is not other members' business | |
@@ -162,3 +163,6 @@ Each was justified in one sentence when it was added, as CLAUDE.md requires.
 | matplotlib | research only | Draws the report's figures from the committed results |
 | SimPy, PyYAML | intel (already research) | Run the simulator and read its configurations for a live what-if run |
 | PyJWT | intel, research | intel checks an administrator's token for a live what-if run, as the gateway does; the tests sign the tokens they present |
+| framer-motion, lucide-react | web | Exits, height changes and swipes that CSS cannot animate; one consistent icon set (see Interface) |
+| ESLint, typescript-eslint, eslint-plugin-react-hooks, eslint-plugin-jsx-a11y | web, gateway (development only) | Catch misused hooks, unused code and accessibility faults that the type checker and the tests do not |
+| springdoc-openapi | core-api | Generates the API's OpenAPI description and Swagger UI from the controllers, so the reference cannot drift from the code |

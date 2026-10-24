@@ -1,7 +1,7 @@
 # Known limitations
 
 What the project does not do, does only in part, or does in a way a reader could
-mistake for more. Updated 2026-10-21.
+mistake for more. Updated 2026-10-24.
 
 ## Nothing here is evidence about real people
 
@@ -241,12 +241,16 @@ mistake for more. Updated 2026-10-21.
 
 - The access token lives in the browser's `sessionStorage`, readable by any script on
   the page. There is no refresh token; a session lasts 12 hours and cannot be revoked.
-- No rate limiting on any endpoint, including sign-in. Confirmation codes alone are
-  limited: one a minute, five guesses each.
+- Only sign-in and confirmation codes are limited, and only per account: five wrong
+  passwords in 15 minutes lock that address's password sign-in for the rest of the
+  window, which anyone can set off on purpose; codes are one a minute, ten a day, five
+  guesses each. Nothing is limited per client, so a few guesses at each of many accounts
+  go unchecked.
 - An administrator can read every confirmation code in the simulated outbox. That is
   the point of it, and it must not exist alongside a real sender.
 - Registration reveals whether an email is already registered.
-- No security headers beyond Spring Security's defaults have been reviewed.
+- The web server sends the basic security headers, but there is no content security
+  policy and no HSTS.
 - Every signed-in request costs one extra database lookup, to check the account is not
   suspended.
 - The development defaults in `docker-compose.yml` (database password, JWT secret) are

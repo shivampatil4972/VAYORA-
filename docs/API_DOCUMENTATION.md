@@ -6,8 +6,11 @@ territory.
 
 ## Conventions (core-api)
 
-- Base URL `http://localhost:8080`. Everything except sign-up, sign-in and the health
-  check needs `Authorization: Bearer <token>`.
+- Base URL `http://localhost:8080`. Everything except sign-up, sign-in, the health check
+  and the API's description needs `Authorization: Bearer <token>`.
+- core-api describes itself: the OpenAPI document at `/v3/api-docs` and Swagger UI at
+  `/swagger-ui.html`, where **Authorize** takes the token sign-in returns. Both are
+  generated from the controllers, so they give every field exactly; this page is the map.
 - Bodies are JSON. Times are ISO-8601 instants. Money is a decimal number of rupees.
 - Errors are RFC 9457 problem documents: `{"status": 409, "detail": "..."}`. `detail` is
   written to be shown to a person.
@@ -20,7 +23,7 @@ territory.
 | 403 | Signed in, but the wrong role, or the account is suspended |
 | 404 | Not there, or not yours |
 | 409 | Well-formed, but the state forbids it: no seats, already rated, already decided |
-| 429 | Too many attempts (confirmation codes only) |
+| 429 | Too many attempts: wrong passwords at sign-in, or confirmation codes. Sign-in's says in `Retry-After` how many seconds to wait |
 | 503 | A dependency the request cannot do without is down (seat holds only) |
 
 **Roles**: P passenger, D driver, A administrator, any = any signed-in account.
@@ -34,7 +37,7 @@ territory.
 | `POST /api/v1/auth/register` | public | Create a passenger or driver account with exactly one of `email` or `phone`, optionally with an invitation code; returns a token. A phone number already on an account is refused (409) |
 | `GET /api/v1/auth/google` | public | `clientId`, or null when Google sign-in is off |
 | `POST /api/v1/auth/google` | public | `idToken` from Google, and `role` only to create an account; returns a token. 409 when no account exists and no role was given |
-| `POST /api/v1/auth/login` | public | Exactly one of `email` or `phone`, with `password`. Returns a token valid for 12 hours |
+| `POST /api/v1/auth/login` | public | Exactly one of `email` or `phone`, with `password`. Returns a token valid for 12 hours. After 5 wrong passwords for one address in 15 minutes, 429 until the window ends, even with the right password |
 | `GET /api/v1/me` | any | The signed-in account |
 | `GET /api/v1/me/referral` | any | Own invitation code, how many used it, and `rewardPass`: the pass a qualified referral earns each passenger (null if none) |
 | `GET /api/v1/bus-alternatives?from=&to=&after=HH:mm` | any | Up to five administrator-entered buses between two towns, earliest first; not checked against the operator |
@@ -48,7 +51,7 @@ territory.
 | `POST /api/v1/me/push-subscriptions`, `DELETE /api/v1/me/push-subscriptions?endpoint=` | any | A browser's push subscription, as `PushSubscription.toJSON()` gives it |
 | `GET /api/v1/me/profile` | any | Own profile, including phone and confirmation status |
 | `PUT /api/v1/me/profile` | any | Replace own profile. A changed phone must be confirmed again |
-| `POST /api/v1/me/verification/{email\|phone}/request` | any | Send a 6-digit code (simulated sender) |
+| `POST /api/v1/me/verification/{email\|phone}/request` | any | Send a 6-digit code (simulated sender). One a minute, and ten a day per channel (429) |
 | `POST /api/v1/me/verification/{email\|phone}/confirm` | any | Confirm with the code |
 | `PUT /api/v1/me/id-declaration` | D | `{document}`: which identity document the driver says they hold (`AADHAAR`, `PAN`, `DRIVING_LICENCE`, `PASSPORT` or `VOTER_ID`). Only the kind is taken; nothing is checked. Returns the own profile |
 | `DELETE /api/v1/me/id-declaration` | any | Remove the declaration. Returns the own profile |
