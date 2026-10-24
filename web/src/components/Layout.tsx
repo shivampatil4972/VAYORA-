@@ -13,6 +13,7 @@ import {
   Flag,
   Fuel,
   IndianRupee,
+  Languages,
   LayoutDashboard,
   LogOut,
   Monitor,
@@ -30,7 +31,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Suspense, useEffect, useState } from 'react';
-import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
@@ -40,6 +41,7 @@ import { themeLabels, useTheme, type ThemeChoice } from '../lib/theme';
 import { preload } from '../pageLoaders';
 import type { Role } from '../lib/types';
 import { ErrorBoundary } from './ErrorBoundary';
+import { CommandPalette, type Command } from './palette';
 import { initialsOf } from './photo';
 import { Sheet } from './sheet';
 import { SosPanel } from './Sos';
@@ -197,6 +199,31 @@ function ThemeSwitcher() {
   );
 }
 
+/** What the command palette offers a member: every page of their role, then quick settings and actions. */
+function useCommands(role: Role, actions: { emergency?: () => void; signOut: () => void }): Command[] {
+  const navigate = useNavigate();
+  const { setChoice } = useTheme();
+  const { setLanguage } = useLanguage();
+  const pages = [...links[role], { to: '/notifications', label: msg('Notifications'), icon: Bell }, account];
+  return [
+    ...pages.map(({ to, label, icon }) => ({
+      id: `page:${to}`, group: msg('Pages'), label, icon, run: () => navigate(to), onHighlight: () => preload(to),
+    })),
+    ...themeOrder.map((choice) => ({
+      id: `theme:${choice}`, group: msg('Theme'), label: themeLabels[choice], icon: themeIcons[choice], run: () => setChoice(choice),
+    })),
+    ...LANGUAGES.map(({ code, name }) => ({
+      id: `language:${code}`, group: msg('Language'), label: name, literal: true, icon: Languages, run: () => setLanguage(code),
+    })),
+    ...(actions.emergency ? [{ id: 'emergency', group: msg('Actions'), label: msg('Emergency'), icon: Siren, run: actions.emergency }] : []),
+    { id: 'sign-out', group: msg('Actions'), label: msg('Sign out'), icon: LogOut, run: actions.signOut },
+  ];
+}
+
+function MemberPalette({ role, emergency, signOut }: { role: Role; emergency?: () => void; signOut: () => void }) {
+  return <CommandPalette commands={useCommands(role, { emergency, signOut })} />;
+}
+
 /** iOS-style navigation for phones: the main sections along the bottom, the rest in a sheet. */
 function PhoneTabBar({ role, onSignOut }: { role: Role; onSignOut: () => void }) {
   const t = useT();
@@ -280,6 +307,7 @@ export function Layout() {
             {'JOURNEX'}
           </span>
           <div className="ml-auto flex flex-wrap items-center gap-2 text-sm text-slate-600">
+            {user && <MemberPalette role={user.role} emergency={member ? () => setEmergency(true) : undefined} signOut={logout} />}
             <LanguageSwitcher />
             <ThemeSwitcher />
             {!user && location.pathname !== '/login' && location.pathname !== '/register' && (

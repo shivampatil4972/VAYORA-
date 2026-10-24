@@ -42,6 +42,21 @@ export const hi: Record<string, string> = {
     'डिवाइस जैसा',
   'Theme: {name}':
     'थीम: {name}',
+  // Command palette
+  'Go to…':
+    'यहाँ जाएँ…',
+  'Search pages and actions':
+    'पेज और कार्य खोजें',
+  'Pages':
+    'पेज',
+  'Theme':
+    'थीम',
+  'Actions':
+    'कार्य',
+  'Nothing matches that.':
+    'इससे कुछ मेल नहीं खाता।',
+  'Arrows to move, Enter to choose, Esc to close':
+    'चलने के लिए तीर, चुनने के लिए Enter, बंद करने के लिए Esc',
   'More':
     'और',
   'Something went wrong on this screen.':

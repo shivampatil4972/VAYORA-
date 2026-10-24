@@ -219,6 +219,47 @@ describe('access', () => {
   });
 });
 
+describe('command palette', () => {
+  it('opens with Ctrl+K, narrows as you type, and goes where you choose', async () => {
+    signIn('PASSENGER');
+    serve({ 'GET /bookings': () => json([]) });
+    open('/search');
+    await screen.findByRole('heading', { name: 'Find a ride' });
+
+    await userEvent.keyboard('{Control>}k{/Control}');
+    const dialog = await screen.findByRole('dialog', { name: 'Search pages and actions' });
+    const field = within(dialog).getByRole('combobox');
+    expect(field).toHaveFocus();
+    // A passenger is offered no driver's page.
+    expect(within(dialog).queryByRole('option', { name: 'Publish a ride' })).not.toBeInTheDocument();
+    await userEvent.type(field, 'bookings');
+    expect(within(dialog).getAllByRole('option').map((option) => option.textContent)).toEqual(['My bookings']);
+    await userEvent.keyboard('{Enter}');
+
+    expect(await screen.findByRole('heading', { name: 'My bookings' })).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
+  it('switches the theme from the list, and gives focus back on Escape', async () => {
+    signIn('DRIVER');
+    serve({ 'GET /rides/mine': () => json([]) });
+    open('/rides');
+    await screen.findByRole('heading', { name: 'My rides' });
+    const button = screen.getByRole('button', { name: 'Search pages and actions' });
+
+    await userEvent.click(button);
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(button).toHaveFocus();
+
+    await userEvent.click(button);
+    await userEvent.type(within(await screen.findByRole('dialog')).getByRole('combobox'), 'dark');
+    await userEvent.keyboard('{Enter}');
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe('dark'));
+    expect(localStorage.getItem('journex.theme')).toBe('dark');
+  });
+});
+
 describe('signing in', () => {
   it('shows field errors without calling the server', async () => {
     const fetchMock = serve({});

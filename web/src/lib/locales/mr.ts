@@ -42,6 +42,21 @@ export const mr: Record<string, string> = {
     'डिव्हाइसप्रमाणे',
   'Theme: {name}':
     'थीम: {name}',
+  // Command palette
+  'Go to…':
+    'इथे जा…',
+  'Search pages and actions':
+    'पाने आणि क्रिया शोधा',
+  'Pages':
+    'पाने',
+  'Theme':
+    'थीम',
+  'Actions':
+    'क्रिया',
+  'Nothing matches that.':
+    'याच्याशी काहीही जुळत नाही.',
+  'Arrows to move, Enter to choose, Esc to close':
+    'फिरण्यासाठी बाण, निवडण्यासाठी Enter, बंद करण्यासाठी Esc',
   'More':
     'अधिक',
   'Something went wrong on this screen.':
