@@ -66,9 +66,9 @@ function CorridorArt() {
         {TOWNS.map((town, index) => {
           const end = index === 0 || index === TOWNS.length - 1;
           // Kolhapur's name goes under it, leaving the corner beside it for a note.
-          const label = index === 0 ? { x: town.x, y: town.y + 24, anchor: 'middle' }
-            : town.x > 100 ? { x: town.x - 14, y: town.y + 4, anchor: 'end' }
-              : { x: town.x + 14, y: town.y + 4, anchor: 'start' };
+          const label = index === 0 ? { x: town.x, y: town.y + 24, anchor: 'middle' as const }
+            : town.x > 100 ? { x: town.x - 14, y: town.y + 4, anchor: 'end' as const }
+              : { x: town.x + 14, y: town.y + 4, anchor: 'start' as const };
           return (
             <g key={town.name}>
               <circle cx={town.x} cy={town.y} r={end ? 8 : 5.5} fill="#fff" />
