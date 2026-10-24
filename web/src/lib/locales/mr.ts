@@ -42,6 +42,25 @@ export const mr: Record<string, string> = {
     'डिव्हाइसप्रमाणे',
   'Theme: {name}':
     'थीम: {name}',
+  // Publishing a ride, in numbered parts
+  'When, and in which car':
+    'कधी, आणि कोणत्या कारने',
+  'Where you stop':
+    'तुम्ही कुठे थांबता',
+  'Who rides, and how':
+    'कोण येते, आणि कसे',
+  'Return and repeat':
+    'परतीचा प्रवास आणि पुनरावृत्ती',
+  'Your ride':
+    'तुमचा प्रवास',
+  'Not chosen yet':
+    'अजून निवडलेले नाही',
+  'Leaving':
+    'निघण्याची वेळ',
+  'Whole way, per seat':
+    'संपूर्ण मार्ग, प्रति सीट',
+  'Rides to publish':
+    'प्रकाशित होणारे प्रवास',
   // Command palette
   'Go to…':
     'इथे जा…',

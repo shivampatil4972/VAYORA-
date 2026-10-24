@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Car, CarFront, IndianRupee, Users } from 'lucide-react';
-import { useState } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -360,13 +360,23 @@ export function PublishRidePage() {
     );
   }
 
+  const included = CORRIDOR.filter((_, index) => stops[index]?.included);
+  const wholeWay = stops.reduce((sum, stop, index) => (stop.included && index !== firstIncluded ? sum + (Number(stop.priceFromPrevious) || 0) : sum), 0);
+  const departure = watch('departure');
+  const leaving = departure && !Number.isNaN(new Date(departure).getTime()) ? formatDateTime(departure) : null;
+
   return (
     <Page title={t('Publish a ride')}>
       <QueryState isPending={vehicles.isPending} error={vehicles.error} isEmpty={false} empty="" onRetry={() => void vehicles.refetch()} />
       {vehicles.data && (
-        <Card>
-          <form onSubmit={handleSubmit((form) => publish.mutate(form))} noValidate className="space-y-6">
+        <form
+          onSubmit={handleSubmit((form) => publish.mutate(form))}
+          noValidate
+          className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_17rem]"
+        >
+          <div className="space-y-5">
             {publish.error && <Notice tone="error">{publish.error.message}</Notice>}
+            <FormStep n={1} title={t('When, and in which car')}>
             <div className="grid gap-4 sm:grid-cols-2">
               <SelectField label={t('Vehicle')} error={formState.errors.vehicleId?.message} {...register('vehicleId')}>
                 {vehicles.data.map((vehicle) => (
@@ -394,65 +404,10 @@ export function PublishRidePage() {
                 <input type="checkbox" className="h-4 w-4 rounded border-slate-300" {...register('instantBooking')} />
                 {t('Confirm bookings instantly, without asking me')}
               </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700 sm:col-span-2">
-                <input type="checkbox" className="h-4 w-4 rounded border-slate-300" {...register('maxTwoInBack')} />
-                {t('I promise at most two passengers on the back seat')}
-              </label>
-              <TextField
-                label={t('Minutes you will go out of your way, in all, to pick passengers up at their own point')}
-                hint={t('0 for none: passengers then board only at your stops. Each pickup is worked out by road before it is offered.')}
-                type="number"
-                min={0}
-                max={MAX_DETOUR_MINUTES}
-                error={formState.errors.maxDetourMinutes?.message}
-                {...register('maxDetourMinutes')}
-              />
-              {me.data?.gender === 'FEMALE' ? (
-                <label className="flex items-center gap-2 text-sm text-slate-700 sm:col-span-2">
-                  <input type="checkbox" className="h-4 w-4 rounded border-slate-300" {...register('womenOnly')} />
-                  {t('Women passengers only')}
-                </label>
-              ) : (
-                <p className="text-sm text-slate-500 sm:col-span-2">
-                  {t('A ride for women passengers only can be offered by a driver whose profile says she is a woman.')}
-                </p>
-              )}
-              <div className="sm:col-span-2">
-                <label htmlFor="ride-notes" className="block text-sm font-medium text-slate-700">
-                  {t('Notes for passengers (optional)')}
-                </label>
-                <textarea
-                  id="ride-notes"
-                  rows={2}
-                  maxLength={500}
-                  aria-invalid={Boolean(formState.errors.notes)}
-                  className="mt-1 block w-full rounded-xl border border-slate-200 bg-surface px-3.5 py-2.5 text-[15px] shadow-sm focus:border-teal-600 focus:outline-none focus:ring-4 focus:ring-teal-600/15"
-                  {...register('notes')}
-                />
-                <p className="mt-1 text-sm text-slate-500">{t('Luggage, where exactly you wait, anything they should know.')}</p>
-              </div>
-              <TextField
-                label={t('Return ride leaving at (optional)')}
-                type="datetime-local"
-                hint={t('The same stops in reverse, with the same prices and the same time between stops.')}
-                error={formState.errors.returnDeparture?.message}
-                {...register('returnDeparture')}
-              />
-              <SelectField label={t('Repeat every week')} hint={t('At the same time of day. Each is a separate ride you can withdraw on its own.')} {...register('repeatWeeks')}>
-                <option value={0}>{t('No, just this once')}</option>
-                {Array.from({ length: MAX_REPEAT_WEEKS }, (_, index) => index + 1).map((weeks) => (
-                  <option key={weeks} value={weeks}>
-                    {weeks === 1 ? t('For {n} more week', { n: weeks }) : t('For {n} more weeks', { n: weeks })}
-                  </option>
-                ))}
-              </SelectField>
-              {publishing > 1 && (
-                <p role="status" className="text-sm font-medium text-slate-700 sm:col-span-2">
-                  {t('This will publish {n} rides.', { n: publishing })}
-                </p>
-              )}
             </div>
+            </FormStep>
 
+            <FormStep n={2} title={t('Where you stop')}>
             <fieldset>
               <legend className="text-sm font-medium text-slate-700">{t('Stops and price per seat')}</legend>
               <p className="mt-1 text-sm text-slate-500">
@@ -498,6 +453,7 @@ export function PublishRidePage() {
               </div>
             </fieldset>
 
+            <div className="mt-5">
             <RoutePlanner
               stops={stops}
               // Until the driver picks one, the select shows (and the form sends) the first vehicle.
@@ -509,24 +465,135 @@ export function PublishRidePage() {
                 setValue(`stops.${index}.lat`, lat);
                 setValue(`stops.${index}.lon`, lon);
               }}
-              onUse={(included, preview) => {
+              onUse={(chosen, preview) => {
                 // Timings run on from the first stop's own offset; prices are per leg.
-                let minutes = Number(stops[included[0]].offsetMinutes);
+                let minutes = Number(stops[chosen[0]].offsetMinutes);
                 preview.legs.forEach((leg, i) => {
                   minutes += leg.durationMinutes;
-                  setValue(`stops.${included[i + 1]}.offsetMinutes`, minutes);
-                  setValue(`stops.${included[i + 1]}.priceFromPrevious`, leg.suggestedPrice);
+                  setValue(`stops.${chosen[i + 1]}.offsetMinutes`, minutes);
+                  setValue(`stops.${chosen[i + 1]}.priceFromPrevious`, leg.suggestedPrice);
                 });
               }}
             />
+            </div>
+            </FormStep>
 
-            <Button type="submit" disabled={publish.isPending}>
+            <FormStep n={3} title={t('Who rides, and how')}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="flex items-center gap-2 text-sm text-slate-700 sm:col-span-2">
+                <input type="checkbox" className="h-4 w-4 rounded border-slate-300" {...register('maxTwoInBack')} />
+                {t('I promise at most two passengers on the back seat')}
+              </label>
+              <TextField
+                label={t('Minutes you will go out of your way, in all, to pick passengers up at their own point')}
+                hint={t('0 for none: passengers then board only at your stops. Each pickup is worked out by road before it is offered.')}
+                type="number"
+                min={0}
+                max={MAX_DETOUR_MINUTES}
+                error={formState.errors.maxDetourMinutes?.message}
+                {...register('maxDetourMinutes')}
+              />
+              {me.data?.gender === 'FEMALE' ? (
+                <label className="flex items-center gap-2 text-sm text-slate-700 sm:col-span-2">
+                  <input type="checkbox" className="h-4 w-4 rounded border-slate-300" {...register('womenOnly')} />
+                  {t('Women passengers only')}
+                </label>
+              ) : (
+                <p className="text-sm text-slate-500 sm:col-span-2">
+                  {t('A ride for women passengers only can be offered by a driver whose profile says she is a woman.')}
+                </p>
+              )}
+              <div className="sm:col-span-2">
+                <label htmlFor="ride-notes" className="block text-sm font-medium text-slate-700">
+                  {t('Notes for passengers (optional)')}
+                </label>
+                <textarea
+                  id="ride-notes"
+                  rows={2}
+                  maxLength={500}
+                  aria-invalid={Boolean(formState.errors.notes)}
+                  className="mt-1 block w-full rounded-xl border border-slate-200 bg-surface px-3.5 py-2.5 text-[15px] shadow-sm focus:border-teal-600 focus:outline-none focus:ring-4 focus:ring-teal-600/15"
+                  {...register('notes')}
+                />
+                <p className="mt-1 text-sm text-slate-500">{t('Luggage, where exactly you wait, anything they should know.')}</p>
+              </div>
+            </div>
+            </FormStep>
+
+            <FormStep n={4} title={t('Return and repeat')}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField
+                label={t('Return ride leaving at (optional)')}
+                type="datetime-local"
+                hint={t('The same stops in reverse, with the same prices and the same time between stops.')}
+                error={formState.errors.returnDeparture?.message}
+                {...register('returnDeparture')}
+              />
+              <SelectField label={t('Repeat every week')} hint={t('At the same time of day. Each is a separate ride you can withdraw on its own.')} {...register('repeatWeeks')}>
+                <option value={0}>{t('No, just this once')}</option>
+                {Array.from({ length: MAX_REPEAT_WEEKS }, (_, index) => index + 1).map((weeks) => (
+                  <option key={weeks} value={weeks}>
+                    {weeks === 1 ? t('For {n} more week', { n: weeks }) : t('For {n} more weeks', { n: weeks })}
+                  </option>
+                ))}
+              </SelectField>
+              {publishing > 1 && (
+                <p role="status" className="text-sm font-medium text-slate-700 sm:col-span-2">
+                  {t('This will publish {n} rides.', { n: publishing })}
+                </p>
+              )}
+            </div>
+            </FormStep>
+          </div>
+
+          {/* What will be published, kept in view beside the form on a wide screen. */}
+          <aside aria-label={t('Your ride')} className="space-y-4 lg:sticky lg:top-28">
+            <div className="overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-slate-900/[0.04]">
+              <div className="bg-gradient-to-br from-accent to-accent-strong px-4 py-3 text-white">
+                <p className="text-[13px] font-semibold uppercase tracking-wider text-white/80">{t('Your ride')}</p>
+                <p className="mt-1 text-[17px] font-bold leading-snug">
+                  {included.length ? included.map((stop) => t(stop.name)).join(' → ') : t('Not chosen yet')}
+                </p>
+              </div>
+              <dl className="divide-y divide-slate-900/[0.06] px-4 text-sm">
+                <SummaryRow label={t('Leaving')} value={leaving ?? t('Not chosen yet')} />
+                <SummaryRow label={t('Seats')} value={String(watch('seatsOffered') ?? '')} />
+                <SummaryRow label={t('Whole way, per seat')} value={wholeWay > 0 ? formatRupees(wholeWay) : t('Not chosen yet')} />
+                <SummaryRow label={t('Rides to publish')} value={String(publishing)} />
+              </dl>
+            </div>
+            <Button type="submit" disabled={publish.isPending} className="w-full py-3">
               {publish.isPending ? t('Publishing…') : t('Publish ride')}
             </Button>
-          </form>
-        </Card>
+          </aside>
+        </form>
       )}
     </Page>
+  );
+}
+
+/** One numbered part of a long form: the driver sees where they are without anything hidden. */
+function FormStep({ n, title, children }: { n: number; title: string; children: ReactNode }) {
+  const id = useId();
+  return (
+    <section aria-labelledby={id} className="rounded-2xl bg-surface p-4 shadow-card ring-1 ring-slate-900/[0.04] sm:p-5">
+      <h2 id={id} className="mb-4 flex items-center gap-3 text-[17px] font-semibold tracking-tight text-slate-900">
+        <span aria-hidden="true" className="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-accent text-sm font-bold text-white shadow-sm shadow-accent/30">
+          {n}
+        </span>
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 py-2.5">
+      <dt className="text-slate-500">{label}</dt>
+      <dd className="text-right font-semibold tabular-nums text-slate-900">{value}</dd>
+    </div>
   );
 }
 

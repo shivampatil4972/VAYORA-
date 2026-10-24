@@ -694,9 +694,16 @@ describe('maps, routes and location search', () => {
       ],
     });
 
+    const summary = within(screen.getByRole('complementary', { name: 'Your ride' }));
+    expect(summary.getByText('Kolhapur → Pune')).toBeInTheDocument();
+    expect(summary.getAllByText('Not chosen yet')).toHaveLength(2);
+
     await userEvent.click(screen.getByRole('button', { name: 'Use the suggested prices and times' }));
     expect(screen.getByLabelText('Price to Pune (₹)')).toHaveValue(460);
     expect(screen.getByLabelText('Minutes from Kolhapur to Pune')).toHaveValue(191);
+    // The summary follows the form: the whole way now has a price.
+    expect(summary.getByText('₹460')).toBeInTheDocument();
+    expect(summary.getAllByText('Not chosen yet')).toHaveLength(1);
 
     // Moving a pin invalidates the route that was shown.
     await userEvent.click(screen.getByRole('button', { name: 'click the map' }));

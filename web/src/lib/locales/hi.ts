@@ -42,6 +42,25 @@ export const hi: Record<string, string> = {
     'डिवाइस जैसा',
   'Theme: {name}':
     'थीम: {name}',
+  // Publishing a ride, in numbered parts
+  'When, and in which car':
+    'कब, और किस कार में',
+  'Where you stop':
+    'आप कहाँ रुकते हैं',
+  'Who rides, and how':
+    'कौन जाता है, और कैसे',
+  'Return and repeat':
+    'वापसी और दोहराना',
+  'Your ride':
+    'आपकी सवारी',
+  'Not chosen yet':
+    'अभी चुना नहीं',
+  'Leaving':
+    'रवानगी',
+  'Whole way, per seat':
+    'पूरा रास्ता, प्रति सीट',
+  'Rides to publish':
+    'प्रकाशित होने वाली सवारियाँ',
   // Command palette
   'Go to…':
     'यहाँ जाएँ…',
