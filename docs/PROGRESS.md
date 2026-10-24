@@ -1,5 +1,41 @@
 # Progress
 
+## 2026-10-24 — engineering to industry practice, and a front door
+
+- **Every suite runs on GitHub Actions** on each push and pull request: web (types, lint,
+  tests, build), gateway (lint, tests), core-api (Java 21 with real databases) and Python
+  (ruff, then the research suite against core-api's schema). ESLint now checks the web
+  app (with React hooks and accessibility rules) and the gateway; it found two misused
+  hooks, fixed.
+- **The API describes itself**: Swagger UI at `/swagger-ui.html` and the OpenAPI document,
+  generated from the controllers.
+- **Password guessing is slowed**: five wrong passwords for one address in 15 minutes
+  lock it for the rest of the window, counted in Redis. Confirmation codes are capped at
+  ten a day per channel. Both messages translated.
+- **Dependencies scanned again**: an advisory published since the last scan made zod 3
+  vulnerable; the app moved to zod 4, and the gateway to body-parser 1.20.9. Nothing in
+  the gateway or what the browser runs is flagged. Tailwind stays on 3 (DECISIONS.md).
+- **Demo data**: `scripts/demo-data.mjs` fills a local stack through the public API, every
+  account labelled as made up; nothing reaches the research figures.
+- **A front page** for signed-out visitors, an **installable app** with an offline page,
+  and a **command palette** (Ctrl+K). In English, Hindi and Marathi, seen in Edge at
+  desktop and phone width, light and dark.
+- **Found and fixed**: maps had never been dark at night (TESTING.md, bugs the tests did
+  not find).
+- Tests: 311 Java, 206 Python, 236 web, 28 gateway, all passing.
+
+## 2026-10-23 — cleaned and hardened
+
+- An audit of the whole repository: no failing test, no compile warning, no type error,
+  no unused code or dependency. Ruff found 13 findings in the Python, all fixed; paired
+  lists are now zipped strictly, so a length mismatch fails loudly instead of quietly
+  dropping data.
+- core-api and intel run as unprivileged users in their images; core-api's JVM sizes its
+  heap to the container and exits on running out of memory.
+- The web server compresses text, lets browsers keep the hashed build files for a year,
+  checks the page itself on every visit, and sends security headers.
+- React Router 7 and Vitest 5; the TypeScript build cache is no longer tracked.
+
 ## 2026-10-22 (later) — a production-style interface
 
 - **As chosen, all four bundles**, built on the iOS look of the morning:
