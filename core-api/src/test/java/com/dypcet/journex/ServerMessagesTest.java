@@ -22,15 +22,18 @@ import org.junit.jupiter.api.Test;
  */
 class ServerMessagesTest {
 
-    // An error built with only string literals: new ResponseStatusException(STATUS, "..." + "...")
-    // or one of the helpers conflict, notFound, bad and badRequest.
+    // An error built with only string literals: new ResponseStatusException(STATUS, "..." + "..."),
+    // super(STATUS, ...) in a subclass of it, or one of the helpers conflict, notFound, bad and
+    // badRequest.
     private static final Pattern CALL = Pattern.compile(
-            "(?:ResponseStatusException\\(\\s*HttpStatus\\.[A-Z_]+\\s*,|\\b(?:conflict|notFound|badRequest|bad)\\()"
+            "(?:(?:ResponseStatusException|\\bsuper)\\(\\s*HttpStatus\\.[A-Z_]+\\s*,"
+                    + "|\\b(?:conflict|notFound|badRequest|bad)\\()"
                     + "\\s*((?:\"(?:[^\"\\\\]|\\\\.)*\"\\s*\\+?\\s*)+)\\)");
     private static final Pattern LITERAL = Pattern.compile("\"((?:[^\"\\\\]|\\\\.)*)\"");
     // Where any such error's message begins, whatever it is built from.
     private static final Pattern START = Pattern.compile(
-            "ResponseStatusException\\(\\s*HttpStatus\\.[A-Z_]+\\s*,|\\b(?:conflict|notFound|badRequest|bad)\\(");
+            "(?:ResponseStatusException|\\bsuper)\\(\\s*HttpStatus\\.[A-Z_]+\\s*,"
+                    + "|\\b(?:conflict|notFound|badRequest|bad)\\(");
 
     @Test
     void everyFixedErrorMessageIsListedByTheWebApp() throws IOException {
@@ -80,7 +83,8 @@ class ServerMessagesTest {
         // A template's placeholders stand for one value each, whatever they are called.
         String web = Files.readString(Path.of("../web/src/lib/serverMessages.ts")).replaceAll("\\{\\w+\\}", "{}");
 
-        assertThat(built).contains("You can have at most {} emergency contacts", "A {} booking cannot become {}");
+        assertThat(built).contains("You can have at most {} emergency contacts", "A {} booking cannot become {}",
+                "Too many wrong passwords. Try again in {} min.");
         assertThat(built).allSatisfy(message -> assertThat(web)
                 .as("web/src/lib/serverMessages.ts should have a template for: %s", message)
                 .contains(quoted(message)));

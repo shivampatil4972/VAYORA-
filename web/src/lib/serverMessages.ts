@@ -93,6 +93,7 @@ export const SERVER_MESSAGES = [
   msg('This ride is on the road and due at that stop too soon to book'),
   msg('Those stops are not on this ride'),
   msg('Too many wrong attempts. Request a new code.'),
+  msg('That is as many codes as one day allows. Try again tomorrow.'),
   msg('User not found'),
   msg('Vehicle not found'),
   msg('Vehicle not found among your vehicles'),
@@ -137,6 +138,7 @@ export const SERVER_TEMPLATES = [
   msg('A ride can repeat for at most {n} further weeks'),
   msg('A {status} booking cannot become {next}'),
   msg('Idempotency-Key must be 1 to {n} characters'),
+  msg('Too many wrong passwords. Try again in {n} min.'),
 ];
 
 // A booking status inside such a message, as a word in the sentence.

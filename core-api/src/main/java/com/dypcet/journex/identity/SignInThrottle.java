@@ -44,7 +44,7 @@ public class SignInThrottle {
 
         Locked(long retryAfterSeconds) {
             super(HttpStatus.TOO_MANY_REQUESTS, "Too many wrong passwords. Try again in "
-                    + minutes(retryAfterSeconds) + ".");
+                    + Math.max(1, (retryAfterSeconds + 59) / 60) + " min.");
             this.retryAfterSeconds = retryAfterSeconds;
         }
 
@@ -53,11 +53,6 @@ public class SignInThrottle {
             HttpHeaders headers = new HttpHeaders();
             headers.set(HttpHeaders.RETRY_AFTER, String.valueOf(retryAfterSeconds));
             return headers;
-        }
-
-        private static String minutes(long seconds) {
-            long minutes = Math.max(1, (seconds + 59) / 60);
-            return minutes == 1 ? "a minute" : minutes + " minutes";
         }
     }
 

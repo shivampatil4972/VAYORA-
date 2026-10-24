@@ -1657,6 +1657,10 @@ export const mr: Record<string, string> = {
     'हे थांबे या राइडवर नाहीत',
   'Too many wrong attempts. Request a new code.':
     'खूप चुकीचे प्रयत्न झाले. नवीन कोड मागवा.',
+  'That is as many codes as one day allows. Try again tomorrow.':
+    'एका दिवसात एवढेच कोड मिळू शकतात. उद्या पुन्हा प्रयत्न करा.',
+  'Too many wrong passwords. Try again in {n} min.':
+    'खूप चुकीचे पासवर्ड झाले. {n} मिनिटांनी पुन्हा प्रयत्न करा.',
   'User not found':
     'वापरकर्ता सापडला नाही',
   'Vehicle not found':

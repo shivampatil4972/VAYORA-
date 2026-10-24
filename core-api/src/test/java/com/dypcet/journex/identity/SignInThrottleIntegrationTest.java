@@ -47,7 +47,7 @@ class SignInThrottleIntegrationTest extends PostgresIntegrationTest {
         // Written another way, it is still the same account.
         String retryAfter = signIn("email", "  " + email.toUpperCase() + " ", PASSWORD)
                 .andExpect(status().isTooManyRequests())
-                .andExpect(jsonPath("$.detail").value("Too many wrong passwords. Try again in 15 minutes."))
+                .andExpect(jsonPath("$.detail").value("Too many wrong passwords. Try again in 15 min."))
                 .andReturn().getResponse().getHeader("Retry-After");
         // Seconds until the window that began with the first wrong one ends.
         assertThat(Long.parseLong(retryAfter)).isBetween(840L, 900L);
