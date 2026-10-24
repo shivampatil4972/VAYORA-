@@ -293,6 +293,9 @@ journex:
     code-ttl: PT10M
     resend-after: PT1M
     max-attempts: 5
+    # Codes one member may ask for on one channel in any 24 hours: bounds the guesses
+    # and the messages sent.
+    max-codes-per-day: 10
   sign-in:
     # Wrong passwords for one email address or phone number before signing in with it is
     # refused, and the window that begins with the first wrong one.

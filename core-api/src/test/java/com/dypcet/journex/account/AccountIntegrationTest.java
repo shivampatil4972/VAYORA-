@@ -185,6 +185,26 @@ class AccountIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
+    void aDayAllowsOnlySoManyCodesWhateverTheWaitBetweenThem() {
+        // Each one asked for once the wait after the last is over.
+        for (int i = 0; i < 10; i++) {
+            accounts.requestCode(userId, Channel.EMAIL);
+            jdbc.update("UPDATE verification_codes SET created_at = created_at - interval '2 minutes' "
+                    + "WHERE user_id = ?", userId);
+        }
+
+        assertStatus(HttpStatus.TOO_MANY_REQUESTS, () -> accounts.requestCode(userId, Channel.EMAIL));
+        // The phone is counted apart.
+        accounts.update(userId, new ProfileUpdate(phone, null, null, null, null, null, null, null));
+        accounts.requestCode(userId, Channel.PHONE);
+
+        // A day after the first, the member may ask again.
+        jdbc.update("UPDATE verification_codes SET created_at = created_at - interval '1 day' "
+                + "WHERE user_id = ? AND channel = 'EMAIL'", userId);
+        accounts.requestCode(userId, Channel.EMAIL);
+    }
+
+    @Test
     void tooManyWrongGuessesSpendTheCodeAndAnExpiredCodeIsRefused() {
         accounts.requestCode(userId, Channel.EMAIL);
         String code = codeSentTo(email);

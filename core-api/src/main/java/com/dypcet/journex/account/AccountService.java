@@ -73,13 +73,15 @@ public class AccountService {
     private final Duration codeTtl;
     private final Duration resendAfter;
     private final int maxAttempts;
+    private final int maxCodesPerDay;
     private final SecureRandom random = new SecureRandom();
 
     public AccountService(JdbcTemplate jdbc, PasswordEncoder encoder, MessageSender sender,
             Clock clock,
             @Value("${journex.verification.code-ttl}") Duration codeTtl,
             @Value("${journex.verification.resend-after}") Duration resendAfter,
-            @Value("${journex.verification.max-attempts}") int maxAttempts) {
+            @Value("${journex.verification.max-attempts}") int maxAttempts,
+            @Value("${journex.verification.max-codes-per-day}") int maxCodesPerDay) {
         this.jdbc = jdbc;
         this.encoder = encoder;
         this.sender = sender;
@@ -87,6 +89,7 @@ public class AccountService {
         this.codeTtl = codeTtl;
         this.resendAfter = resendAfter;
         this.maxAttempts = maxAttempts;
+        this.maxCodesPerDay = maxCodesPerDay;
     }
 
     public MyProfile profile(long userId) {
@@ -187,6 +190,14 @@ public class AccountService {
         if (latest != null && latest.createdAt().plus(resendAfter).isAfter(now)) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
                     "A code was sent a moment ago. Wait before asking for another.");
+        }
+        Integer sentToday = jdbc.queryForObject("""
+                SELECT count(*) FROM verification_codes
+                WHERE user_id = ? AND channel = ? AND created_at > ?""",
+                Integer.class, userId, channel.name(), utc(now.minus(Duration.ofDays(1))));
+        if (sentToday != null && sentToday >= maxCodesPerDay) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "That is as many codes as one day allows. Try again tomorrow.");
         }
         String code = String.format("%06d", random.nextInt(1_000_000));
         jdbc.update("""
