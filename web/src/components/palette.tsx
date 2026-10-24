@@ -54,7 +54,8 @@ export function CommandPalette({ commands }: { commands: Command[] }) {
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
         aria-label={t('Search pages and actions')}
-        className="inline-flex h-8 items-center gap-2 rounded-full bg-slate-900/[0.05] px-2.5 text-sm font-medium text-slate-600 hover:bg-slate-900/[0.09] active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-teal-600/30"
+        // A keyboard's tool: a phone has the tab bar and its More sheet instead, and the room is needed.
+        className="hidden h-8 items-center gap-2 rounded-full bg-slate-900/[0.05] px-2.5 sm:inline-flex text-sm font-medium text-slate-600 hover:bg-slate-900/[0.09] active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-teal-600/30"
       >
         <Search aria-hidden="true" className="h-4 w-4" />
         <span className="hidden md:inline">{t('Go to…')}</span>
