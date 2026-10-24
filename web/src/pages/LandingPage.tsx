@@ -167,7 +167,8 @@ function Hero() {
 function Facts() {
   const t = useT();
   const facts = [
-    { value: 230, label: t('km of road, end to end') },
+    // OSRM's road route through the four towns: 235.9 km (docs/TESTING.md).
+    { value: 236, label: t('km of road, end to end') },
     { value: 4, label: t('towns on the way') },
     { value: 7, label: t('days ahead you can book') },
     { value: 3, label: t('languages') },
