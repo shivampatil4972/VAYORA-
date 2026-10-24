@@ -8,7 +8,7 @@ with the lint checks below: `npm run lint` in `web/` and `gateway/` (ESLint), an
 
 | Suite | Command, from the repository root | Tests |
 |---|---|---|
-| core-api | `docker compose --profile test run --rm core-api-tests` | 304 |
+| core-api | `docker compose --profile test run --rm core-api-tests` | 311 |
 | Python (events, simulator, model, scheduler, experiments, intel API) | `docker compose --profile research run --rm research` | 206 |
 | web | `cd web && npm ci && npm test` | 232 |
 | gateway | `cd gateway && npm ci && npm test` | 28 |
@@ -44,7 +44,7 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 | `RatingFlowIntegrationTest` | 8 | One rating per side per completed trip, who may rate, averages, profiles expose no contact details |
 | `NotificationIntegrationTest` | 6 | Who is told what, **nothing is sent for a rolled-back booking**, per-member access, **a MongoDB outage does not fail the caller** |
 | `ModerationIntegrationTest` | 8 | Who may report whom, dismiss / warn / suspend, **a suspended member's existing token is refused**, reinstatement, **the audit log cannot be rewritten**, back office is administrators only |
-| `AccountIntegrationTest` | 11 | Profile replace and clear, **the public profile never shows phone, birth year or gender**, **a code is stored only as a hash, works once, expires, and is spent by wrong guesses**, a changed number undoes its proof, three contacts at most, **an SOS answer says nobody was really messaged**, repeat presses, acknowledgement audited, administrators only |
+| `AccountIntegrationTest` | 12 | Profile replace and clear, **the public profile never shows phone, birth year or gender**, **a code is stored only as a hash, works once, expires, and is spent by wrong guesses**, **ten codes a day per channel however long the wait between them**, a changed number undoes its proof, three contacts at most, **an SOS answer says nobody was really messaged**, repeat presses, acknowledgement audited, administrators only |
 | `VehicleIntegrationTest` | 6 | Comfort, luggage and EV figures kept, **the range is the driver's two figures divided and rounded down**, battery figures refused on a non-electric vehicle, a search result names its car, validation, a driver sees only their own |
 | `SeatHoldIntegrationTest` | 8 | Held seats are left alone on the legs held and nowhere else, a hold takes nothing from PostgreSQL, **8 simultaneous holds on the last seat: exactly one is placed**, replacing and releasing, one ride at a time, **a hold lapses on its own**, search shows others only what is not held, **with Redis unreachable nothing is held and nothing is blocked** |
 | `BookingExpiryIntegrationTest` | 5 | An unanswered request closes after 12 hours or 2 hours before boarding, **refunded in full with the fee, logged as the platform's action**, closed once, an answered or instant booking is never closed, a request too late to be answered is refused, the terms endpoint |
@@ -72,6 +72,8 @@ The first two need only Docker. The Python suite also needs PostgreSQL running:
 | `IntelContactSchedulerTest` | 2 | Request contract with intel's contact scheduler, field by field; a failing scheduler is no answer, not an error |
 | `IntelHazardScorerTest` | 4 | Request contract with intel; outage, wrong feature version and invalid probability all yield no score |
 | `ApiIntegrationTest` | 7 | 401 without a token, hashed passwords, bad credentials, role checks, another user's booking is invisible, **a bad query is a 400, not a 500**, full journey over HTTP, CORS |
+| `SignInThrottleIntegrationTest` | 4 | **Five wrong passwords lock that address's sign-in, the right password included**, with `Retry-After` and the window from the first; however the address is written; Redis keeps a digest, not the address, and forgets; nobody else affected; the right password forgives earlier misses; an address nobody has counted alike |
+| `ApiDocsIntegrationTest` | 2 | The OpenAPI description and Swagger UI are public and name real endpoints and the bearer sign-in; the endpoints still demand a token |
 | `EventLogService*` | 11 | The event writer never throws into its caller; events commit with the business change |
 
 Also in the suite, not described above (39 tests): `PhoneSignUpIntegrationTest` (5),
