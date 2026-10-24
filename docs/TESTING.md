@@ -1,6 +1,10 @@
 # Testing
 
-Counts are from the latest run of each suite, the last on 2026-10-21. Every suite passed with no failures.
+Counts are from the latest run of each suite, the last on 2026-10-24. Every suite passed with no failures.
+
+Every push and pull request runs all of them on GitHub Actions (`.github/workflows/ci.yml`),
+with the lint checks below: `npm run lint` in `web/` and `gateway/` (ESLint), and
+`ruff check` for the Python code (rules in `pyproject.toml`).
 
 | Suite | Command, from the repository root | Tests |
 |---|---|---|

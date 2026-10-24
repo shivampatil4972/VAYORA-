@@ -1,0 +1,83 @@
+# Every push and pull request runs every suite: the same commands as docs/TESTING.md.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+# A newer push to the same branch replaces a run still going.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Web (types, lint, tests, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  gateway:
+    name: Gateway (lint, tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: gateway
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: gateway/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+
+  core-api:
+    name: core-api (Java 21, real PostGIS, MongoDB and Redis)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      # Testcontainers starts its databases on the runner's Docker.
+      - run: mvn -B test
+        working-directory: core-api
+
+  python:
+    name: Python (ruff, events, simulator, model, experiments, intel)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint
+        run: pipx run ruff check sim intel experiments journex_events conftest.py
+      # The suite needs PostgreSQL with core-api's schema, which core-api's Flyway creates.
+      - name: Start PostgreSQL and core-api
+        run: docker compose up -d --wait postgres core-api
+      - name: Test
+        run: docker compose --profile research run --rm research
+      - name: Stop
+        if: always()
+        run: docker compose down

@@ -1,5 +1,7 @@
 # JOURNEX
 
+[![CI](https://github.com/shivampatil4972/VAYORA-/actions/workflows/ci.yml/badge.svg)](https://github.com/shivampatil4972/VAYORA-/actions/workflows/ci.yml)
+
 AI-powered intercity ride-sharing for the Kolhapur to Pune corridor (~230 km), built to
 test one idea about cancellations.
 
