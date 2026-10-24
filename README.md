@@ -150,6 +150,20 @@ Backing services: PostgreSQL 16 + PostGIS 3.4 (`5432`), MongoDB 7 (`27017`), Red
 **An administrator** cannot sign up. Copy `.env.example` to `.env`, set `ADMIN_EMAIL` and
 `ADMIN_PASSWORD` (12 characters or more), and restart core-api.
 
+**The API** is described at http://localhost:8080/swagger-ui.html: every endpoint, with
+its fields, tried from the page once **Authorize** has the token sign-in returns.
+
+**Demo data**, to see the platform with rides in it (needs Node 20):
+
+```sh
+DEMO_PASSWORD=<8 or more characters> node scripts/demo-data.mjs
+```
+
+Four drivers, six days of corridor rides each way, and two passengers with seats booked,
+all signing in with that password. Every demo account says in its profile that it is made
+up, and nothing it does reaches the research figures, which are computed per simulation
+run. It refuses any API but this machine's.
+
 **A port already in use?** Every host port is a `*_PORT` setting in `.env`;
 `check-health.sh` reads the same variables:
 
