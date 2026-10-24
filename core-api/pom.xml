@@ -79,6 +79,12 @@
             <artifactId>pdfbox</artifactId>
             <version>3.0.3</version>
         </dependency>
+        <!-- Interactive API documentation (Swagger UI) generated from the controllers themselves. -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.8.9</version>
+        </dependency>
         <!-- Sends email through an SMTP server when one is configured; otherwise nothing is emailed. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

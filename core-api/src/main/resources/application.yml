@@ -300,6 +300,15 @@ journex:
 server:
   port: 8080
 
+# The API described from the controllers: /swagger-ui.html to read and try it, /v3/api-docs as
+# OpenAPI JSON. Public, as the endpoints themselves still demand a token.
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+    persist-authorization: true
+
 management:
   health:
     redis:
