@@ -166,3 +166,8 @@ Each was justified in one sentence when it was added, as CLAUDE.md requires.
 | framer-motion, lucide-react | web | Exits, height changes and swipes that CSS cannot animate; one consistent icon set (see Interface) |
 | ESLint, typescript-eslint, eslint-plugin-react-hooks, eslint-plugin-jsx-a11y | web, gateway (development only) | Catch misused hooks, unused code and accessibility faults that the type checker and the tests do not |
 | springdoc-openapi | core-api | Generates the API's OpenAPI description and Swagger UI from the controllers, so the reference cannot drift from the code |
+
+Tailwind stays on version 3 (2026-10-24). Version 4 would clear the last three moderate
+advisories, but they are in build tools that only ever parse the project's own CSS, and
+version 4 needs Safari 16.4, Chrome 111 or Firefox 128 or later: older phones, common
+among the passengers the corridor serves, would get an unstyled app.

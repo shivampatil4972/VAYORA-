@@ -98,7 +98,7 @@ Listed so nobody mistakes the section above for the whole picture.
 | **Databases have development passwords** and their ports are published to the host | In `docker-compose.yml` for convenience |
 | **Administrators can read every confirmation code** | In the simulated outbox. It must not exist alongside a real sender |
 | **No content security policy and no HSTS** | The headers above are the basic set; HSTS would need HTTPS first |
-| **Only the web app's dependencies have been scanned**, by `npm audit` | None in what the browser runs; 7 in Tailwind 3's build tools, fixed only by Tailwind 4. Java and Python dependencies and the images are unscanned |
+| **Only the JavaScript dependencies have been scanned**, by `npm audit` (2026-10-24) | None in the gateway or in what the browser runs, after moving to zod 4 and body-parser 1.20.9. Three moderate remain in Tailwind 3's build tools, which parse only the project's own CSS. Java and Python dependencies and the images are unscanned |
 | **Chat is not moderated** and is kept indefinitely | |
 | **No account deletion or data export** | A member cannot remove their data |
 
