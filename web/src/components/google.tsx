@@ -65,20 +65,24 @@ export function GoogleSignIn() {
     }
   };
 
+  // The latest of each, so a sign-in that finishes after a re-render, or a change of
+  // language, uses what is current; the button itself is drawn once per client.
+  const latest = useRef({ finish, t });
+  latest.current = { finish, t };
+
   useEffect(() => {
     if (!clientId || !button.current) return;
     let cancelled = false;
     loadScript()
       .then((identity) => {
         if (cancelled || !button.current) return;
-        identity.accounts.id.initialize({ client_id: clientId, callback: ({ credential }) => void finish(credential) });
+        identity.accounts.id.initialize({ client_id: clientId, callback: ({ credential }) => void latest.current.finish(credential) });
         identity.accounts.id.renderButton(button.current, { theme: 'outline', size: 'large', text: 'continue_with' });
       })
-      .catch(() => setFailure(t('Google sign-in could not be loaded. Use your email or phone instead.')));
+      .catch(() => setFailure(latest.current.t('Google sign-in could not be loaded. Use your email or phone instead.')));
     return () => {
       cancelled = true;
     };
-    // finish and t are rebuilt each render; the button only needs drawing once per client.
   }, [clientId]);
 
   // Nothing at all when Google sign-in is off: not even an empty card.

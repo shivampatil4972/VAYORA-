@@ -163,13 +163,15 @@ function Confirm({ channel, label, address, confirmed }: { channel: 'email' | 'p
     mutationFn: () => api<void>(`/me/verification/${channel}/confirm`, { method: 'POST', body: { code } }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['me', 'profile'] }),
   });
-  // A different address starts again from nothing.
+  // A different address starts again from nothing. The reset functions are stable, so this
+  // runs only when the address changes.
+  const { reset: resetRequest } = request;
+  const { reset: resetConfirm } = confirm;
   useEffect(() => {
     setCode('');
-    request.reset();
-    confirm.reset();
-    // Only when the address changes: the mutations are new objects on every render.
-  }, [address]);
+    resetRequest();
+    resetConfirm();
+  }, [address, resetRequest, resetConfirm]);
 
   return (
     <div className="space-y-2 border-t border-slate-100 pt-4 first:border-0 first:pt-0">
